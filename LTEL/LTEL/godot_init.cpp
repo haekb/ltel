@@ -16,7 +16,7 @@ typedef void f_GetClientShellFunctions(CreateClientShellFn* pCreate, DeleteClien
 
 static LTELClient* g_pClient = nullptr;
 
-#define WAIT_FOR_DEBUGGER 
+//#define WAIT_FOR_DEBUGGER 
 
 class LTEL : public Reference {
     GODOT_CLASS(LTEL, Reference);
@@ -34,6 +34,32 @@ public:
             ::Sleep(100); // to avoid 100% CPU load
         }
 #endif
+
+        //
+        // Setup SEH translator
+        // Be sure to enable "Yes with SEH Exceptions (/EHa)" in C++ / Code Generation;
+        _set_se_translator([](unsigned int u, EXCEPTION_POINTERS* pExp) {
+            std::string error = "SE Exception: ";
+            switch (u) {
+            case 0xC0000005:
+                error += "Access Violation";
+                break;
+            default:
+                char result[11];
+                sprintf_s(result, 11, "0x%08X", u);
+                error += result;
+            };
+            throw std::exception(error.c_str());
+            });
+
+
+
+        //
+
+
+
+
+
         // CWD is the project folder...
         HINSTANCE hClientShell = LoadLibraryA("./bin/CShell.dll");
 
@@ -103,11 +129,17 @@ public:
 
         DGUID AppGUID = { 0 };
 
-        //auto hResult = pGameClientShell->OnEngineInitialized(pGameClientShell, nullptr, &AppGUID);
+        try {
 
-        auto hResult = pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
+            auto hResult = pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
+            Godot::print("OnEngineInit returned {0}", (int)hResult);
+        }
+        catch (const std::exception& e)
+        {
+            Godot::print("[OnEngineInitalized] Failed with exception: {0}", e.what());
+        }
 
-        Godot::print("OnEngineInit returned {0}", (int)hResult);
+        Godot::print("Done!");
     }
 
     void test_void_method() {
