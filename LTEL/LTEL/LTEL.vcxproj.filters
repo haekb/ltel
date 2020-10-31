@@ -13,6 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Lithtech">
+      <UniqueIdentifier>{28ccc067-b375-489f-935d-e020155f33c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lithtech\1.0">
+      <UniqueIdentifier>{3b697d50-e29f-476a-a03d-43d8b45739a6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lithtech\1.0\AppHeaders">
+      <UniqueIdentifier>{10db21b0-2bc0-4d29-8287-2a62581d9d2f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lithtech\1.0\Impl">
+      <UniqueIdentifier>{f6e91cb9-cd46-47c2-87ba-e3457ef24a2a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -21,6 +33,90 @@
     <ClInclude Include="pch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\aggregate_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\basedefs_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\basetypes_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\client_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\clientshell_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\common_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\cpp_aggregate_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\cpp_client_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\cpp_clientshell_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\cpp_engineobjects_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\cpp_server_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\cpp_servershell_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\CSBase.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\de_client.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\de_codes.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\de_server.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\dlink.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\dstream.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\DVector.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\engineobjects_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\generic_msg_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\lmessage.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\matrix_ops.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\physics_lt.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\server_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\serverobj_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\servershell_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LT1\AppHeaders\specialeffect_de.h">
+      <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -28,6 +124,12 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="godot_init.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="client.cpp">
+      <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

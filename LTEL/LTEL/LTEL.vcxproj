@@ -88,13 +88,16 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;LTEL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\godot-cpp\include;$(SolutionDir)..\godot-cpp\include\core;$(SolutionDir)..\godot-cpp\include\gen;$(SolutionDir)..\godot-cpp\godot_headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\godot-cpp\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -105,8 +108,9 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;NDEBUG;LTEL_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\godot-cpp\include;$(SolutionDir)..\godot-cpp\include\core;$(SolutionDir)..\godot-cpp\include\gen;$(SolutionDir)..\godot-cpp\godot_headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -114,6 +118,8 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\godot-cpp\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -152,10 +158,40 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="framework.h" />
+    <ClInclude Include="LT1\AppHeaders\aggregate_de.h" />
+    <ClInclude Include="LT1\AppHeaders\basedefs_de.h" />
+    <ClInclude Include="LT1\AppHeaders\basetypes_de.h" />
+    <ClInclude Include="LT1\AppHeaders\clientshell_de.h" />
+    <ClInclude Include="LT1\AppHeaders\client_de.h" />
+    <ClInclude Include="LT1\AppHeaders\common_de.h" />
+    <ClInclude Include="LT1\AppHeaders\cpp_aggregate_de.h" />
+    <ClInclude Include="LT1\AppHeaders\cpp_clientshell_de.h" />
+    <ClInclude Include="LT1\AppHeaders\cpp_client_de.h" />
+    <ClInclude Include="LT1\AppHeaders\cpp_engineobjects_de.h" />
+    <ClInclude Include="LT1\AppHeaders\cpp_servershell_de.h" />
+    <ClInclude Include="LT1\AppHeaders\cpp_server_de.h" />
+    <ClInclude Include="LT1\AppHeaders\CSBase.h" />
+    <ClInclude Include="LT1\AppHeaders\de_client.h" />
+    <ClInclude Include="LT1\AppHeaders\de_codes.h" />
+    <ClInclude Include="LT1\AppHeaders\de_server.h" />
+    <ClInclude Include="LT1\AppHeaders\dlink.h" />
+    <ClInclude Include="LT1\AppHeaders\dstream.h" />
+    <ClInclude Include="LT1\AppHeaders\DVector.h" />
+    <ClInclude Include="LT1\AppHeaders\engineobjects_de.h" />
+    <ClInclude Include="LT1\AppHeaders\generic_msg_de.h" />
+    <ClInclude Include="LT1\AppHeaders\lmessage.h" />
+    <ClInclude Include="LT1\AppHeaders\matrix_ops.h" />
+    <ClInclude Include="LT1\AppHeaders\physics_lt.h" />
+    <ClInclude Include="LT1\AppHeaders\serverobj_de.h" />
+    <ClInclude Include="LT1\AppHeaders\servershell_de.h" />
+    <ClInclude Include="LT1\AppHeaders\server_de.h" />
+    <ClInclude Include="LT1\AppHeaders\specialeffect_de.h" />
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="client.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="godot_init.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -1,7 +1,7 @@
 extends Node
 
 # load the Simple library
-onready var data = preload("res://SimpleLibCaller.gdns").new()
+onready var data = preload("res://src/native/LTELBinder.gdns").new()
 
 # Declare member variables here. Examples:
 # var a = 2
@@ -11,7 +11,7 @@ onready var data = preload("res://SimpleLibCaller.gdns").new()
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	print ( data.method('hi') )
-	data.test_void_method()
+	data.init_cshell()
 	pass # Replace with function body.
 
 
