@@ -117,6 +117,9 @@
     <ClInclude Include="LT1\AppHeaders\specialeffect_de.h">
       <Filter>Lithtech\1.0\AppHeaders</Filter>
     </ClInclude>
+    <ClInclude Include="client.h">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

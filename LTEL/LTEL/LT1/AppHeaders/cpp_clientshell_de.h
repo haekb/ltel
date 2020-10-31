@@ -32,7 +32,7 @@ class CClientShellDE
 		CClientDE* GetClientDE() const;
 
 
-	protected :
+	//protected :
 
 		virtual void OnCommandOn(int command) {}
 		virtual void OnCommandOff(int command) {}

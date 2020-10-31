@@ -5,13 +5,18 @@
 #include "framework.h"
 #include <iostream>
 
-#include "LT1/AppHeaders/client_de.h"
+#include "client.h"
+#include "LT1//AppHeaders/cpp_clientshell_de.h"
 //#include "pch.h"
 
 using namespace godot;
 
 typedef int f_GetClientShellVersion();
 typedef void f_GetClientShellFunctions(CreateClientShellFn* pCreate, DeleteClientShellFn* pDelete);
+
+static LTELClient* g_pClient = nullptr;
+
+#define WAIT_FOR_DEBUGGER 
 
 class LTEL : public Reference {
     GODOT_CLASS(LTEL, Reference);
@@ -23,13 +28,20 @@ public:
 
     void initialize_cshell()
     {
+#ifdef WAIT_FOR_DEBUGGER
+        while (!::IsDebuggerPresent())
+        {
+            ::Sleep(100); // to avoid 100% CPU load
+        }
+#endif
         // CWD is the project folder...
         HINSTANCE hClientShell = LoadLibraryA("./bin/CShell.dll");
 
-        TCHAR NPath[MAX_PATH];
-        GetCurrentDirectory(MAX_PATH, NPath);
-
-        Godot::print(NPath);
+        if (!hClientShell)
+        {
+            Godot::print("Could not locate CShell.dll!");
+            return;
+        }
 
         /*
         f_GetClientShellFunctions* pClientShellInitFunc = (f_GetClientShellFunctions*)GetProcAddress(hClientShell, "GetClientShellFunctions");
@@ -45,15 +57,57 @@ public:
         if (!pGetVersion)
         {
             Godot::print("Could not obtain Proc GetClientShellVersion!");
+            return;
         }
-        else
+
+        // Print the version!
+        int nVersion = pGetVersion();
+        Godot::print("CShell.dll version: {0}", nVersion);
+
+        // Okay now the real fun begins,
+        // we'll need to kick off our client impl to CShell.dll
+
+        f_GetClientShellFunctions* pClientShellInitFunc = (f_GetClientShellFunctions*)GetProcAddress(hClientShell, "GetClientShellFunctions");
+
+        if (!pClientShellInitFunc)
         {
-            int nVersion = pGetVersion();
-            Godot::print("CShell.dll version: {0}", nVersion);
+            Godot::print("Could not obtain Proc GetClientShellFunctions!");
+            return;
         }
 
         //
+        int pnCreate = 0;
+        int pnDelete = 0;
 
+        pClientShellInitFunc((CreateClientShellFn*)&pnCreate, (DeleteClientShellFn*)&pnDelete);
+
+        if (!pnCreate)
+        {
+            Godot::print("Could not obtain CreateClientShellFn!");
+
+            return;
+        }
+
+        Godot::print("We have pnCreate!");
+
+        g_pClient = new LTELClient();
+
+        CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
+        CClientShellDE* pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
+
+        if (!pGameClientShell)
+        {
+            Godot::print("Could not retrieve GameClientShell!");
+            return;
+        }
+
+        DGUID AppGUID = { 0 };
+
+        //auto hResult = pGameClientShell->OnEngineInitialized(pGameClientShell, nullptr, &AppGUID);
+
+        auto hResult = pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
+
+        Godot::print("OnEngineInit returned {0}", (int)hResult);
     }
 
     void test_void_method() {
