@@ -9,7 +9,7 @@ public:
     virtual ~LTELClient();
 
     // Required Impl
-
+	void InitFunctionPointers();
 
 	//
 	// CSBASE

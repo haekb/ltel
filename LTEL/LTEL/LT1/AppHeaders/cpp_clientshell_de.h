@@ -32,6 +32,7 @@ class CClientShellDE
 		CClientDE* GetClientDE() const;
 
 
+		// Jake: These functions need to be public, LT1.0 might do some magic with whatever the friend class for ClientDE is, but I'm not sure how to re-create it just yet..
 	//protected :
 
 		virtual void OnCommandOn(int command) {}

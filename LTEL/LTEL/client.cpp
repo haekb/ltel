@@ -9,6 +9,8 @@ LTELClient::~LTELClient()
 {
 }
 
+
+
 //
 // STUB FUNCTIONS
 // If you wish to implement functions please place it in their own sectioned off .cpp file!
