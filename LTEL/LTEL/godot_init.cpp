@@ -70,6 +70,13 @@ public:
             return;
         }
 
+        HINSTANCE hCRes = LoadLibraryA("./bin/CRes.dll");
+
+        if (!hCRes)
+        {
+            Godot::print("Could not locate CRes.dll!");
+            return;
+        }
         /*
         f_GetClientShellFunctions* pClientShellInitFunc = (f_GetClientShellFunctions*)GetProcAddress(hClientShell, "GetClientShellFunctions");
 
@@ -117,7 +124,7 @@ public:
 
         Godot::print("We have pnCreate!");
 
-        g_pClient = new LTELClient(this);
+        g_pClient = new LTELClient(this, hCRes);
 
         CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
         CClientShellDE* pGameClientShell = (CClientShellDE*)pCreate(g_pClient);

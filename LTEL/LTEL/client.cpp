@@ -3,12 +3,16 @@
 
 LTELClient* g_pLTELClient = nullptr;
 
-LTELClient::LTELClient(godot::Node* pGodotLink)
+LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 {
 	g_pLTELClient = this;
 
+	m_pCRes = pCRes;
 	m_pGodotLink = pGodotLink;
 	InitFunctionPointers();
+
+	// New!
+	InitRenderImpl();
 }
 
 LTELClient::~LTELClient()

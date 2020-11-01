@@ -120,6 +120,9 @@
     <ClInclude Include="client.h">
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClInclude>
+    <ClInclude Include="helpers.h">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -135,6 +138,12 @@
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
     <ClCompile Include="client_impl.cpp">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="client_render_impl.cpp">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers.cpp">
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
   </ItemGroup>

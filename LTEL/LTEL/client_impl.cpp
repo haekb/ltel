@@ -3,6 +3,8 @@
 #include <map>
 // Here be our accessible functions
 
+#include "helpers.h"
+
 // Godot stuff
 #include <Godot.hpp>
 #include <Reference.hpp>
@@ -10,11 +12,14 @@
 #include <Resource.hpp>
 #include <Texture.hpp>
 #include <TextureRect.hpp>
+#include <OS.hpp>
 #include <Engine.hpp>
 #include <Viewport.hpp>
 #include <SceneTree.hpp>
 #include <Node.hpp>
 #include <Object.hpp>
+#include <Camera.hpp>
+#include <Math.hpp>
 // End
 
 extern LTELClient* g_pLTELClient;
@@ -40,14 +45,6 @@ struct oConsoleVariable {
 
 std::map<std::string, oConsoleVariable> g_mConsoleVars;
 
-// helpers
-bool replace(std::string& str, const std::string& from, const std::string& to) {
-	size_t start_pos = str.find(from);
-	if (start_pos == std::string::npos)
-		return false;
-	str.replace(start_pos, from.length(), to);
-	return true;
-}
 
 
 // end temp!
@@ -142,170 +139,187 @@ DRESULT impl_IsLobbyLaunched(char* sDriver)
 	return DE_ERROR;
 }
 
-DRESULT impl_SetRenderMode(RMode* pMode)
-{
-	return DE_OK;
-}
 
-HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
+HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
-	std::string sBitmapName = pBitmapName;
-	if (!replace(sBitmapName, ".pcx", ".png"))
+	godot::Node* pNode = nullptr;
+
+	godot::Node* p3DNode = godot::Object::cast_to<godot::Node>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
+
+
+	if (pStruct->m_ObjectType == OT_CAMERA)
 	{
-		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to replace pcx with png! String: {0}", pBitmapName);
-		return nullptr;
+		godot::Camera* pCamera = godot::Camera::_new();
+
+		p3DNode->add_child(pCamera);
+
+		// Camera doesn't require any other settings
+		return (HLOCALOBJ)pCamera;
 	}
 
-	std::string sResourcePath = "res://shogo/" + sBitmapName;
 
-	auto pResourceLoader = godot::ResourceLoader::get_singleton();
-
-	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
-
-	if (pTexture.is_null())
-	{
-		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to get texture resource at: {0}", sResourcePath.c_str());
-		return nullptr;
-	}
-	godot::TextureRect* pTextureRect = godot::TextureRect::_new();
-	pTextureRect->set_name(sBitmapName.c_str());
-	pTextureRect->set_texture(pTexture);
-	pTextureRect->set_stretch_mode(godot::TextureRect::STRETCH_KEEP_ASPECT_COVERED);
-	pTextureRect->set_expand(true);
-
-	return (HSURFACE)pTextureRect;
+	return (HLOCALOBJ)pNode;
 }
 
-DRESULT impl_DeleteSurface(HSURFACE hSurface)
+void impl_SetCameraRect(HLOCALOBJ hObj, DBOOL bFullscreen,
+	int left, int top, int right, int bottom)
 {
-	return DE_OK;
-
-	godot::TextureRect* pTextureRect = (godot::TextureRect*)hSurface;
-	if (!pTextureRect)
-	{
-		godot::Godot::print("[impl_DeleteSurface] Failed to retrieve TextureRect from HSURFACE");
-		return DE_ERROR;
-	}
-
-	pTextureRect->queue_free();
-	pTextureRect = nullptr;
-	hSurface = nullptr;
-	return DE_OK;
+	// Uhhh not right now
+	return;
 }
 
-HSURFACE impl_GetScreenSurface()
+void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
 {
-	// We don't really need this yet, so just return a blank texture rect
-	static godot::TextureRect* pScreen = godot::TextureRect::_new();
+	godot::Camera* pCamera = (godot::Camera*)hObj;
 
-	return (HSURFACE)pScreen;
-}
-
-void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
-{
-	godot::TextureRect* pTextureRect = (godot::TextureRect*)hSurf;
-	if (!pTextureRect)
+	if (!pCamera)
 	{
-		godot::Godot::print("[impl_GetSurfaceDims] Failed to retrieve TextureRect from HSURFACE");
 		return;
 	}
 
-	auto rTexture = pTextureRect->get_texture();
+	float fFOV = godot::Math::rad2deg(fovX);
+	float fIgnore = godot::Math::rad2deg(fovY);
 
-	// Oh this must be the screen...
-	if (rTexture.is_null())
+	godot::Godot::print("[impl_SetCameraFOV] Setting FOV to {0}, ignoring Y value {1}", fFOV, fIgnore);
+
+	pCamera->set_fov(fFOV);
+}
+
+HSTRING impl_FormatString(int messageCode, ...)
+{
+	if (!g_pLTELClient->m_pCRes)
 	{
-		*pWidth = 1024;
-		*pHeight = 768;
-		return;
+		return nullptr;
 	}
 
-	auto vSize = rTexture->get_size();
-	*pWidth = vSize.x;
-	*pHeight = vSize.y;
-}
+	TCHAR szBuffer[2048];
 
-//
-// Here be hacky!
-//
+	auto nRet = LoadString(g_pLTELClient->m_pCRes, messageCode, szBuffer, sizeof(szBuffer) / sizeof(TCHAR));
 
-DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
-{
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/2D/Canvas"));
-
-	if (!pControl)
+	// Not found!
+	if (nRet == 0)
 	{
-		return DE_ERROR;
-	}
-	return DE_OK;
-	auto pChildren = pControl->get_children();
-
-	for (int i = 0; i < pChildren.size(); i++)
-	{
-		pControl->remove_child(pChildren[i]);
+		return nullptr;
 	}
 
-	// We don't need to actually implement this right now
+	return (HSTRING)szBuffer;
+}
+
+void impl_FreeString(HSTRING hString)
+{
+	hString = nullptr;
+}
+
+char* impl_GetStringData(HSTRING hString)
+{
+	return (char*)hString;
+}
+
+HDEFONT impl_CreateFont(char* pFontName, int width, int height,
+	DBOOL bItalic, DBOOL bUnderline, DBOOL bBold)
+{
+	godot::Godot::print("[impl_CreateFont] Wants to create {0}", pFontName);
+	return nullptr;
+}
+
+HDECOLOR impl_SetupColor1(float r, float g, float b, DBOOL bTransparent)
+{
+	float a = bTransparent ? 0.5f : 1.0f;
+	godot::Color oColor = { r, g, b, a };
+	return (HDECOLOR)&oColor;
+}
+
+HDECOLOR impl_SetupColor2(float r, float g, float b, DBOOL bTransparent)
+{
+	return impl_SetupColor1(r, g, b, bTransparent);
+}
+
+DBOOL impl_InitMusic(char* szMusicDLL)
+{
+	return TRUE;
+}
+
+DRESULT impl_InitSound(InitSoundInfo* pSoundInfo)
+{
+	// No sound settings yet!
 	return DE_OK;
 }
 
-DRESULT impl_Start3D()
+void impl_SetMusicVolume(short wVolume)
+{
+	godot::Godot::print("[impl_SetMusicVolume] Music volume is now {0}", wVolume);
+	return;
+}
+
+void impl_SetSoundVolume(unsigned short nVolume)
+{
+	godot::Godot::print("[impl_SetSoundVolume] Sound volume is now {0}", nVolume);
+	return;
+}
+
+DRESULT impl_SetReverbProperties(ReverbProperties* pReverbProperties)
 {
 	return DE_OK;
 }
 
-// We don't control this right now
-DRESULT impl_RenderCamera(HLOCALOBJ hCamera)
+DRESULT impl_GetDeviceName(DDWORD nDeviceType, char* pStrBuffer, DDWORD nBufferSize)
 {
+	// Input not supported yet!
+	return DE_NOTFOUND;
+}
+
+DRESULT impl_ReadConfigFile(char* pFilename)
+{
+	godot::Godot::print("[impl_ReadConfigFile] Config wants to be read: {0}", pFilename);
+
 	return DE_OK;
 }
 
-DRESULT impl_StartOptimized2D()
+FileEntry* impl_GetFileList(char* pDirName)
 {
-	return DE_OK;
+	godot::Godot::print("[impl_GetFileList] File list requested for directory: {0}", pDirName);
+	return nullptr;
 }
 
-DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
-	DRect* pDestRect, DRect* pSrcRect)
+void impl_FreeFileList(FileEntry* pHead)
 {
-	godot::TextureRect* pDest = (godot::TextureRect*)hDest;
-	godot::TextureRect* pSrc = (godot::TextureRect*)hSrc;
-
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/2D/Canvas"));
-
-	if (!pControl)
-	{
-		return DE_ERROR;
-	}
-
-	// Screen!
-	if (pDest->get_texture().is_null())
-	{
-		pSrc->set_position(godot::Vector2(pDestRect->left, pDestRect->top));
-		pSrc->set_size(godot::Vector2(pDestRect->right, pDestRect->bottom));
-		pControl->add_child(pSrc);
-		godot::Godot::print("Added child to 2DControl");
-		return DE_OK;
-	}
-
-	// Don't need this yet
-	return DE_OK;
+	return;
 }
 
-DRESULT impl_EndOptimized2D()
+DeviceObject* impl_GetDeviceObjects(DDWORD nDeviceFlags)
 {
-	return DE_OK;
+	return nullptr;
 }
 
-// Returns LT_OK or LT_NOTINITIALIZED or LT_NOTIN3D.
-DRESULT impl_End3D()
+void impl_FreeDeviceObjects(DeviceObject* pList)
 {
-	return DE_OK;
+	return;
 }
 
-DRESULT impl_FlipScreen(DDWORD flags)
+DeviceBinding* impl_GetDeviceBindings(DDWORD nDevice)
 {
-	return DE_OK;
+	return nullptr;
+}
+
+void impl_FreeDeviceBindings(DeviceBinding* pBindings)
+{
+	return;
+}
+
+HSTRING impl_CreateString(char* pString)
+{
+	return (HSTRING)pString;
+}
+
+float impl_GetTime()
+{
+	auto pOS = godot::OS::get_singleton();
+	return (float)pOS->get_ticks_msec() / 1000.0f;
+}
+
+void impl_CPrint(char* pMsg, ...)
+{
+	godot::Godot::print(pMsg);
 }
 
 //
@@ -322,21 +336,44 @@ void LTELClient::InitFunctionPointers()
 
 	RegisterConsoleProgram = impl_RegisterConsoleProgram;
 
-	// Render functionality
-	SetRenderMode = impl_SetRenderMode;
-	CreateSurfaceFromBitmap = impl_CreateSurfaceFromBitmap;
-	GetScreenSurface = impl_GetScreenSurface;
-	GetSurfaceDims = impl_GetSurfaceDims;
-	DeleteSurface = impl_DeleteSurface;
+	// System/IO functionality
+	ReadConfigFile = impl_ReadConfigFile;
+	GetFileList = impl_GetFileList;
+	FreeFileList = impl_FreeFileList;
+	GetTime = impl_GetTime;
+	CPrint = impl_CPrint;
 
-	ClearScreen = impl_ClearScreen;
-	Start3D = impl_Start3D;
-	RenderCamera = impl_RenderCamera;
-	StartOptimized2D = impl_StartOptimized2D;
-	ScaleSurfaceToSurface = impl_ScaleSurfaceToSurface;
-	EndOptimized2D = impl_EndOptimized2D;
-	End3D = impl_End3D;
-	FlipScreen = impl_FlipScreen;
+	// Audio functionality
+	InitMusic = impl_InitMusic;
+	InitSound = impl_InitSound;
+	SetMusicVolume = impl_SetMusicVolume;
+	SetSoundVolume = impl_SetSoundVolume;
+	SetReverbProperties = impl_SetReverbProperties;
+
+	// Input functionality
+	GetDeviceName = impl_GetDeviceName;
+	GetDeviceObjects = impl_GetDeviceObjects;
+	FreeDeviceObjects = impl_FreeDeviceObjects;
+	GetDeviceBindings = impl_GetDeviceBindings;
+	FreeDeviceBindings = impl_FreeDeviceBindings;
+
+	// Object functionality
+	CreateObject = impl_CreateObject;
+
+	// Camera functionality
+	SetCameraRect = impl_SetCameraRect;
+	SetCameraFOV = impl_SetCameraFOV;
+
+	// String functionality
+	FormatString = impl_FormatString;
+	FreeString = impl_FreeString;
+	GetStringData = impl_GetStringData;
+	CreateFont = impl_CreateFont;
+	CreateString = impl_CreateString;
+
+
+	SetupColor1 = impl_SetupColor1;
+	SetupColor2 = impl_SetupColor2;
 
 	// Network functionality
 	IsLobbyLaunched = impl_IsLobbyLaunched;

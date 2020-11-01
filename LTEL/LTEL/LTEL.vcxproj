@@ -169,6 +169,7 @@
   <ItemGroup>
     <ClInclude Include="client.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="helpers.h" />
     <ClInclude Include="LT1\AppHeaders\aggregate_de.h" />
     <ClInclude Include="LT1\AppHeaders\basedefs_de.h" />
     <ClInclude Include="LT1\AppHeaders\basetypes_de.h" />
@@ -202,8 +203,10 @@
   <ItemGroup>
     <ClCompile Include="client.cpp" />
     <ClCompile Include="client_impl.cpp" />
+    <ClCompile Include="client_render_impl.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="godot_init.cpp" />
+    <ClCompile Include="helpers.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

@@ -1,17 +1,25 @@
 #pragma once
+
 #include "LT1/AppHeaders/client_de.h"
 #include <Node.hpp>
+#include <Windows.h>
+
+// Some windows function names clash with ClientDE
+#undef CreateFont
+
 class LTELClient :
     public ClientDE
 {
 
 public:
-	LTELClient(godot::Node* pGodotLink);
+	LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes);
     virtual ~LTELClient();
 
     // Required Impl
 	void InitFunctionPointers();
+	void InitRenderImpl();
 
+	HINSTANCE m_pCRes;
 	godot::Node* m_pGodotLink;
 
 	//
@@ -163,6 +171,8 @@ public:
 
 	// End the current query.
 	virtual DRESULT EndQuery();
+
+
 
 
 };
