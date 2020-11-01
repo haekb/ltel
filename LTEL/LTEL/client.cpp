@@ -3,6 +3,7 @@
 
 LTELClient::LTELClient()
 {
+	InitFunctionPointers();
 }
 
 LTELClient::~LTELClient()

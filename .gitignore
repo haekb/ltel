@@ -2,3 +2,4 @@ godot-cpp
 *.vs
 Debug/
 Release/
+.import

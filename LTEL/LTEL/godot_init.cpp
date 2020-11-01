@@ -16,7 +16,7 @@ typedef void f_GetClientShellFunctions(CreateClientShellFn* pCreate, DeleteClien
 
 static LTELClient* g_pClient = nullptr;
 
-//#define WAIT_FOR_DEBUGGER 
+#define WAIT_FOR_DEBUGGER 
 
 class LTEL : public Reference {
     GODOT_CLASS(LTEL, Reference);

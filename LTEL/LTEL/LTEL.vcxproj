@@ -101,6 +101,10 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\godot-cpp\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(TargetDir)LTEL.dll" "$(SolutionDir)..\GodotProj\bin\LTEL.dll"</Command>
+      <Message>Copy DLL to Godot Project</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -123,6 +127,10 @@
       <AdditionalLibraryDirectories>$(SolutionDir)..\godot-cpp\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PostBuildEvent>
+      <Command>copy "$(TargetDir)LTEL.dll" "$(SolutionDir)..\GodotProj\bin\LTEL.dll"</Command>
+      <Message>Copy DLL to Godot Project</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
