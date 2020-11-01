@@ -1,6 +1,7 @@
 
 #include <Godot.hpp>
 #include <Reference.hpp>
+#include <Node.hpp>
 
 #include "framework.h"
 #include <iostream>
@@ -16,10 +17,10 @@ typedef void f_GetClientShellFunctions(CreateClientShellFn* pCreate, DeleteClien
 
 static LTELClient* g_pClient = nullptr;
 
-#define WAIT_FOR_DEBUGGER 
+//#define WAIT_FOR_DEBUGGER 
 
-class LTEL : public Reference {
-    GODOT_CLASS(LTEL, Reference);
+class LTEL : public Node {
+    GODOT_CLASS(LTEL, Node);
 public:
     LTEL() { }
 
@@ -116,7 +117,7 @@ public:
 
         Godot::print("We have pnCreate!");
 
-        g_pClient = new LTELClient();
+        g_pClient = new LTELClient(this);
 
         CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
         CClientShellDE* pGameClientShell = (CClientShellDE*)pCreate(g_pClient);

@@ -14,9 +14,10 @@
 #include <Viewport.hpp>
 #include <SceneTree.hpp>
 #include <Node.hpp>
-#include <GodotGlobal.hpp>
-
+#include <Object.hpp>
 // End
+
+extern LTELClient* g_pLTELClient;
 
 // TEMP!
 struct oConsoleVariable {
@@ -166,8 +167,8 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to get texture resource at: {0}", sResourcePath.c_str());
 		return nullptr;
 	}
-
 	godot::TextureRect* pTextureRect = godot::TextureRect::_new();
+	pTextureRect->set_name(sBitmapName.c_str());
 	pTextureRect->set_texture(pTexture);
 	pTextureRect->set_stretch_mode(godot::TextureRect::STRETCH_KEEP_ASPECT_COVERED);
 	pTextureRect->set_expand(true);
@@ -177,6 +178,8 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 
 DRESULT impl_DeleteSurface(HSURFACE hSurface)
 {
+	return DE_OK;
+
 	godot::TextureRect* pTextureRect = (godot::TextureRect*)hSurface;
 	if (!pTextureRect)
 	{
@@ -228,6 +231,20 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 
 DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 {
+	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/2D/Canvas"));
+
+	if (!pControl)
+	{
+		return DE_ERROR;
+	}
+	return DE_OK;
+	auto pChildren = pControl->get_children();
+
+	for (int i = 0; i < pChildren.size(); i++)
+	{
+		pControl->remove_child(pChildren[i]);
+	}
+
 	// We don't need to actually implement this right now
 	return DE_OK;
 }
@@ -251,6 +268,26 @@ DRESULT impl_StartOptimized2D()
 DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	DRect* pDestRect, DRect* pSrcRect)
 {
+	godot::TextureRect* pDest = (godot::TextureRect*)hDest;
+	godot::TextureRect* pSrc = (godot::TextureRect*)hSrc;
+
+	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/2D/Canvas"));
+
+	if (!pControl)
+	{
+		return DE_ERROR;
+	}
+
+	// Screen!
+	if (pDest->get_texture().is_null())
+	{
+		pSrc->set_position(godot::Vector2(pDestRect->left, pDestRect->top));
+		pSrc->set_size(godot::Vector2(pDestRect->right, pDestRect->bottom));
+		pControl->add_child(pSrc);
+		godot::Godot::print("Added child to 2DControl");
+		return DE_OK;
+	}
+
 	// Don't need this yet
 	return DE_OK;
 }

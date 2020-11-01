@@ -1,15 +1,18 @@
 #pragma once
 #include "LT1/AppHeaders/client_de.h"
+#include <Node.hpp>
 class LTELClient :
     public ClientDE
 {
 
 public:
-	LTELClient();
+	LTELClient(godot::Node* pGodotLink);
     virtual ~LTELClient();
 
     // Required Impl
 	void InitFunctionPointers();
+
+	godot::Node* m_pGodotLink;
 
 	//
 	// CSBASE

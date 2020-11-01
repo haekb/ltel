@@ -10,6 +10,7 @@ onready var data = preload("res://src/native/LTELBinder.gdns").new()
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	add_child(data)
 	print ( data.method('hi') )
 	data.init_cshell()
 	pass # Replace with function body.

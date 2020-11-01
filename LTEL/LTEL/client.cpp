@@ -1,8 +1,13 @@
 
 #include "client.h"
 
-LTELClient::LTELClient()
+LTELClient* g_pLTELClient = nullptr;
+
+LTELClient::LTELClient(godot::Node* pGodotLink)
 {
+	g_pLTELClient = this;
+
+	m_pGodotLink = pGodotLink;
 	InitFunctionPointers();
 }
 
