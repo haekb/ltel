@@ -1,5 +1,8 @@
 
 #include "client.h"
+#include "helpers.h"
+
+#include <Basis.hpp>
 
 LTELClient* g_pLTELClient = nullptr;
 
@@ -7,12 +10,15 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 {
 	g_pLTELClient = this;
 
+	m_vFOV = godot::Vector2(0.0f, 0.0f);
+	m_fFrametime = 0.1f;
 	m_pCRes = pCRes;
 	m_pGodotLink = pGodotLink;
 	InitFunctionPointers();
 
 	// New!
 	InitRenderImpl();
+	InitObjectImpl();
 }
 
 LTELClient::~LTELClient()
@@ -68,7 +74,19 @@ DRESULT LTELClient::SetupEuler(DRotation* pRotation, float pitch, float yaw, flo
 
 DRESULT LTELClient::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)
 {
-	return DRESULT();
+	godot::Quat vQuat = LT2GodotQuat(pRotation);
+
+	godot::Basis vBasis = godot::Basis(vQuat);
+
+	godot::Vector3 vForward = -vBasis.z;
+	godot::Vector3 vRight = vBasis.x;
+	godot::Vector3 vUp = vBasis.y;
+
+	*pForward = DVector(vForward.x, vForward.y, vForward.z);
+	*pRight = DVector(vRight.x, vRight.y, vRight.z);
+	*pUp = DVector(vUp.x, vUp.y, vUp.z);
+
+	return DE_OK;
 }
 
 HMESSAGEWRITE LTELClient::StartMessage(DBYTE messageID)

@@ -4,6 +4,7 @@
 #include <Node.hpp>
 #include <Windows.h>
 
+
 // Some windows function names clash with ClientDE
 #undef CreateFont
 #undef PlaySound
@@ -19,9 +20,12 @@ public:
     // Required Impl
 	void InitFunctionPointers();
 	void InitRenderImpl();
+	void InitObjectImpl();
 
+	godot::Vector2 m_vFOV;
 	HINSTANCE m_pCRes;
 	godot::Node* m_pGodotLink;
+	float m_fFrametime;
 
 	//
 	// CSBASE

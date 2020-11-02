@@ -146,5 +146,8 @@
     <ClCompile Include="helpers.cpp">
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
+    <ClCompile Include="client_object_impl.cpp">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

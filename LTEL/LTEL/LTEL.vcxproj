@@ -203,6 +203,7 @@
   <ItemGroup>
     <ClCompile Include="client.cpp" />
     <ClCompile Include="client_impl.cpp" />
+    <ClCompile Include="client_object_impl.cpp" />
     <ClCompile Include="client_render_impl.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="godot_init.cpp" />

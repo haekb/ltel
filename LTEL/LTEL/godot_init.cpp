@@ -157,8 +157,9 @@ public:
         Godot::print("Done!");
     }
 
-    void game_update() 
+    void game_update(float fDelta) 
     {
+        g_pClient->m_fFrametime = fDelta;
         try {
             m_pGameClientShell->PreUpdate();
 

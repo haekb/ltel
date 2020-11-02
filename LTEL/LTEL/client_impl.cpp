@@ -150,26 +150,6 @@ DRESULT impl_IsLobbyLaunched(char* sDriver)
 }
 
 
-HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
-{
-	godot::Node* pNode = nullptr;
-
-	godot::Node* p3DNode = godot::Object::cast_to<godot::Node>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera"));
-
-
-	if (pStruct->m_ObjectType == OT_CAMERA)
-	{
-		//godot::Camera* pCamera = godot::Camera::_new();
-
-		//p3DNode->add_child(pCamera);
-
-		// Camera doesn't require any other settings
-		return (HLOCALOBJ)p3DNode->get_parent();
-	}
-
-
-	return (HLOCALOBJ)pNode;
-}
 
 void impl_GetCameraRect(HLOCALOBJ hObj, DBOOL* bFullscreen,
 	int* left, int* top, int* right, int* bottom)
@@ -201,7 +181,26 @@ void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
 
 	godot::Godot::print("[impl_SetCameraFOV] Setting FOV to {0}, ignoring Y value {1}", fFOV, fIgnore);
 
+	g_pLTELClient->m_vFOV = godot::Vector2(fFOV, fIgnore);
+
 	pCamera->set_fov(fFOV);
+}
+
+void impl_GetCameraFOV(HLOCALOBJ hObj, float* pX, float* pY)
+{
+	godot::Camera* pCamera = (godot::Camera*)hObj;
+
+	if (!pCamera)
+	{
+		*pX = 0.0f;
+		*pY = 0.0f;
+		return;
+	}
+
+	auto vFov = g_pLTELClient->m_vFOV;
+
+	*pX = godot::Math::deg2rad(vFov.x);
+	*pY = godot::Math::deg2rad(vFov.y);
 }
 
 HSTRING impl_CreateString(char* pString)
@@ -365,6 +364,11 @@ float impl_GetTime()
 	return (float)pOS->get_ticks_msec() / 1000.0f;
 }
 
+float impl_GetFrameTime()
+{
+	return g_pLTELClient->m_fFrametime;
+}
+
 void impl_CPrint(char* pMsg, ...)
 {
 	godot::Godot::print(pMsg);
@@ -431,6 +435,7 @@ void LTELClient::InitFunctionPointers()
 	GetFileList = impl_GetFileList;
 	FreeFileList = impl_FreeFileList;
 	GetTime = impl_GetTime;
+	GetFrameTime = impl_GetFrameTime;
 	CPrint = impl_CPrint;
 
 	// Game state functionality
@@ -456,13 +461,11 @@ void LTELClient::InitFunctionPointers()
 	FreeDeviceBindings = impl_FreeDeviceBindings;
 	SetInputState = impl_SetInputState;
 
-	// Object functionality
-	CreateObject = impl_CreateObject;
-
 	// Camera functionality
 	GetCameraRect = impl_GetCameraRect;
 	SetCameraRect = impl_SetCameraRect;
 	SetCameraFOV = impl_SetCameraFOV;
+	GetCameraFOV = impl_GetCameraFOV;
 
 	// String functionality
 	FormatString = impl_FormatString;
