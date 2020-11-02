@@ -48,6 +48,13 @@ struct oConsoleVariable {
 
 std::map<std::string, oConsoleVariable> g_mConsoleVars;
 
+struct LTELString {
+	LTELString(std::string sIncoming = "") {
+		sData = sIncoming;
+	}
+
+	std::string sData;
+};
 
 
 // end temp!
@@ -197,6 +204,13 @@ void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
 	pCamera->set_fov(fFOV);
 }
 
+HSTRING impl_CreateString(char* pString)
+{
+	LTELString* pLTELString = new LTELString(pString);
+
+	return (HSTRING)pLTELString;
+}
+
 HSTRING impl_FormatString(int messageCode, ...)
 {
 	if (!g_pLTELClient->m_pCRes)
@@ -214,23 +228,37 @@ HSTRING impl_FormatString(int messageCode, ...)
 		return nullptr;
 	}
 
-	return (HSTRING)szBuffer;
+	return (HSTRING)impl_CreateString(szBuffer);
 }
 
 void impl_FreeString(HSTRING hString)
 {
-	hString = nullptr;
+	LTELString* pString = (LTELString*)hString;
+
+	if (!pString)
+	{
+		return;
+	}
+
+	delete pString;
 }
 
 char* impl_GetStringData(HSTRING hString)
 {
-	return (char*)hString;
+	LTELString* pString = (LTELString*)hString;
+
+	if (!pString)
+	{
+		return nullptr;
+	}
+
+	return (char*)pString->sData.c_str();
 }
 
 HDEFONT impl_CreateFont(char* pFontName, int width, int height,
 	DBOOL bItalic, DBOOL bUnderline, DBOOL bBold)
 {
-	godot::Godot::print("[impl_CreateFont] Wants to create {0}", pFontName);
+	//godot::Godot::print("[impl_CreateFont] Wants to create {0}", pFontName);
 
 	// TODO: Need to implement dynamic / bitmap fonts
 	//auto pFont = godot::DynamicFont::_new();
@@ -329,11 +357,6 @@ DeviceBinding* impl_GetDeviceBindings(DDWORD nDevice)
 void impl_FreeDeviceBindings(DeviceBinding* pBindings)
 {
 	return;
-}
-
-HSTRING impl_CreateString(char* pString)
-{
-	return (HSTRING)pString;
 }
 
 float impl_GetTime()
