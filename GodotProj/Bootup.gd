@@ -15,6 +15,8 @@ func _ready():
 	data.init_cshell()
 	pass # Replace with function body.
 
+func _process(delta):
+	data.game_update()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):

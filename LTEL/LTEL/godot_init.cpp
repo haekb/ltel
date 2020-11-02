@@ -22,7 +22,14 @@ static LTELClient* g_pClient = nullptr;
 class LTEL : public Node {
     GODOT_CLASS(LTEL, Node);
 public:
-    LTEL() { }
+    CClientShellDE* m_pGameClientShell;
+
+    LTEL() 
+    {
+        m_pGameClientShell = nullptr;
+    }
+
+    
 
     /** `_init` must exist as it is called by Godot. */
     void _init() { }
@@ -127,9 +134,9 @@ public:
         g_pClient = new LTELClient(this, hCRes);
 
         CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
-        CClientShellDE* pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
+        m_pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
 
-        if (!pGameClientShell)
+        if (!m_pGameClientShell)
         {
             Godot::print("Could not retrieve GameClientShell!");
             return;
@@ -139,7 +146,7 @@ public:
 
         try {
 
-            auto hResult = pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
+            auto hResult = m_pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
             Godot::print("OnEngineInit returned {0}", (int)hResult);
         }
         catch (const std::exception& e)
@@ -148,6 +155,22 @@ public:
         }
 
         Godot::print("Done!");
+    }
+
+    void game_update() 
+    {
+        try {
+            m_pGameClientShell->PreUpdate();
+
+            m_pGameClientShell->Update();
+
+            m_pGameClientShell->PostUpdate();
+        }
+        catch (const std::exception& e)
+        {
+            Godot::print("[game_update] Failed with exception: {0}", e.what());
+        }
+
     }
 
     void test_void_method() {
@@ -169,6 +192,7 @@ public:
 
 
         register_method("init_cshell", &LTEL::initialize_cshell);
+        register_method("game_update", &LTEL::game_update);
 
 
         /**
