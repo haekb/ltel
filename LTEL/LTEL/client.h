@@ -6,6 +6,7 @@
 
 // Some windows function names clash with ClientDE
 #undef CreateFont
+#undef PlaySound
 
 class LTELClient :
     public ClientDE

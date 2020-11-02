@@ -9,9 +9,11 @@
 #include <Texture.hpp>
 #include <Control.hpp>
 #include <ResourceLoader.hpp>
+#include <ColorRect.hpp>
 
-//
+//#define CANVAS_NODE "/root/Scene/Camera/2D/Viewport/Canvas"
 
+#define CANVAS_NODE "/root/Scene/Canvas"
 
 extern LTELClient* g_pLTELClient;
 
@@ -77,7 +79,7 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 	pTextureRect->set_name(sBitmapName.c_str());
 	pTextureRect->set_texture(pTexture);
 	pTextureRect->set_stretch_mode(godot::TextureRect::STRETCH_KEEP_ASPECT_COVERED);
-	pTextureRect->set_expand(true);
+	//pTextureRect->set_expand(true);
 
 	LTELSurface* pSurface = new LTELSurface();
 	pSurface->pTextureRect = pTextureRect;
@@ -146,9 +148,73 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 	// TextureRect
 	auto rTexture = pSurface->pTextureRect->get_texture();
 
+	if (rTexture.is_null())
+	{
+		*pWidth = 0;
+		*pHeight = 0;
+		return;
+	}
+
 	auto vSize = rTexture->get_size();
 	*pWidth = vSize.x;
 	*pHeight = vSize.y;
+}
+
+DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
+{
+	LTELSurface* pDest = (LTELSurface*)hDest;
+
+	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
+
+	if (!pControl)
+	{
+		return DE_ERROR;
+	}
+
+	godot::Vector2 vPos;
+	godot::Vector2 vSize;
+
+	if (!pRect)
+	{
+		vPos = godot::Vector2(0, 0);
+		vSize = godot::Vector2(1024, 768);
+	}
+	else
+	{
+		vPos = godot::Vector2(pRect->left, pRect->top);
+		vSize = godot::Vector2(pRect->right, pRect->bottom);
+	}
+	
+	godot::ColorRect* pColorRect = godot::ColorRect::_new();
+	pColorRect->set_size(vSize);
+	pColorRect->set_position(vPos);
+
+	auto pColor = (godot::Color*)hColor;
+
+	// It's black!
+	if (!pColor)
+	{
+		pColorRect->set_frame_color(godot::Color());
+	}
+	else
+	{
+		pColorRect->set_frame_color(*pColor);
+	}
+
+	
+
+	if (pDest->bIsText)
+	{
+		pDest->pLabel->add_child(pColorRect);
+		return DE_OK;
+	}
+	else if (pDest->bIsScreen)
+	{
+		pControl->add_child(pColorRect);
+	}
+
+	pDest->pTextureRect->add_child(pColorRect);
+	return DE_OK;
 }
 
 //
@@ -157,7 +223,7 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 
 DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 {
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/2D/Canvas"));
+	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)
 	{
@@ -197,7 +263,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	LTELSurface* pDest = (LTELSurface*)hDest;
 	LTELSurface* pSrc = (LTELSurface*)hSrc;
 
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/2D/Canvas"));
+	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)
 	{
@@ -219,7 +285,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 		else
 		{
 			pSrc->pTextureRect->set_position(vPos);
-			pSrc->pTextureRect->set_size(vPos);
+			pSrc->pTextureRect->set_size(vSize);
 			pControl->add_child(pSrc->pTextureRect);
 		}
 		
@@ -230,6 +296,51 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	// Don't need this yet
 	return DE_OK;
 }
+
+DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
+	DRect* pSrcRect, int destX, int destY)
+{
+	LTELSurface* pDest = (LTELSurface*)hDest;
+	LTELSurface* pSrc = (LTELSurface*)hSrc;
+
+	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
+
+	if (!pControl)
+	{
+		return DE_ERROR;
+	}
+
+	// Screen!
+	if (pDest->bIsScreen)
+	{
+		auto vPos = godot::Vector2(destX, destY);
+
+		if (pSrc->bIsText)
+		{
+			pSrc->pLabel->set_position(vPos);
+			pControl->add_child(pSrc->pLabel);
+		}
+		else
+		{
+			pSrc->pTextureRect->set_position(vPos);
+			pControl->add_child(pSrc->pTextureRect);
+		}
+
+		godot::Godot::print("Added child to 2DControl");
+		return DE_OK;
+	}
+
+	// Don't need this yet
+	return DE_OK;
+}
+
+DRESULT impl_DrawSurfaceToSurfaceTransparent(HSURFACE hDest, HSURFACE hSrc,
+	DRect* pSrcRect, int destX, int destY, HDECOLOR hColor)
+{
+	return impl_DrawSurfaceToSurface(hDest, hSrc, pSrcRect, destX, destY);
+}
+
+
 
 DRESULT impl_EndOptimized2D()
 {
@@ -278,6 +389,12 @@ HSURFACE impl_CreateSurface(DDWORD width, DDWORD height)
 	return (HSURFACE)pSurface;
 }
 
+DRESULT impl_GetBorderSize(HSURFACE hSurface, HDECOLOR hColor, DRect* pRect)
+{
+	pRect = { 0 };
+	return DE_OK;
+}
+
 // This must be last!
 void LTELClient::InitRenderImpl()
 {
@@ -287,6 +404,7 @@ void LTELClient::InitRenderImpl()
 	CreateSurfaceFromString = impl_CreateSurfaceFromString;
 	GetScreenSurface = impl_GetScreenSurface;
 	GetSurfaceDims = impl_GetSurfaceDims;
+	GetBorderSize = impl_GetBorderSize;
 
 	CreateSurface = impl_CreateSurface;
 	DeleteSurface = impl_DeleteSurface;
@@ -298,6 +416,9 @@ void LTELClient::InitRenderImpl()
 	RenderCamera = impl_RenderCamera;
 	StartOptimized2D = impl_StartOptimized2D;
 	ScaleSurfaceToSurface = impl_ScaleSurfaceToSurface;
+	DrawSurfaceToSurface = impl_DrawSurfaceToSurface;
+	DrawSurfaceToSurfaceTransparent = impl_DrawSurfaceToSurfaceTransparent;
+	FillRect = impl_FillRect;
 	EndOptimized2D = impl_EndOptimized2D;
 	End3D = impl_End3D;
 	FlipScreen = impl_FlipScreen;
