@@ -330,7 +330,17 @@ float impl_GetFrameTime()
 
 void impl_CPrint(char* pMsg, ...)
 {
-	godot::Godot::print(pMsg);
+	va_list list;
+	char szMessage[256] = "";
+
+
+	va_start(list, pMsg);
+
+	vsnprintf(szMessage, 256, pMsg, list);
+
+	va_end(list);
+
+	godot::Godot::print("[CONSOLE PRINT]: {0}", szMessage);
 }
 
 DRESULT impl_GetGameMode(int* mode)

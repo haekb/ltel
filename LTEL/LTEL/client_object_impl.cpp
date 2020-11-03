@@ -62,6 +62,10 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pMeshInstance->set_translation(godot::Vector3(pStruct->m_Pos.x, pStruct->m_Pos.y, pStruct->m_Pos.z));
 		godot::Quat vQuat = LT2GodotQuat(&pStruct->m_Rotation);
 		auto vEuler = vQuat.get_euler();
+
+		// Polygrid is 90 degrees off...I think?
+		vEuler.x += 90;
+
 		pMeshInstance->set_rotation(vEuler);
 		pMeshInstance->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
 		pMeshInstance->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
