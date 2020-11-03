@@ -7,6 +7,11 @@
 #include <Mesh.hpp>
 #include <MeshInstance.hpp>
 #include <Quat.hpp>
+#include <Texture.hpp>
+#include <Material.hpp>
+#include <SpatialMaterial.hpp>
+#include <ResourceLoader.hpp>
+
 
 #define USRFLG_VISIBLE					(1<<0)
 #define USRFLG_NIGHT_INFRARED			(1<<1)
@@ -66,7 +71,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		// Polygrid is 90 degrees off...I think?
 		vEuler.x += 90;
 
-		pMeshInstance->set_rotation(vEuler);
+		pMeshInstance->set_rotation_degrees(vEuler);
 		pMeshInstance->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
 		pMeshInstance->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
@@ -329,33 +334,54 @@ DBOOL impl_SetupPolyGrid(HLOCALOBJ hObj, DDWORD width, DDWORD height, DBOOL bHal
 
 DRESULT impl_FitPolyGrid(HLOCALOBJ hObj, DVector* pMin, DVector* pMax, DVector* pPos, DVector* pScale)
 {
-	// Just fake it for now.
-	*pPos = DVector(0.0f, 0.0f, 0.0f);
-	*pScale = DVector(1.0f, 1.0f, 1.0f);
-
-	return DE_OK;
-
-	/*
 	auto pObj = HObject2LTELObject(hObj);
 
-	if (!pObj)
+	if (!pObj || !pObj->pExtraData)
 	{
-		return;
+		return DE_ERROR;
 	}
 
-	godot::MeshInstance* pNode = pObj->pData.pPolyGrid;
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
 
-	if (!pNode)
-	{
-		return;
-	}
-	*/
+	DVector pNewPos = (*pMax - *pMin) + *pMin;
+
+	*pPos = pNewPos;
+
+	// Just fake it for now.
+	*pScale = DVector(20.0f, 20.0f, 20.0f);
+
+	return DE_OK;
 }
 
 DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 {
 	// This will take in a .spr
 	godot::Godot::print("[impl_SetPolyGridTexture] Set texture to {0}", pFilename);
+
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	// TODO: Move this into a helper function..
+	std::string sBitmapName = pFilename;
+	if (!replace(sBitmapName, ".spr", ".png") || !replace(sBitmapName, "Sprites", "spritetexture"))
+	{
+		godot::Godot::print("[impl_SetPolyGridTexture] Failed to replace spr with png! String: {0}", pFilename);
+		return DE_ERROR;
+	}
+
+	std::string sResourcePath = "res://shogo/" + sBitmapName;
+
+	auto pResourceLoader = godot::ResourceLoader::get_singleton();
+	
+	godot::Ref<godot::SpatialMaterial> pMat = godot::SpatialMaterial::_new();
+	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
+	pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
+	pObj->pData.pPolyGrid->set_surface_material(0, pMat);
+
 	return DE_OK;
 }
 
