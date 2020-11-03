@@ -158,7 +158,7 @@ HSTRING impl_FormatString(int messageCode, ...)
 	}
 
 	TCHAR szBuffer[2048];
-
+	
 	auto nRet = LoadString(g_pLTELClient->m_pCRes, messageCode, szBuffer, sizeof(szBuffer) / sizeof(TCHAR));
 
 	// Not found!
@@ -167,7 +167,26 @@ HSTRING impl_FormatString(int messageCode, ...)
 		return nullptr;
 	}
 
-	return (HSTRING)impl_CreateString(szBuffer);
+	va_list list;
+	va_start(list, messageCode);
+
+	char* szOutBuffer = nullptr;
+
+	if (!FormatMessage(FORMAT_MESSAGE_FROM_STRING | FORMAT_MESSAGE_ALLOCATE_BUFFER,
+		szBuffer,
+		0,
+		0,
+		(char*)&szOutBuffer,
+		1,
+		&list))
+	{
+		godot::Godot::print("Format message failed with 0x%d\n", (int)GetLastError());
+		return (HSTRING)impl_CreateString(szBuffer);
+	}
+
+	va_end(list);
+
+	return (HSTRING)impl_CreateString(szOutBuffer);
 }
 
 void impl_FreeString(HSTRING hString)
