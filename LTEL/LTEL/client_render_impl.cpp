@@ -94,7 +94,8 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 	LTELSurface* pSurface = new LTELSurface();
 	
 	godot::Label* pLabel = godot::Label::_new();
-	pLabel->set_text((char*)hString);
+	LTELString* pString = (LTELString*)hString;
+	pLabel->set_text((char*)pString->sData.c_str());
 
 	pSurface->bIsText = true;
 	pSurface->pLabel = pLabel;
@@ -230,7 +231,7 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 	{
 		return DE_ERROR;
 	}
-	return DE_OK;
+
 	auto pChildren = pControl->get_children();
 
 	for (int i = 0; i < pChildren.size(); i++)
@@ -327,7 +328,7 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 			pControl->add_child(pSrc->pTextureRect);
 		}
 
-		godot::Godot::print("Added child to 2DControl");
+		//godot::Godot::print("Added child to 2DControl");
 		return DE_OK;
 	}
 
@@ -400,6 +401,9 @@ DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 {
 	// This should make everything but the objects in this list invisible, but for now we do nothing!
 	// This is mainly for interfaces, like the main menu.
+
+	impl_ClearScreen(nullptr, 0);
+
 	return DE_OK;
 }
 

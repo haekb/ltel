@@ -48,13 +48,7 @@ struct oConsoleVariable {
 
 std::map<std::string, oConsoleVariable> g_mConsoleVars;
 
-struct LTELString {
-	LTELString(std::string sIncoming = "") {
-		sData = sIncoming;
-	}
 
-	std::string sData;
-};
 
 
 // end temp!

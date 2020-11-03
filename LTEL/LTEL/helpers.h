@@ -7,6 +7,14 @@
 #include <Quat.hpp>
 
 // Defs
+struct LTELString {
+	LTELString(std::string sIncoming = "") {
+		sData = sIncoming;
+	}
+
+	std::string sData;
+};
+
 struct LTELObject {
 	LTELObject() {
 		pData.pNode = nullptr;
