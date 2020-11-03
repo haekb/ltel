@@ -211,6 +211,7 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 	else if (pDest->bIsScreen)
 	{
 		pControl->add_child(pColorRect);
+		return DE_OK;
 	}
 
 	pDest->pTextureRect->add_child(pColorRect);
@@ -395,6 +396,13 @@ DRESULT impl_GetBorderSize(HSURFACE hSurface, HDECOLOR hColor, DRect* pRect)
 	return DE_OK;
 }
 
+DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
+{
+	// This should make everything but the objects in this list invisible, but for now we do nothing!
+	// This is mainly for interfaces, like the main menu.
+	return DE_OK;
+}
+
 // This must be last!
 void LTELClient::InitRenderImpl()
 {
@@ -422,6 +430,8 @@ void LTELClient::InitRenderImpl()
 	EndOptimized2D = impl_EndOptimized2D;
 	End3D = impl_End3D;
 	FlipScreen = impl_FlipScreen;
+
+	RenderObjects = impl_RenderObjects;
 
 	GetRenderMode = impl_GetRenderMode;
 }

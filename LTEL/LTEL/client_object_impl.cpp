@@ -2,7 +2,10 @@
 #include "helpers.h"
 
 #include <Godot.hpp>
+#include <Camera.hpp>
 #include <Spatial.hpp>
+#include <Mesh.hpp>
+#include <MeshInstance.hpp>
 #include <Quat.hpp>
 
 #define USRFLG_VISIBLE					(1<<0)
@@ -11,45 +14,79 @@
 
 extern LTELClient* g_pLTELClient;
 
+
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
-	godot::Spatial* pNode = nullptr;
+	LTELObject* pObject = new LTELObject();
+	pObject->nObjectType = pStruct->m_ObjectType;
+	pObject->nObjectFlags = pStruct->m_Flags;
+	
 
-	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera"));
+	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
 
-
-	if (pStruct->m_ObjectType == OT_CAMERA)
+	switch (pStruct->m_ObjectType)
 	{
-		// Camera doesn't require any other settings
-		return (HLOCALOBJ)p3DNode->get_parent();
-	}
-	if (pStruct->m_ObjectType == OT_NORMAL)
+	case OT_CAMERA:
+		pObject->pData.pCamera = godot::Object::cast_to<godot::Camera>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera"));
+		break;
+	case OT_NORMAL:
 	{
-		pNode = godot::Spatial::_new();
+		auto pNode = godot::Spatial::_new();
 
 		// Add it into the world!
 		p3DNode->add_child(pNode);
 
 		pNode->set_translation(godot::Vector3(pStruct->m_Pos.x, pStruct->m_Pos.y, pStruct->m_Pos.z));
-
-		godot::Quat vQuat = godot::Quat(pStruct->m_Rotation.m_Vec.x, pStruct->m_Rotation.m_Vec.y, pStruct->m_Rotation.m_Vec.z, pStruct->m_Rotation.m_Spin);
+		godot::Quat vQuat = LT2GodotQuat(&pStruct->m_Rotation);
 		auto vEuler = vQuat.get_euler();
 		pNode->set_rotation(vEuler);
 		pNode->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
-		pNode->set_visible(pStruct->m_Flags & USRFLG_VISIBLE);
+		pNode->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
-		return (HLOCALOBJ)pNode;
+		pObject->pData.pNode = pNode;
+	}
+		break;
+	case OT_POLYGRID:
+	{
+		//auto pMeshInstance = godot::MeshInstance::_new();
+		//auto pMesh = godot::Mesh::_new();
+
+		// Grab our in-scene prefab
+		auto pMeshInstance = godot::Object::cast_to<godot::MeshInstance>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Prefabs/PolyGrid"));
+
+		// Duplicate it!
+		pMeshInstance = godot::Object::cast_to<godot::MeshInstance>(pMeshInstance->duplicate());
+
+		p3DNode->add_child(pMeshInstance);
+
+		pMeshInstance->set_translation(godot::Vector3(pStruct->m_Pos.x, pStruct->m_Pos.y, pStruct->m_Pos.z));
+		godot::Quat vQuat = LT2GodotQuat(&pStruct->m_Rotation);
+		auto vEuler = vQuat.get_euler();
+		pMeshInstance->set_rotation(vEuler);
+		pMeshInstance->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
+		pMeshInstance->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
+
+		pObject->pData.pPolyGrid = pMeshInstance;
+	}
+		break;
+	default:
+		godot::Godot::print("Trying to make some other object! aaaaaaaaaaaaa");
 	}
 
-	godot::Godot::print("Trying to make some other object! aaaaaaaaaaaaa");
 
-
-	return (HLOCALOBJ)pNode;
+	return (HLOCALOBJ)pObject;
 }
 
 void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 {
-	godot::Spatial* pNode = (godot::Spatial*)hObj;
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	godot::Spatial* pNode = pObj->pData.pNode;
 
 	if (!pNode)
 	{
@@ -63,9 +100,55 @@ void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 	pPos->z = vPos.z;
 }
 
+void impl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	godot::Spatial* pNode = pObj->pData.pNode;
+
+	if (!pNode)
+	{
+		return;
+	}
+
+	pNode->set_translation(godot::Vector3(pPos->x, pPos->y, pPos->z));
+}
+
+DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	godot::Spatial* pNode = pObj->pData.pNode;
+
+	if (!pNode)
+	{
+		return DE_ERROR;
+	}
+
+	pNode->set_scale(godot::Vector3(pScale->x, pScale->y, pScale->z));
+	return DE_OK;
+}
+
 void impl_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
 {
-	godot::Spatial* pNode = (godot::Spatial*)hObj;
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	godot::Spatial* pNode = pObj->pData.pNode;
 
 	if (!pNode)
 	{
@@ -96,9 +179,52 @@ void impl_EulerRotateX(DRotation* pRotation, float amount)
 	pRotation->m_Spin = vQuat.w;//1.0f;
 }
 
+DDWORD impl_GetObjectFlags(HLOCALOBJ hObj)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return 0;
+	}
+
+	return pObj->nObjectFlags;
+}
+
+void impl_SetObjectFlags(HLOCALOBJ hObj, DDWORD flags)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	pObj->nObjectFlags = flags;
+}
+
+DRESULT impl_GetObjectUserFlags(HLOCALOBJ hObj, DDWORD* pFlags)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	*pFlags = pObj->nUserFlags;
+}
+
 DRESULT impl_SetObjectUserFlags(HLOCALOBJ hObj, DDWORD flags)
 {
-	godot::Spatial* pNode = (godot::Spatial*)hObj;
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	godot::Spatial* pNode = pObj->pData.pNode;
 
 	if (!pNode)
 	{
@@ -107,16 +233,219 @@ DRESULT impl_SetObjectUserFlags(HLOCALOBJ hObj, DDWORD flags)
 
 	// We only support this right now!
 	pNode->set_visible(flags & USRFLG_VISIBLE);
+	pObj->nUserFlags = flags;
 	return DE_OK;
 }
+
+//
+// Camera stuff
+//
+void impl_GetCameraRect(HLOCALOBJ hObj, DBOOL* bFullscreen,
+	int* left, int* top, int* right, int* bottom)
+{
+	*left = 0;
+	*top = 0;
+	*right = 1024;
+	*bottom = 768;
+}
+
+void impl_SetCameraRect(HLOCALOBJ hObj, DBOOL bFullscreen,
+	int left, int top, int right, int bottom)
+{
+	// Uhhh not right now
+	return;
+}
+
+void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	godot::Camera* pCamera = pObj->pData.pCamera;
+
+	if (!pCamera)
+	{
+		return;
+	}
+
+	float fFOV = godot::Math::rad2deg(fovX);
+	float fIgnore = godot::Math::rad2deg(fovY);
+
+	godot::Godot::print("[impl_SetCameraFOV] Setting FOV to {0}, ignoring Y value {1}", fFOV, fIgnore);
+
+	g_pLTELClient->m_vFOV = godot::Vector2(fFOV, fIgnore);
+
+	pCamera->set_fov(fFOV);
+}
+
+void impl_GetCameraFOV(HLOCALOBJ hObj, float* pX, float* pY)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		*pX = 0.0f;
+		*pY = 0.0f;
+		return;
+	}
+
+	godot::Camera* pCamera = pObj->pData.pCamera;
+
+	if (!pCamera)
+	{
+		*pX = 0.0f;
+		*pY = 0.0f;
+		return;
+	}
+
+	auto vFov = g_pLTELClient->m_vFOV;
+
+	*pX = godot::Math::deg2rad(vFov.x);
+	*pY = godot::Math::deg2rad(vFov.y);
+}
+
+DBOOL impl_SetupPolyGrid(HLOCALOBJ hObj, DDWORD width, DDWORD height, DBOOL bHalfTrianges)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	auto pExtraData = new LTELPolyGrid(width, height);
+	pObj->pExtraData = pExtraData;
+
+	return DE_OK;
+}
+
+DRESULT impl_FitPolyGrid(HLOCALOBJ hObj, DVector* pMin, DVector* pMax, DVector* pPos, DVector* pScale)
+{
+	// Just fake it for now.
+	*pPos = DVector(0.0f, 0.0f, 0.0f);
+	*pScale = DVector(1.0f, 1.0f, 1.0f);
+
+	return DE_OK;
+
+	/*
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	godot::MeshInstance* pNode = pObj->pData.pPolyGrid;
+
+	if (!pNode)
+	{
+		return;
+	}
+	*/
+}
+
+DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
+{
+	// This will take in a .spr
+	godot::Godot::print("[impl_SetPolyGridTexture] Set texture to {0}", pFilename);
+	return DE_OK;
+}
+
+DRESULT impl_GetPolyGridTextureInfo(HLOCALOBJ hObj, float* xPan, float* yPan, float* xScale, float* yScale)
+{
+	*xPan = 1.0f;
+	*yPan = 1.0f;
+	*xScale = 1.0f;
+	*yScale = 1.0f;
+
+	return DE_OK;
+}
+
+DRESULT impl_SetPolyGridTextureInfo(HLOCALOBJ hObj, float xPan, float yPan, float xScale, float yScale)
+{
+	return DE_OK;
+}
+
+DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWORD* pHeight, PGColor** pColorTable)
+{
+	auto pObj = HObject2LTELObject(hObj);
+
+	if (!pObj || !pObj->pExtraData)
+	{
+		return DE_ERROR;
+	}
+
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+
+	*pBytes = pExtraData->pData;
+	*pWidth = pExtraData->nWidth;
+	*pHeight = pExtraData->nHeight;
+	*pColorTable = pExtraData->pColorTable;
+
+	return DE_OK;
+}
+
+// RGB 0-1.
+void impl_GetObjectColor(HLOCALOBJ hObject, float* r, float* g, float* b, float* a)
+{
+	auto pObj = HObject2LTELObject(hObject);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	godot::Spatial* pNode = pObj->pData.pNode;
+
+	if (!pNode)
+	{
+		return;
+	}
+
+	*r = 1.0f;
+	*g = 1.0f;
+	*b = 1.0f;
+	*a = 1.0f;
+}
+void impl_SetObjectColor(HLOCALOBJ hObject, float r, float g, float b, float a)
+{
+// Not right now!
+}
+
 
 // This must be last!
 void LTELClient::InitObjectImpl()
 {
 	// Object functionality
 	CreateObject = impl_CreateObject;
+	GetObjectColor = impl_GetObjectColor;
+	SetObjectColor = impl_SetObjectColor;
 	GetObjectPos = impl_GetObjectPos;
+	SetObjectPos = impl_SetObjectPos;
+	SetObjectScale = impl_SetObjectScale;
 	GetObjectRotation = impl_GetObjectRotation;
 	EulerRotateX = impl_EulerRotateX;
+
+	SetObjectFlags = impl_SetObjectFlags;
+	GetObjectFlags = impl_GetObjectFlags;
+	GetObjectUserFlags = impl_GetObjectUserFlags;
 	SetObjectUserFlags = impl_SetObjectUserFlags;
+
+	// Polygrid
+	SetupPolyGrid = impl_SetupPolyGrid;
+	FitPolyGrid = impl_FitPolyGrid;
+	SetPolyGridTexture = impl_SetPolyGridTexture;
+	GetPolyGridTextureInfo = impl_GetPolyGridTextureInfo;
+	SetPolyGridTextureInfo = impl_SetPolyGridTextureInfo;
+	GetPolyGridInfo = impl_GetPolyGridInfo;
+
+	// Camera functionality
+	GetCameraRect = impl_GetCameraRect;
+	SetCameraRect = impl_SetCameraRect;
+	SetCameraFOV = impl_SetCameraFOV;
+	GetCameraFOV = impl_GetCameraFOV;
 }

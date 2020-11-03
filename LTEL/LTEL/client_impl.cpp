@@ -149,60 +149,6 @@ DRESULT impl_IsLobbyLaunched(char* sDriver)
 	return DE_ERROR;
 }
 
-
-
-void impl_GetCameraRect(HLOCALOBJ hObj, DBOOL* bFullscreen,
-	int* left, int* top, int* right, int* bottom)
-{
-	*left = 0;
-	*top = 0;
-	*right = 1024;
-	*bottom = 768;
-}
-
-void impl_SetCameraRect(HLOCALOBJ hObj, DBOOL bFullscreen,
-	int left, int top, int right, int bottom)
-{
-	// Uhhh not right now
-	return;
-}
-
-void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
-{
-	godot::Camera* pCamera = (godot::Camera*)hObj;
-
-	if (!pCamera)
-	{
-		return;
-	}
-
-	float fFOV = godot::Math::rad2deg(fovX);
-	float fIgnore = godot::Math::rad2deg(fovY);
-
-	godot::Godot::print("[impl_SetCameraFOV] Setting FOV to {0}, ignoring Y value {1}", fFOV, fIgnore);
-
-	g_pLTELClient->m_vFOV = godot::Vector2(fFOV, fIgnore);
-
-	pCamera->set_fov(fFOV);
-}
-
-void impl_GetCameraFOV(HLOCALOBJ hObj, float* pX, float* pY)
-{
-	godot::Camera* pCamera = (godot::Camera*)hObj;
-
-	if (!pCamera)
-	{
-		*pX = 0.0f;
-		*pY = 0.0f;
-		return;
-	}
-
-	auto vFov = g_pLTELClient->m_vFOV;
-
-	*pX = godot::Math::deg2rad(vFov.x);
-	*pY = godot::Math::deg2rad(vFov.y);
-}
-
 HSTRING impl_CreateString(char* pString)
 {
 	LTELString* pLTELString = new LTELString(pString);
@@ -460,12 +406,6 @@ void LTELClient::InitFunctionPointers()
 	GetDeviceBindings = impl_GetDeviceBindings;
 	FreeDeviceBindings = impl_FreeDeviceBindings;
 	SetInputState = impl_SetInputState;
-
-	// Camera functionality
-	GetCameraRect = impl_GetCameraRect;
-	SetCameraRect = impl_SetCameraRect;
-	SetCameraFOV = impl_SetCameraFOV;
-	GetCameraFOV = impl_GetCameraFOV;
 
 	// String functionality
 	FormatString = impl_FormatString;
