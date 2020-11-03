@@ -84,15 +84,8 @@ public:
             Godot::print("Could not locate CRes.dll!");
             return;
         }
-        /*
-        f_GetClientShellFunctions* pClientShellInitFunc = (f_GetClientShellFunctions*)GetProcAddress(hClientShell, "GetClientShellFunctions");
 
-        CreateClientShellFn* pCreate = nullptr;
-        DeleteClientShellFn* pDelete = nullptr;
-
-        pClientShellInitFunc(pCreate, pDelete);
-        */
-
+        // Initial test, print out the version!
         f_GetClientShellVersion* pGetVersion = (f_GetClientShellVersion*)GetProcAddress(hClientShell, "GetClientShellVersion");
 
         if (!pGetVersion)
@@ -129,10 +122,10 @@ public:
             return;
         }
 
-        Godot::print("We have pnCreate!");
-
+        // Create our ClientDE instance
         g_pClient = new LTELClient(this, hCRes);
 
+        // We'll want to run CreateClientShellFn, to get the game's GameClientShell instance
         CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
         m_pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
 
@@ -144,8 +137,9 @@ public:
 
         DGUID AppGUID = { 0 };
 
+        // Kick off OnEngineInit
         try {
-
+            // We should really populate RMode soon...
             auto hResult = m_pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
             Godot::print("OnEngineInit returned {0}", (int)hResult);
         }
@@ -157,9 +151,12 @@ public:
         Godot::print("Done!");
     }
 
-    void game_update(float fDelta) 
+    void game_update(float fDelta)
     {
+        // This is for GetFrameTime() impl
         g_pClient->m_fFrametime = fDelta;
+
+        // Run our update functions
         try {
             m_pGameClientShell->PreUpdate();
 
@@ -188,10 +185,11 @@ public:
     }
 
     static void _register_methods() {
+        // Test functions
         register_method("method", &LTEL::method);
         register_method("test_void_method", &LTEL::test_void_method);
 
-
+        // LTEL functions
         register_method("init_cshell", &LTEL::initialize_cshell);
         register_method("game_update", &LTEL::game_update);
 
