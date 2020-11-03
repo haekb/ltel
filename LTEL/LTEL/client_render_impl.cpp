@@ -95,6 +95,8 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 	
 	godot::Label* pLabel = godot::Label::_new();
 	LTELString* pString = (LTELString*)hString;
+
+	pLabel->set_name(pString->sData.c_str());
 	pLabel->set_text((char*)pString->sData.c_str());
 
 	pSurface->bIsText = true;
@@ -225,7 +227,7 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 
 DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 {
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
+	godot::Control* pControl = GDCAST(godot::Control, g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)
 	{
@@ -239,7 +241,6 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 		pControl->remove_child(pChildren[i]);
 	}
 
-	// We don't need to actually implement this right now
 	return DE_OK;
 }
 
@@ -265,34 +266,42 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	LTELSurface* pDest = (LTELSurface*)hDest;
 	LTELSurface* pSrc = (LTELSurface*)hSrc;
 
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
+	godot::Control* pControl = GDCAST(godot::Control, g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)
 	{
 		return DE_ERROR;
 	}
 
-	// Screen!
-	if (pDest->bIsScreen)
-	{
-		auto vPos = godot::Vector2(pDestRect->left, pDestRect->top);
-		auto vSize = godot::Vector2(pDestRect->right, pDestRect->bottom);
+	auto vPos = godot::Vector2(pDestRect->left, pDestRect->top);
+	auto vSize = godot::Vector2(pDestRect->right, pDestRect->bottom);
 
-		if (pSrc->bIsText)
+	godot::Node* pNode = GDCAST(godot::Node, pControl);
+
+	// Screen!
+	if (!pDest->bIsScreen)
+	{
+		if (pDest->bIsText)
 		{
-			pSrc->pLabel->set_position(vPos);
-			pSrc->pLabel->set_size(vSize);
-			pControl->add_child(pSrc->pLabel);
+			pNode = GDCAST(godot::Node, pDest->pLabel);
 		}
 		else
 		{
-			pSrc->pTextureRect->set_position(vPos);
-			pSrc->pTextureRect->set_size(vSize);
-			pControl->add_child(pSrc->pTextureRect);
+			pNode = GDCAST(godot::Node, pDest->pTextureRect);
 		}
-		
-		godot::Godot::print("Added child to 2DControl");
-		return DE_OK;
+	}
+
+	if (pSrc->bIsText)
+	{
+		pSrc->pLabel->set_position(vPos);
+		pSrc->pLabel->set_size(vSize);
+		pNode->add_child(pSrc->pLabel);
+	}
+	else
+	{
+		pSrc->pTextureRect->set_position(vPos);
+		pSrc->pTextureRect->set_size(vSize);
+		pNode->add_child(pSrc->pTextureRect);
 	}
 
 	// Don't need this yet
@@ -305,31 +314,39 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	LTELSurface* pDest = (LTELSurface*)hDest;
 	LTELSurface* pSrc = (LTELSurface*)hSrc;
 
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
+	godot::Control* pControl = GDCAST(godot::Control,g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)
 	{
 		return DE_ERROR;
 	}
 
-	// Screen!
-	if (pDest->bIsScreen)
-	{
-		auto vPos = godot::Vector2(destX, destY);
+	auto vPos = godot::Vector2(destX, destY);
 
-		if (pSrc->bIsText)
+	godot::Node* pNode = GDCAST(godot::Node, pControl);
+
+	// Screen!
+	if (!pDest->bIsScreen)
+	{
+		if (pDest->bIsText)
 		{
-			pSrc->pLabel->set_position(vPos);
-			pControl->add_child(pSrc->pLabel);
+			pNode = GDCAST(godot::Node, pDest->pLabel);
 		}
 		else
 		{
-			pSrc->pTextureRect->set_position(vPos);
-			pControl->add_child(pSrc->pTextureRect);
+			pNode = GDCAST(godot::Node, pDest->pTextureRect);
 		}
+	}
 
-		//godot::Godot::print("Added child to 2DControl");
-		return DE_OK;
+	if (pSrc->bIsText)
+	{
+		pSrc->pLabel->set_position(vPos);
+		pNode->add_child(pSrc->pLabel);
+	}
+	else
+	{
+		pSrc->pTextureRect->set_position(vPos);
+		pNode->add_child(pSrc->pTextureRect);
 	}
 
 	// Don't need this yet

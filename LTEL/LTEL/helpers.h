@@ -7,6 +7,8 @@
 #include <Quat.hpp>
 
 // Defs
+#define GDCAST(casting_to, object) godot::Object::cast_to<casting_to>(object);
+
 struct LTELString {
 	LTELString(std::string sIncoming = "") {
 		sData = sIncoming;

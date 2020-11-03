@@ -180,7 +180,7 @@ HSTRING impl_FormatString(int messageCode, ...)
 		1,
 		&list))
 	{
-		godot::Godot::print("Format message failed with 0x%d\n", (int)GetLastError());
+		godot::Godot::print("Format message failed with 0x{0}\n", (int)GetLastError());
 		return (HSTRING)impl_CreateString(szBuffer);
 	}
 
