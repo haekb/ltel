@@ -155,7 +155,7 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 
 	if (pSurface->bIsText)
 	{
-		auto vSize = pSurface->pLabel->get_size();
+		auto vSize = pSurface->pLabel->get_minimum_size();
 		*pWidth = vSize.x;
 		*pHeight = vSize.y;
 		return;
