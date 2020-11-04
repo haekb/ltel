@@ -2,22 +2,30 @@ extends Node
 
 # load the Simple library
 onready var data = preload("res://src/native/LTELBinder.gdns").new()
-
-# Declare member variables here. Examples:
-# var a = 2
-# var b = "text"
-
+var is_init = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	add_child(data)
-	print ( data.method('hi') )
-	data.init_cshell()
-	pass # Replace with function body.
+	is_init = data.init_cshell()
+# End Func
 
 func _process(delta):
+	if is_init == false:
+		return
+	# End If
+
 	data.game_update(delta)
+	
 	pass
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+# End Func
+
+func _unhandled_input(event):
+	if is_init == false:
+		return
+	# End If
+	
+	if event is InputEventKey:		
+		data.on_key_input(event.scancode, event.pressed)
+	# End If
+# End Func

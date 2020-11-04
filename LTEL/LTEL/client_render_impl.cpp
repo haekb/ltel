@@ -314,6 +314,11 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	LTELSurface* pDest = (LTELSurface*)hDest;
 	LTELSurface* pSrc = (LTELSurface*)hSrc;
 
+	if (!pDest || !pSrc)
+	{
+		return DE_ERROR;
+	}
+
 	godot::Control* pControl = GDCAST(godot::Control,g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)

@@ -409,9 +409,13 @@ DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWO
 		return DE_ERROR;
 	}
 
+	
+
 	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
 
+	// Heightmap info - basic heightmap image that can be passed into Depth pass of a SpatialShader!
 	*pBytes = pExtraData->pData;
+
 	*pWidth = pExtraData->nWidth;
 	*pHeight = pExtraData->nHeight;
 	*pColorTable = pExtraData->pColorTable;
