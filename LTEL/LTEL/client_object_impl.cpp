@@ -400,10 +400,10 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 
 	pDetail->set_data(pDetailImage);
 	
-	pMat->set_feature(godot::SpatialMaterial::FEATURE_DETAIL, true);
-	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pTexture);
-
-	pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_ADD);
+	// Disable this for now...
+	//pMat->set_feature(godot::SpatialMaterial::FEATURE_DETAIL, true);
+	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pDetail);
+	pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_MIX);
 	
 	pExtraData->pColormap = pDetail;
 
