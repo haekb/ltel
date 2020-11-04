@@ -454,30 +454,48 @@ DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 		}
 
 		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
-		auto pImage = pExtraData->pHeightmap->get_data();
+		auto pDetailImage = pExtraData->pColormap->get_data();
+		auto pDepthImage = pExtraData->pHeightmap->get_data();
 		auto pData = pExtraData->pData;
 
-		pImage->lock();
+		pDetailImage->lock();
+		pDepthImage->lock();
 
+		// Detail and depth are both 16x, so we can do it in the same loop!
 		// Loop through and set each pixel, it's only 16x16 so not too slow...
-		for (int x = 0; x < pImage->get_width(); x++)
+		for (int x = 0; x < pDepthImage->get_width(); x++)
 		{
-			for (int y = 0; y < pImage->get_height(); y++)
+			for (int y = 0; y < pDepthImage->get_height(); y++)
 			{
+				//
+				// DETAIL
+				//
+				auto pColourValues = pExtraData->pColorTable[x * y];
+				godot::Color oDetailColor = godot::Color((float)pColourValues.x / 255.0f, (float)pColourValues.y / 255.0f, (float)pColourValues.z / 255.0f, (float)pColourValues.a / 255.0f);
+				pDetailImage->set_pixel(x, y, oDetailColor);
+
+				//
+				// DEPTH
+				//
+
 				// Get the height data, create a greyscaled pixel, and set it!
 				float fVal = (float)pData[x * y] / 255;
-				godot::Color oColor = godot::Color(fVal, fVal, fVal, 1.0f);
-				pImage->set_pixel(x, y, oColor);
+				godot::Color oDepthColor = godot::Color(fVal, fVal, fVal, 1.0f);
+				pDepthImage->set_pixel(x, y, oDepthColor);
 			}
 		}
 
-		pImage->unlock();
+		pDepthImage->unlock();
+		pDetailImage->unlock();
 
 		// Now we need to re-set the data, otherwise it will never update!
-		pExtraData->pHeightmap->set_data(pImage);
+		pExtraData->pColormap->set_data(pDetailImage);
+		pExtraData->pHeightmap->set_data(pDepthImage);
+
+		//pDetailImage->save_png("detail.png");
 
 		// Clear the data
-		memset(pData, 0, sizeof(pImage->get_data().size()));
+		memset(pData, 0, sizeof(pDepthImage->get_data().size()));
 	}
 
 	// Clean up our list of pointers!

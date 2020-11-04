@@ -69,6 +69,7 @@ struct LTELPolyGrid {
 		}
 	}
 
+	godot::Ref<godot::ImageTexture> pColormap;
 	godot::Ref<godot::ImageTexture> pHeightmap;
 
 	bool bLocked;

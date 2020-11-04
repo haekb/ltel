@@ -383,19 +383,38 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();
 	
-	// Albedo
 	godot::Ref<godot::SpatialMaterial> pMat = godot::SpatialMaterial::_new();
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+
+	// Albedo
 	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
 	pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
 
-	// Depth
-	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
-	godot::Ref<godot::ImageTexture> pDepth = godot::ImageTexture::_new();
-	pDepth->create(16, 16, godot::Image::FORMAT_RGB8);
-	godot::Ref<godot::Image> pImage = godot::Image::_new();
-	pImage->create(16, 16, false, godot::Image::FORMAT_RGB8);
-	pDepth->set_data(pImage);
+	// I'm not sure if this actually is a blend texture...
+	// Detail (Colour Table)
+	godot::Ref<godot::ImageTexture> pDetail = godot::ImageTexture::_new();
+	godot::Ref<godot::Image> pDetailImage = godot::Image::_new();
 
+	pDetail->create(16, 16, godot::Image::FORMAT_RGB8);
+	pDetailImage->create(16, 16, false, godot::Image::FORMAT_RGB8);
+
+	pDetail->set_data(pDetailImage);
+	
+	pMat->set_feature(godot::SpatialMaterial::FEATURE_DETAIL, true);
+	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pTexture);
+
+	pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_ADD);
+	
+	pExtraData->pColormap = pDetail;
+
+	// Depth
+	godot::Ref<godot::ImageTexture> pDepth = godot::ImageTexture::_new();
+	godot::Ref<godot::Image> pDepthImage = godot::Image::_new();
+
+	pDepth->create(16, 16, godot::Image::FORMAT_RGB8);
+	pDepthImage->create(16, 16, false, godot::Image::FORMAT_RGB8);
+
+	pDepth->set_data(pDepthImage);
 
 	pMat->set_feature(godot::SpatialMaterial::FEATURE_DEPTH_MAPPING, true);
 	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DEPTH, pDepth);
@@ -403,8 +422,8 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	pExtraData->pHeightmap = pDepth;
 
 	// Setup the game code's image buffer sandbox
-	pExtraData->pData = (char*)malloc(pImage->get_data().size());
-	memset(pExtraData->pData, 0, sizeof(pImage->get_data().size()));
+	pExtraData->pData = (char*)malloc(pDepthImage->get_data().size());
+	memset(pExtraData->pData, 0, sizeof(pDepthImage->get_data().size()));
 
 	// Make sure it's un-lit
 	pMat->set_specular(0.0f);
@@ -428,6 +447,7 @@ DRESULT impl_GetPolyGridTextureInfo(HLOCALOBJ hObj, float* xPan, float* yPan, fl
 
 DRESULT impl_SetPolyGridTextureInfo(HLOCALOBJ hObj, float xPan, float yPan, float xScale, float yScale)
 {
+	//godot::Godot::print("xPan: {0}\nyPan: {1}\nxScale: {2}\nyScale: {3}", xPan, yPan, xScale, yScale);
 	return DE_OK;
 }
 
