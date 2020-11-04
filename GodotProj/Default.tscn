@@ -1,8 +1,19 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://Bootup.gd" type="Script" id=1]
+[ext_resource path="res://test.png" type="Texture" id=3]
 
-[sub_resource type="PlaneMesh" id=1]
+[sub_resource type="SpatialMaterial" id=1]
+albedo_texture = ExtResource( 3 )
+depth_enabled = true
+depth_scale = 0.6
+depth_deep_parallax = false
+depth_flip_tangent = false
+depth_flip_binormal = false
+depth_texture = ExtResource( 3 )
+
+[sub_resource type="PlaneMesh" id=2]
+material = SubResource( 1 )
 subdivide_width = 16
 subdivide_depth = 16
 
@@ -20,9 +31,13 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="PolyGrid2" type="MeshInstance" parent="."]
+mesh = SubResource( 2 )
+material/0 = null
+
 [node name="Prefabs" type="Spatial" parent="."]
 visible = false
 
 [node name="PolyGrid" type="MeshInstance" parent="Prefabs"]
-mesh = SubResource( 1 )
+mesh = SubResource( 2 )
 material/0 = null

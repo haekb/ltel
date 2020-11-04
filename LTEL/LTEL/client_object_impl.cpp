@@ -1,5 +1,6 @@
 #include "client.h"
 #include "helpers.h"
+#include <vector>
 
 #include <Godot.hpp>
 #include <Camera.hpp>
@@ -7,10 +8,13 @@
 #include <Mesh.hpp>
 #include <MeshInstance.hpp>
 #include <Quat.hpp>
+#include <Image.hpp>
+#include <ImageTexture.hpp>
 #include <Texture.hpp>
 #include <Material.hpp>
 #include <SpatialMaterial.hpp>
 #include <ResourceLoader.hpp>
+
 
 
 #define USRFLG_VISIBLE					(1<<0)
@@ -18,6 +22,8 @@
 #define USRFLG_IGNORE_PROJECTILES		(1<<2)
 
 extern LTELClient* g_pLTELClient;
+
+std::vector<LTELObject*> g_pPolygridsToUpdate;
 
 
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
@@ -348,7 +354,7 @@ DRESULT impl_FitPolyGrid(HLOCALOBJ hObj, DVector* pMin, DVector* pMax, DVector* 
 	*pPos = pNewPos;
 
 	// Just fake it for now.
-	*pScale = DVector(20.0f, 20.0f, 20.0f);
+	*pScale = DVector(15.0f, 15.0f, 15.0f);
 
 	return DE_OK;
 }
@@ -377,11 +383,36 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();
 	
+	// Albedo
 	godot::Ref<godot::SpatialMaterial> pMat = godot::SpatialMaterial::_new();
 	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
 	pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
-	pObj->pData.pPolyGrid->set_surface_material(0, pMat);
 
+	// Depth
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+	godot::Ref<godot::ImageTexture> pDepth = godot::ImageTexture::_new();
+	pDepth->create(16, 16, godot::Image::FORMAT_RGB8);
+	godot::Ref<godot::Image> pImage = godot::Image::_new();
+	pImage->create(16, 16, false, godot::Image::FORMAT_RGB8);
+	pDepth->set_data(pImage);
+
+
+	pMat->set_feature(godot::SpatialMaterial::FEATURE_DEPTH_MAPPING, true);
+	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DEPTH, pDepth);
+
+	pExtraData->pHeightmap = pDepth;
+
+	// Setup the game code's image buffer sandbox
+	pExtraData->pData = (char*)malloc(pImage->get_data().size());
+	memset(pExtraData->pData, 0, sizeof(pImage->get_data().size()));
+
+	// Make sure it's un-lit
+	pMat->set_specular(0.0f);
+	//pMat->set_flag(godot::SpatialMaterial::FLAG_UNSHADED, true);
+
+	// Set the material to the mesh
+	pObj->pData.pPolyGrid->set_surface_material(0, pMat);
+	
 	return DE_OK;
 }
 
@@ -409,9 +440,13 @@ DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWO
 		return DE_ERROR;
 	}
 
-	
-
 	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+
+	// We want to get the image data, and copy it to our bare char* pointer. 
+	// This allows the game code to modify it
+	auto pImage = pExtraData->pHeightmap->get_data();
+	auto pData = pImage->get_data();
+	memcpy(pExtraData->pData, pData.read().ptr(), sizeof(pData.size()));
 
 	// Heightmap info - basic heightmap image that can be passed into Depth pass of a SpatialShader!
 	*pBytes = pExtraData->pData;
@@ -419,6 +454,9 @@ DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWO
 	*pWidth = pExtraData->nWidth;
 	*pHeight = pExtraData->nHeight;
 	*pColorTable = pExtraData->pColorTable;
+
+	// We need to keep track of this polygrid so we can upload the texture later...
+	g_pPolygridsToUpdate.push_back(pObj);
 
 	return DE_OK;
 }

@@ -5,6 +5,8 @@
 #include <Camera.hpp>
 #include <MeshInstance.hpp>
 #include <Quat.hpp>
+#include <Texture.hpp>
+#include <ImageTexture.hpp>
 
 // Defs
 #define GDCAST(casting_to, object) godot::Object::cast_to<casting_to>(object);
@@ -50,6 +52,8 @@ struct LTELPolyGrid {
 		nHeight = height;
 		pData = nullptr;
 		pColorTable = nullptr;
+		bLocked = false;
+		pHeightmap = nullptr;
 
 		// Quick init, this should maybe not be here...
 		if (nWidth * nHeight > 0)
@@ -58,12 +62,16 @@ struct LTELPolyGrid {
 			int pDataSize = nWidth * nHeight * sizeof(char*);
 
 			pColorTable = (PGColor*)malloc(pgColorSize);
-			pData = (char*)malloc(pDataSize);
+			//pData = (char*)malloc(pDataSize);
 
 			memset((void*)pColorTable, 0, pgColorSize);
-			memset((void*)pData, 0, pDataSize);
+			//memset((void*)pData, 0, pDataSize);
 		}
 	}
+
+	godot::Ref<godot::ImageTexture> pHeightmap;
+
+	bool bLocked;
 	char* pData; // RGB?
 	int nWidth;
 	int nHeight;
