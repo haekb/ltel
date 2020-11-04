@@ -1,6 +1,7 @@
 #include "client.h"
 #include <string>
 #include <map>
+#include <vector>
 // Here be our accessible functions
 
 #include "helpers.h"
@@ -22,7 +23,7 @@
 #include <Math.hpp>
 #include <Font.hpp>
 #include <DynamicFont.hpp>
-
+#include <DynamicFontData.hpp>
 // End
 
 extern LTELClient* g_pLTELClient;
@@ -48,7 +49,8 @@ struct oConsoleVariable {
 
 std::map<std::string, oConsoleVariable> g_mConsoleVars;
 
-
+// We should free this on destruction
+std::vector<godot::Color*> g_vColours;
 
 
 // end temp!
@@ -221,23 +223,35 @@ HDEFONT impl_CreateFont(char* pFontName, int width, int height,
 	// TODO: Need to implement dynamic / bitmap fonts
 	//auto pFont = godot::DynamicFont::_new();
 	
+	auto pResourceLoader = godot::ResourceLoader::get_singleton();
 
-	auto pFont = godot::Font::_new();
+	godot::Ref<godot::DynamicFontData> pFontData = pResourceLoader->load("res://fonts/arial.ttf");
+
+	auto pFont = godot::DynamicFont::_new();
+	pFont->set_name(pFontName);
+	pFont->set_font_data(pFontData);
+	pFont->set_size(height);
 
 	return (HDEFONT)pFont;
 }
 
 void impl_DeleteFont(HDEFONT hFont)
 {
-	godot::Font* pFont = (godot::Font*)hFont;
+	godot::DynamicFont* pFont = (godot::DynamicFont*)hFont;
+
+	// Remove font data
+	pFont->set_font_data(nullptr);
+
 	pFont->free();
 }
 
 HDECOLOR impl_SetupColor1(float r, float g, float b, DBOOL bTransparent)
 {
 	float a = bTransparent ? 0.5f : 1.0f;
-	godot::Color oColor = { r, g, b, a };
-	return (HDECOLOR)&oColor;
+	godot::Color* pColor = new godot::Color(r,g,b,a);
+	g_vColours.push_back(pColor);
+
+	return (HDECOLOR)pColor;
 }
 
 HDECOLOR impl_SetupColor2(float r, float g, float b, DBOOL bTransparent)

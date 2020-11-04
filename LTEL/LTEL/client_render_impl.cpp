@@ -10,6 +10,8 @@
 #include <Control.hpp>
 #include <ResourceLoader.hpp>
 #include <ColorRect.hpp>
+#include <DynamicFont.hpp>
+#include <DynamicFontData.hpp>
 
 //#define CANVAS_NODE "/root/Scene/Camera/2D/Viewport/Canvas"
 
@@ -96,8 +98,19 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 	godot::Label* pLabel = godot::Label::_new();
 	LTELString* pString = (LTELString*)hString;
 
+	godot::Color* oColor = (godot::Color*)hForeColor;
+
 	pLabel->set_name(pString->sData.c_str());
 	pLabel->set_text((char*)pString->sData.c_str());
+
+	pLabel->add_color_override("font_color", *oColor);
+
+	godot::DynamicFont* pFont = (godot::DynamicFont*)hFont;
+	pFont->set_spacing(godot::DynamicFont::SPACING_TOP, extraPixelsY);
+	pFont->set_spacing(godot::DynamicFont::SPACING_BOTTOM, extraPixelsY);
+	//? 
+	pFont->set_spacing(godot::DynamicFont::SPACING_SPACE, extraPixelsX);
+	pFont->set_spacing(godot::DynamicFont::SPACING_CHAR, extraPixelsX);
 
 	pSurface->bIsText = true;
 	pSurface->pLabel = pLabel;
