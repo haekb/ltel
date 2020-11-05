@@ -215,6 +215,28 @@ char* impl_GetStringData(HSTRING hString)
 	return (char*)pString->sData.c_str();
 }
 
+void impl_GetStringDimensions(HDEFONT hFont, HSTRING hString, int* sizeX, int* sizeY)
+{
+	auto hSurf = g_pLTELClient->CreateSurfaceFromString(hFont, hString, 0, 0, 0, 0);
+
+	if (!hSurf)
+	{
+		*sizeX = 0;
+		*sizeY = 0;
+		return;
+	}
+
+	unsigned long nWidth = 0;
+	unsigned long nHeight = 0;
+
+	g_pLTELClient->GetSurfaceDims(hSurf, &nWidth, &nHeight);
+
+	*sizeX = (int)nWidth;
+	*sizeY = (int)nHeight;
+
+	g_pLTELClient->DeleteSurface(hSurf);
+}
+
 HDEFONT impl_CreateFont(char* pFontName, int width, int height,
 	DBOOL bItalic, DBOOL bUnderline, DBOOL bBold)
 {
@@ -399,6 +421,11 @@ DRESULT impl_PlaySound(PlaySoundInfo* pPlaySoundInfo)
 	return DE_OK;
 }
 
+void impl_KillSound(HSOUNDDE pSoundHandle)
+{
+	return;
+}
+
 //
 // Setup our struct!
 //
@@ -435,6 +462,7 @@ void LTELClient::InitFunctionPointers()
 	PauseMusic = impl_PauseMusic;
 	ResumeMusic = impl_ResumeMusic;
 	PlaySound = impl_PlaySound;
+	KillSound = impl_KillSound;
 
 	// Input functionality
 	GetDeviceName = impl_GetDeviceName;
@@ -451,6 +479,7 @@ void LTELClient::InitFunctionPointers()
 	CreateFont = impl_CreateFont;
 	DeleteFont = impl_DeleteFont;
 	CreateString = impl_CreateString;
+	GetStringDimensions = impl_GetStringDimensions;
 
 
 	SetupColor1 = impl_SetupColor1;

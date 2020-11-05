@@ -129,6 +129,12 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 	godot::Label* pLabel = godot::Label::_new();
 	LTELString* pString = (LTELString*)hString;
 
+	// No colour? Create one!
+	if (!hForeColor)
+	{
+		hForeColor = g_pLTELClient->SetupColor1(0, 0, 0, 0);
+	}
+
 	godot::Color* oColor = (godot::Color*)hForeColor;
 
 	pLabel->set_name(pString->sData.c_str());
@@ -408,6 +414,23 @@ DRESULT impl_DrawSurfaceToSurfaceTransparent(HSURFACE hDest, HSURFACE hSrc,
 	return impl_DrawSurfaceToSurface(hDest, hSrc, pSrcRect, destX, destY);
 }
 
+DBOOL impl_DrawBitmapToSurface(HSURFACE hDest, char* pSourceBitmapName,
+	DRect* pSrcRect, int destX, int destY)
+{
+	auto hSurf = impl_CreateSurfaceFromBitmap(pSourceBitmapName);
+
+	if (!hSurf)
+	{
+		return DFALSE;
+	}
+
+	auto pRet = impl_DrawSurfaceToSurface(hDest, hSurf, pSrcRect, destX, destY);
+
+	impl_DeleteSurface(hSurf);
+
+	return pRet;
+}
+
 
 
 DRESULT impl_EndOptimized2D()
@@ -554,6 +577,7 @@ void LTELClient::InitRenderImpl()
 	ScaleSurfaceToSurface = impl_ScaleSurfaceToSurface;
 	DrawSurfaceToSurface = impl_DrawSurfaceToSurface;
 	DrawSurfaceToSurfaceTransparent = impl_DrawSurfaceToSurfaceTransparent;
+	DrawBitmapToSurface = impl_DrawBitmapToSurface;
 	FillRect = impl_FillRect;
 	EndOptimized2D = impl_EndOptimized2D;
 	End3D = impl_End3D;
