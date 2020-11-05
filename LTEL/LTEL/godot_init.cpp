@@ -235,7 +235,7 @@ public:
     /** `_init` must exist as it is called by Godot. */
     void _init() { }
 
-    bool initialize_cshell()
+    bool initialize_cshell(godot::String sGameDataDir)
     {
 #ifdef WAIT_FOR_DEBUGGER
         while (!::IsDebuggerPresent())
@@ -343,6 +343,8 @@ public:
         }
 
         DGUID AppGUID = { 0 };
+
+        g_pClient->m_sGameDataDir = sGameDataDir.alloc_c_string();
 
         // Kick off OnEngineInit
         try {
