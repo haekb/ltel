@@ -24,6 +24,7 @@
 #include <Font.hpp>
 #include <DynamicFont.hpp>
 #include <DynamicFontData.hpp>
+#include <Ref.hpp>
 // End
 
 extern LTELClient* g_pLTELClient;
@@ -249,7 +250,7 @@ HDEFONT impl_CreateFont(char* pFontName, int width, int height,
 
 	godot::Ref<godot::DynamicFontData> pFontData = pResourceLoader->load("res://fonts/arial.ttf");
 
-	auto pFont = godot::DynamicFont::_new();
+	godot::DynamicFont* pFont = godot::DynamicFont::_new();
 	pFont->set_name(pFontName);
 	pFont->set_font_data(pFontData);
 	pFont->set_size(height);
@@ -269,11 +270,12 @@ void impl_DeleteFont(HDEFONT hFont)
 
 HDECOLOR impl_SetupColor1(float r, float g, float b, DBOOL bTransparent)
 {
-	float a = bTransparent ? 0.5f : 1.0f;
-	godot::Color* pColor = new godot::Color(r,g,b,a);
-	g_vColours.push_back(pColor);
+	if (bTransparent)
+	{
+		return SETRGB_F(r, g, b);
+	}
 
-	return (HDECOLOR)pColor;
+	return SETRGB_F(r, g, b);
 }
 
 HDECOLOR impl_SetupColor2(float r, float g, float b, DBOOL bTransparent)

@@ -82,6 +82,9 @@ struct LTELPolyGrid {
 // helpers
 bool replace(std::string& str, const std::string& from, const std::string& to);
 
+godot::Color LT2GodotColor(HDECOLOR hColor);
+
 godot::Quat LT2GodotQuat(DRotation* pDRotation);
 
 LTELObject* HObject2LTELObject(HOBJECT hObj);
+

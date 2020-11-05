@@ -129,25 +129,21 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 	godot::Label* pLabel = godot::Label::_new();
 	LTELString* pString = (LTELString*)hString;
 
-	// No colour? Create one!
-	if (!hForeColor)
-	{
-		hForeColor = g_pLTELClient->SetupColor1(0, 0, 0, 0);
-	}
-
-	godot::Color* oColor = (godot::Color*)hForeColor;
+	godot::Color oColor = LT2GodotColor(hForeColor);
 
 	pLabel->set_name(pString->sData.c_str());
 	pLabel->set_text((char*)pString->sData.c_str());
 
-	pLabel->add_color_override("font_color", *oColor);
+	pLabel->add_color_override("font_color", oColor);
 
+	/*
 	godot::DynamicFont* pFont = (godot::DynamicFont*)hFont;
 	pFont->set_spacing(godot::DynamicFont::SPACING_TOP, extraPixelsY);
 	pFont->set_spacing(godot::DynamicFont::SPACING_BOTTOM, extraPixelsY);
 	//? 
 	pFont->set_spacing(godot::DynamicFont::SPACING_SPACE, extraPixelsX);
 	pFont->set_spacing(godot::DynamicFont::SPACING_CHAR, extraPixelsX);
+	*/
 
 	pSurface->bIsText = true;
 	pSurface->pLabel = pLabel;
@@ -242,19 +238,9 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 	pColorRect->set_size(vSize);
 	pColorRect->set_position(vPos);
 
-	auto pColor = (godot::Color*)hColor;
+	godot::Color oColor = LT2GodotColor(hColor);
 
-	// It's black!
-	if (!pColor)
-	{
-		pColorRect->set_frame_color(godot::Color());
-	}
-	else
-	{
-		pColorRect->set_frame_color(*pColor);
-	}
-
-	
+	pColorRect->set_frame_color(oColor);
 
 	if (pDest->bIsText)
 	{
