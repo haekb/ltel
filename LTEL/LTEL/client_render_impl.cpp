@@ -18,7 +18,11 @@
 #include <Material.hpp>
 #include <SpatialMaterial.hpp>
 
+
 //#define CANVAS_NODE "/root/Scene/Camera/2D/Viewport/Canvas"
+
+// This lets us fallback to system fonts while we develop bitmap font support
+#define BLOCK_FONTS
 
 #define CANVAS_NODE "/root/Scene/Canvas"
 
@@ -79,6 +83,15 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 
 	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
 #else
+
+#ifdef BLOCK_FONTS
+	if (sBitmapName.find("font") != std::string::npos || sBitmapName.find("Font") != std::string::npos)
+	{
+		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Blocked bitmap font: {0}", sBitmapName.c_str());
+
+		return nullptr;
+	}
+#endif
 
 	godot::Ref<godot::Texture> pTexture = g_pLTELClient->LoadPCX(sBitmapName);
 
