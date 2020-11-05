@@ -426,6 +426,18 @@ void impl_KillSound(HSOUNDDE pSoundHandle)
 	return;
 }
 
+DRESULT impl_GetEngineHook(char* pName, void** pData)
+{
+	godot::Godot::print("[impl_GetEngineHook] Requesting {0}", pName);
+
+	if (_stricmp(pName, "cres_hinstance") == 0)
+	{
+		*pData = g_pLTELClient->m_pCRes;
+		return DE_OK;
+	}
+	return DE_NOTFOUND;
+}
+
 //
 // Setup our struct!
 //
@@ -447,6 +459,7 @@ void LTELClient::InitFunctionPointers()
 	GetTime = impl_GetTime;
 	GetFrameTime = impl_GetFrameTime;
 	CPrint = impl_CPrint;
+	GetEngineHook = impl_GetEngineHook;
 
 	// Game state functionality
 	GetGameMode = impl_GetGameMode;

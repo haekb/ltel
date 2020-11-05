@@ -431,7 +431,22 @@ DBOOL impl_DrawBitmapToSurface(HSURFACE hDest, char* pSourceBitmapName,
 	return pRet;
 }
 
+void impl_DrawStringToSurface(HSURFACE hDest, HDEFONT hFont, HSTRING hString,
+	DRect* pRect, HDECOLOR hForeColor, HDECOLOR hBackColor)
+{
+	auto hSurf = impl_CreateSurfaceFromString(hFont, hString, hForeColor, hBackColor, 0, 0);
 
+	if (!hSurf)
+	{
+		return;
+	}
+
+	auto pRet = impl_DrawSurfaceToSurface(hDest, hSurf, nullptr, pRect->left, pRect->top);
+
+	impl_DeleteSurface(hSurf);
+
+	return;
+}
 
 DRESULT impl_EndOptimized2D()
 {
@@ -578,6 +593,7 @@ void LTELClient::InitRenderImpl()
 	DrawSurfaceToSurface = impl_DrawSurfaceToSurface;
 	DrawSurfaceToSurfaceTransparent = impl_DrawSurfaceToSurfaceTransparent;
 	DrawBitmapToSurface = impl_DrawBitmapToSurface;
+	DrawStringToSurface = impl_DrawStringToSurface;
 	FillRect = impl_FillRect;
 	EndOptimized2D = impl_EndOptimized2D;
 	End3D = impl_End3D;
