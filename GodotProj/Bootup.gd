@@ -13,6 +13,7 @@ func _ready():
 	if !self.config.load_config():
 		return
 		
+		
 	# Setup window title
 	OS.set_window_title("LTEL - %s" % self.config.game_name)
 	
@@ -23,7 +24,7 @@ func _process(delta):
 	if is_init == false:
 		return
 	# End If
-
+	
 	data.game_update(delta)
 	
 	pass

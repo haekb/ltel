@@ -112,7 +112,7 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 	pTextureRect->set_name(sBitmapName.c_str());
 	pTextureRect->set_texture(pTexture);
 	pTextureRect->set_stretch_mode(godot::TextureRect::STRETCH_KEEP_ASPECT_COVERED);
-	//pTextureRect->set_expand(true);
+	pTextureRect->set_expand(true);
 
 	LTELSurface* pSurface = new LTELSurface();
 	pSurface->pTextureRect = pTextureRect;
@@ -154,6 +154,25 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 DRESULT impl_DeleteSurface(HSURFACE hSurface)
 {
 	auto pSurface = (LTELSurface*)hSurface;
+
+	// This stuff will be freed on ClearScreen
+	
+	if (pSurface->bIsText)
+	{
+		if (pSurface->pLabel)
+		{
+			pSurface->pLabel->queue_free();
+		}
+	}
+	else
+	{
+		if (pSurface->pTextureRect)
+		{
+			pSurface->pTextureRect->queue_free();
+		}
+	}
+	
+
 	delete pSurface;
 	return DE_OK;
 }
@@ -271,10 +290,21 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 	}
 
 	auto pChildren = pControl->get_children();
+	auto nSize = pChildren.size();
 
 	for (int i = 0; i < pChildren.size(); i++)
 	{
+
 		pControl->remove_child(pChildren[i]);
+
+		//godot::Node* pNode = GDCAST(godot::Node, pChildren[i]);
+
+		//if (pNode)
+		{
+			//godot::Godot::print("Deleting node: {0}", pNode->get_name());
+
+			//pNode->free();
+		}
 	}
 
 	return DE_OK;
@@ -317,6 +347,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	// Screen!
 	if (!pDest->bIsScreen)
 	{
+		//return DE_OK;
 		if (pDest->bIsText)
 		{
 			pNode = GDCAST(godot::Node, pDest->pLabel);
@@ -369,6 +400,7 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	// Screen!
 	if (!pDest->bIsScreen)
 	{
+		//return DE_OK;
 		if (pDest->bIsText)
 		{
 			pNode = GDCAST(godot::Node, pDest->pLabel);
@@ -444,9 +476,18 @@ DRESULT impl_End3D()
 {
 	return DE_OK;
 }
-
+#include <VisualServer.hpp>
 DRESULT impl_FlipScreen(DDWORD flags)
 {
+	auto pVS = godot::VisualServer::get_singleton();
+	auto bIsRenderLoopEnabled = pVS->call("get_render_loop_enabled");
+
+	if (!bIsRenderLoopEnabled)
+	{
+		pVS->force_sync();
+		pVS->force_draw();
+	}
+
 	return DE_OK;
 }
 

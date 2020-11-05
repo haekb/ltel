@@ -9,6 +9,7 @@
 #include <iostream>
 
 #include <Input.hpp>
+#include <VisualServer.hpp>
 
 #include "client.h"
 #include "LT1//AppHeaders/cpp_clientshell_de.h"
@@ -357,12 +358,25 @@ public:
             Godot::print("[OnEngineInitalized] Failed with exception: {0}", e.what());
         }
 
+        // If we want to manually control drawing, here's how we'd do it!
+        auto pVS = godot::VisualServer::get_singleton();
+        pVS->call("set_render_loop_enabled", false);
+
         Godot::print("Done!");
         return true;
     }
-
+    
     void game_update(float fDelta)
     {
+        static bool bFirstUpdate = true;
+
+        if (bFirstUpdate)
+        {
+            auto pVS = godot::VisualServer::get_singleton();
+            pVS->call("set_render_loop_enabled", true);
+            bFirstUpdate = false;
+        }
+
         // This is for GetFrameTime() impl
         g_pClient->m_fFrametime = fDelta;
 

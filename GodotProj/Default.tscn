@@ -3,7 +3,7 @@
 [ext_resource path="res://Bootup.gd" type="Script" id=1]
 [ext_resource path="res://src/load_pcx.gd" type="Script" id=2]
 
-[sub_resource type="PlaneMesh" id=2]
+[sub_resource type="PlaneMesh" id=1]
 subdivide_width = 16
 subdivide_depth = 16
 
@@ -25,7 +25,7 @@ __meta__ = {
 visible = false
 
 [node name="PolyGrid" type="MeshInstance" parent="Prefabs"]
-mesh = SubResource( 2 )
+mesh = SubResource( 1 )
 material/0 = null
 
 [node name="Scripts" type="Node" parent="."]
