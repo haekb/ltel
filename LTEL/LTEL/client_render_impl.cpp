@@ -65,7 +65,8 @@ DRESULT impl_SetRenderMode(RMode* pMode)
 
 HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 {
-	std::string sBitmapName = pBitmapName;
+	std::string sBitmapName = g_pLTELClient->m_sGameDataDir + pBitmapName;
+#if 0
 	if (!replace(sBitmapName, ".pcx", ".png"))
 	{
 		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to replace pcx with png! String: {0}", pBitmapName);
@@ -77,12 +78,23 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();
 
 	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
+#else
+
+	godot::Ref<godot::Texture> pTexture = g_pLTELClient->LoadPCX(sBitmapName);
+
+#endif
+
 
 	if (pTexture.is_null())
 	{
-		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to get texture resource at: {0}", sResourcePath.c_str());
+		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to get texture resource at: {0}", sBitmapName.c_str());
 		return nullptr;
 	}
+
+	//godot::Godot::print("[impl_CreateSurfaceFromBitmap] SUCCESS {0}", sBitmapName.c_str());
+
+
+
 	godot::TextureRect* pTextureRect = godot::TextureRect::_new();
 	pTextureRect->set_name(sBitmapName.c_str());
 	pTextureRect->set_texture(pTexture);

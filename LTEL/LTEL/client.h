@@ -3,7 +3,10 @@
 #include "LT1/AppHeaders/client_de.h"
 #include <Node.hpp>
 #include <Windows.h>
+#include <string>
 
+#include <Ref.hpp>
+#include <ImageTexture.hpp>
 
 // Some windows function names clash with ClientDE
 #undef CreateFont
@@ -22,6 +25,9 @@ public:
 	void InitRenderImpl();
 	void InitObjectImpl();
 
+	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
+
+	std::string m_sGameDataDir;
 	godot::Vector2 m_vFOV;
 	HINSTANCE m_pCRes;
 	godot::Node* m_pGodotLink;

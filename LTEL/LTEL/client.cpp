@@ -3,6 +3,10 @@
 #include "helpers.h"
 
 #include <Basis.hpp>
+#include <ResourceLoader.hpp>
+#include <Script.hpp>
+#include <ClassDB.hpp>
+#include <Reference.hpp>
 
 LTELClient* g_pLTELClient = nullptr;
 
@@ -10,6 +14,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 {
 	g_pLTELClient = this;
 
+	m_sGameDataDir = "";
 	m_vFOV = godot::Vector2(0.0f, 0.0f);
 	m_fFrametime = 0.1f;
 	m_pCRes = pCRes;
@@ -25,6 +30,27 @@ LTELClient::~LTELClient()
 {
 }
 
+godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
+{
+	auto pResourceLoader = godot::ResourceLoader::get_singleton();
+	auto pClassDB = godot::ClassDB::get_singleton();
+
+	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadPCX");
+
+	auto bDoIHas = pNode->has_method("load_image");
+
+	/*
+
+	godot::Ref<godot::Script> script = pResourceLoader->load("res://src/load_pcx.gd", "load_pcx");
+	godot::Object* obj = pClassDB->instance(script->get_instance_base_type());
+	obj->set_script(script.ptr());
+
+	auto doIhas = obj->has_method("load_image");
+	*/
+	godot::Ref<godot::ImageTexture> pTexture = pNode->call("load_image", sPath.c_str());
+
+	return pTexture;
+}
 
 
 //

@@ -402,8 +402,8 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	
 	// Disable this for now...
 	//pMat->set_feature(godot::SpatialMaterial::FEATURE_DETAIL, true);
-	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pDetail);
-	pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_MIX);
+	//pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pDetail);
+	//pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_MIX);
 	
 	pExtraData->pColormap = pDetail;
 
@@ -541,3 +541,5 @@ void LTELClient::InitObjectImpl()
 	SetCameraFOV = impl_SetCameraFOV;
 	GetCameraFOV = impl_GetCameraFOV;
 }
+
+
