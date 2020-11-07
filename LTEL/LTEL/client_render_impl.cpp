@@ -33,11 +33,13 @@ struct LTELSurface {
 
 	LTELSurface() {
 		bQueuedForDeletion = false;
+		bIsFontImage = false;
+		bOptimized = false;
+
 		bIsText = false;
 		bIsScreen = false;
 		pTextureRect = nullptr;
 		pLabel = nullptr;
-		bIsFontImage = false;
 	}
 
 	~LTELSurface() {
@@ -54,6 +56,7 @@ struct LTELSurface {
 		}
 	}
 
+	bool bOptimized;
 	bool bQueuedForDeletion;
 	bool bIsText;
 	bool bIsScreen;
@@ -585,7 +588,13 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 DRESULT impl_DrawSurfaceToSurfaceTransparent(HSURFACE hDest, HSURFACE hSrc,
 	DRect* pSrcRect, int destX, int destY, HDECOLOR hColor)
 {
-	return impl_DrawSurfaceToSurface(hDest, hSrc, pSrcRect, destX, destY);
+
+	// Auto optimize surface
+	g_pLTELClient->OptimizeSurface(hSrc, hColor);
+
+	auto hResult =  impl_DrawSurfaceToSurface(hDest, hSrc, pSrcRect, destX, destY);
+
+	return hResult;
 }
 
 DBOOL impl_DrawBitmapToSurface(HSURFACE hDest, char* pSourceBitmapName,
@@ -658,8 +667,8 @@ DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 
 	LTELSurface* pSurface = (LTELSurface*)hSurface;
 
-	// We don't optimize the screen or text...
-	if (pSurface->bIsScreen || pSurface->bIsText)
+	// We don't optimize the screen or text...or things that are already optimized!
+	if (pSurface->bOptimized || pSurface->bIsScreen || pSurface->bIsText)
 	{
 		return DE_OK;
 	}
@@ -709,6 +718,8 @@ DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 	// Now re-set the image!
 	pTexture->set_data(pImage);
 
+	// Cool, let's not do this again
+	pSurface->bOptimized = true;
 
 	return DE_OK;
 }
