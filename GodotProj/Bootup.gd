@@ -7,12 +7,12 @@ var is_init = false
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
+	data.set_name("LTELBinder")
 	add_child(data)
 	
 	# Load it up!
 	if !self.config.load_config():
 		return
-		
 		
 	# Setup window title
 	OS.set_window_title("LTEL - %s" % self.config.game_name)
