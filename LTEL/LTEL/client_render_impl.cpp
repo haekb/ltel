@@ -706,8 +706,6 @@ DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 	
 	pImage->unlock();
 
-	pImage->save_png("OptimizedSurface.png");
-
 	// Now re-set the image!
 	pTexture->set_data(pImage);
 
