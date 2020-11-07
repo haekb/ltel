@@ -25,6 +25,7 @@
 #include <DynamicFont.hpp>
 #include <DynamicFontData.hpp>
 #include <Ref.hpp>
+#include <File.hpp>
 // End
 
 extern LTELClient* g_pLTELClient;
@@ -445,6 +446,56 @@ void impl_Shutdown()
 	g_pLTELClient->m_pGodotLink->get_tree()->quit();
 }
 
+DRESULT impl_GetWorldInfoString(char* pFilename, char* pInfoString, DDWORD maxLen, DDWORD* pActualLen)
+{
+	// Reference!
+	struct ShogoWorldHeader {
+		uint32_t Version;
+		uint32_t ObjectDataPosition;
+		uint32_t RenderDataPosition;
+
+		int WorldInfoLength;
+		//LTString WorldInfo;
+	};
+
+	std::string sPath = g_pLTELClient->m_sGameDataDir + pFilename;
+
+	godot::Ref<godot::File> pFile = godot::File::_new();
+		
+	auto hError = pFile->open(sPath.c_str(), godot::File::READ);
+
+	int nVersion = pFile->get_32();
+
+	if (nVersion != 56)
+	{
+		godot::Godot::print("[impl_GetWorldInfoString] Map {0} is not version 56! Version {1} detected.", pFilename, nVersion);
+	}
+
+	int nObjectDataPosition = pFile->get_32();
+	int nRenderDataPosition = pFile->get_32();
+
+	int nWorldInfoLength = pFile->get_32();
+
+	*pActualLen = nWorldInfoLength;
+
+	auto pByteBuffer = pFile->get_buffer(nWorldInfoLength);
+
+	char* szWorldInfo = (char*)pByteBuffer.read().ptr();
+	szWorldInfo[nWorldInfoLength - 1] = '\0';
+
+	strcpy_s(pInfoString, maxLen, szWorldInfo);
+
+	pFile->close();
+
+	bool bTest = true;
+	return DE_OK;
+}
+
+int	impl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** argPointers, int* nArgs)
+{
+
+}
+
 //
 // Setup our struct!
 //
@@ -468,6 +519,10 @@ void LTELClient::InitFunctionPointers()
 	CPrint = impl_CPrint;
 	GetEngineHook = impl_GetEngineHook;
 	Shutdown = impl_Shutdown;
+	Parse = impl_Parse;
+
+	// World functionality
+	GetWorldInfoString = impl_GetWorldInfoString;
 
 	// Game state functionality
 	GetGameMode = impl_GetGameMode;
