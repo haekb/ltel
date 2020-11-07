@@ -30,6 +30,8 @@ LTELClient::~LTELClient()
 {
 }
 
+
+
 godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 {
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();
@@ -39,14 +41,6 @@ godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 
 	auto bDoIHas = pNode->has_method("load_image");
 
-	/*
-
-	godot::Ref<godot::Script> script = pResourceLoader->load("res://src/load_pcx.gd", "load_pcx");
-	godot::Object* obj = pClassDB->instance(script->get_instance_base_type());
-	obj->set_script(script.ptr());
-
-	auto doIhas = obj->has_method("load_image");
-	*/
 	godot::Ref<godot::ImageTexture> pTexture = pNode->call("load_image", sPath.c_str());
 
 	return pTexture;

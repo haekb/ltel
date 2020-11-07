@@ -22,7 +22,7 @@
 //#define CANVAS_NODE "/root/Scene/Camera/2D/Viewport/Canvas"
 
 // This lets us fallback to system fonts while we develop bitmap font support
-#define BLOCK_FONTS
+//#define BLOCK_FONTS
 
 #define CANVAS_NODE "/root/Scene/Canvas"
 
@@ -73,19 +73,6 @@ DRESULT impl_SetRenderMode(RMode* pMode)
 HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 {
 	std::string sBitmapName = g_pLTELClient->m_sGameDataDir + pBitmapName;
-#if 0
-	if (!replace(sBitmapName, ".pcx", ".png"))
-	{
-		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to replace pcx with png! String: {0}", pBitmapName);
-		return nullptr;
-	}
-
-	std::string sResourcePath = "res://shogo/" + sBitmapName;
-
-	auto pResourceLoader = godot::ResourceLoader::get_singleton();
-
-	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
-#else
 
 #ifdef BLOCK_FONTS
 	if (sBitmapName.find("font") != std::string::npos || sBitmapName.find("Font") != std::string::npos)
@@ -98,18 +85,11 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 
 	godot::Ref<godot::Texture> pTexture = g_pLTELClient->LoadPCX(sBitmapName);
 
-#endif
-
-
 	if (pTexture.is_null())
 	{
 		godot::Godot::print("[impl_CreateSurfaceFromBitmap] Failed to get texture resource at: {0}", sBitmapName.c_str());
 		return nullptr;
 	}
-
-	//godot::Godot::print("[impl_CreateSurfaceFromBitmap] SUCCESS {0}", sBitmapName.c_str());
-
-
 
 	godot::TextureRect* pTextureRect = godot::TextureRect::_new();
 	pTextureRect->set_name(sBitmapName.c_str());
@@ -135,7 +115,7 @@ HSURFACE impl_CreateSurfaceFromString(HDEFONT hFont, HSTRING hString,
 	godot::Color oColor = LT2GodotColor(hForeColor);
 
 	pLabel->set_name(pString->sData.c_str());
-	pLabel->set_text((char*)pString->sData.c_str());
+	pLabel->set_text(pString->sData.c_str());
 
 	pLabel->add_color_override("font_color", oColor);
 
@@ -162,30 +142,7 @@ DRESULT impl_DeleteSurface(HSURFACE hSurface)
 	pSurface->bQueuedForDeletion = true;
 
 	g_pSurfacesQueuedForDeletion.push_back(pSurface);
-	return DE_OK;
-	
-	if (pSurface->bIsText)
-	{
-		pSurface->bQueuedForDeletion = true;
 
-		g_pSurfacesQueuedForDeletion.push_back(pSurface);
-
-		return DE_OK;
-		if (pSurface->pLabel)
-		{
-			pSurface->pLabel->queue_free();
-		}
-	}
-	else
-	{
-		if (pSurface->pTextureRect)
-		{
-			pSurface->pTextureRect->queue_free();
-		}
-	}
-	
-
-	delete pSurface;
 	return DE_OK;
 }
 
@@ -231,8 +188,11 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 
 	if (rTexture.is_null())
 	{
-		*pWidth = 0;
-		*pHeight = 0;
+		// Okay no texture...but is the texture rect dims set?
+		auto vSize = pSurface->pTextureRect->get_size();
+
+		*pWidth = vSize.width;
+		*pHeight = vSize.height;
 		return;
 	}
 
@@ -258,7 +218,13 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 	if (!pRect)
 	{
 		vPos = godot::Vector2(0, 0);
-		vSize = godot::Vector2(1024, 768);
+		
+		unsigned long nWidth = 0;
+		unsigned long nHeight = 0;
+
+		impl_GetSurfaceDims(hDest, &nWidth, &nHeight);
+
+		vSize = godot::Vector2(nWidth, nHeight);
 	}
 	else
 	{
@@ -410,13 +376,19 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	{
 		pSrc->pLabel->set_position(vPos);
 		pSrc->pLabel->set_size(vSize);
-		pNode->add_child(pSrc->pLabel);
+		if (!pSrc->pLabel->get_parent())
+		{
+			pNode->add_child(pSrc->pLabel);
+		}
 	}
 	else
 	{
 		pSrc->pTextureRect->set_position(vPos);
 		pSrc->pTextureRect->set_size(vSize);
-		pNode->add_child(pSrc->pTextureRect);
+		if (!pSrc->pTextureRect->get_parent())
+		{
+			pNode->add_child(pSrc->pTextureRect);
+		}
 	}
 
 	// Don't need this yet
@@ -462,12 +434,18 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	if (pSrc->bIsText)
 	{
 		pSrc->pLabel->set_position(vPos);
-		pNode->add_child(pSrc->pLabel);
+		if (!pSrc->pLabel->get_parent())
+		{
+			pNode->add_child(pSrc->pLabel);
+		}
 	}
 	else
 	{
 		pSrc->pTextureRect->set_position(vPos);
-		pNode->add_child(pSrc->pTextureRect);
+		if (!pSrc->pTextureRect->get_parent())
+		{
+			pNode->add_child(pSrc->pTextureRect);
+		}
 	}
 
 	// Don't need this yet

@@ -25,4 +25,5 @@ window/size/height=768
 
 [rendering]
 
+quality/filters/anisotropic_filter_level=16
 environment/default_environment="res://default_env.tres"

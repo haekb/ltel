@@ -427,6 +427,7 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 
 	// Make sure it's un-lit
 	pMat->set_specular(0.0f);
+	pMat->set_flag(godot::SpatialMaterial::FLAG_USE_VERTEX_LIGHTING, true);
 	//pMat->set_flag(godot::SpatialMaterial::FLAG_UNSHADED, true);
 
 	// Set the material to the mesh
