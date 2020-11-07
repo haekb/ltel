@@ -159,7 +159,15 @@ HSURFACE impl_GetScreenSurface()
 	// We don't really need this yet, so just return a blank texture rect
 	//static godot::TextureRect* pScreen = godot::TextureRect::_new();
 
-	static LTELSurface* pScreen = new LTELSurface();
+	static LTELSurface* pScreen = nullptr;
+
+	// Hacky init!
+	if (!pScreen)
+	{
+		auto hSurface = g_pLTELClient->CreateSurface(1024, 768);
+		pScreen = (LTELSurface*)hSurface;
+	}
+
 	pScreen->bIsScreen = true;
 
 	return (HSURFACE)pScreen;
@@ -424,7 +432,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 				}
 				else
 				{
-
+					rSrcRect.set_size(godot::Vector2(vSize.width, vSize.height));
 					rSrcRect.set_position(godot::Vector2(vPos.x, vPos.y));
 				}
 
@@ -520,14 +528,6 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
 			auto pSrcTexture = pSrc->pTextureRect->get_texture();
 
-			/*
-			if (pSrc->bIsFontImage)
-			{
-				pSrcTexture->get_data()->save_png("Font.png");
-				DebugBreak();
-			}
-			*/
-
 			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
 			{
 				//x,y,w,h
@@ -545,23 +545,19 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 				}
 				else
 				{
-
+					rSrcRect.set_size(godot::Vector2(pSrcTexture->get_data()->get_width(), pSrcTexture->get_data()->get_height()));
 					rSrcRect.set_position(godot::Vector2(destX, destY));
 				}
 
+				
 
 				godot::Vector2 vDestRect = godot::Vector2(destX, destY);
 				auto pImage = pDestTexture->get_data();
 				pImage->blit_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
-				pDestTexture->set_data(pImage);
+				//pSrcTexture->get_data()->save_png("Src.png");
+				//pImage->save_png("Dest.png");
 
-				/*
-				if (pSrc->bIsFontImage)
-				{
-					pImage->save_png("Font.png");
-					DebugBreak();
-				}
-				*/
+				pDestTexture->set_data(pImage);
 			}
 			else
 			{
@@ -570,11 +566,20 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 		}
 		
 
+		// This actually doesn't work...
 		// Not else, because above path can fallback here!
 		if (!bCanBlit)
 		{
 			pSrc->pTextureRect->set_position(vPos);
-			if (!pSrc->pTextureRect->get_parent())
+
+			pSrc->pTextureRect->get_texture()->get_data()->save_png("CantBlitTex.png");
+
+			if (pSrc->pTextureRect->get_parent())
+			{
+				pSrc->pTextureRect->get_parent()->remove_child(pSrc->pTextureRect);
+			}
+
+			//if (!pSrc->pTextureRect->get_parent())
 			{
 				pNode->add_child(pSrc->pTextureRect);
 			}
@@ -644,10 +649,11 @@ DRESULT impl_End3D()
 #include <VisualServer.hpp>
 DRESULT impl_FlipScreen(DDWORD flags)
 {
+	/*
 	auto pVS = godot::VisualServer::get_singleton();
 	auto bIsRenderLoopEnabled = pVS->call("get_render_loop_enabled");
 
-	/*
+
 	if (!bIsRenderLoopEnabled)
 	{
 		pVS->force_sync();
