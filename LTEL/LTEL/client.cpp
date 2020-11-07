@@ -26,6 +26,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	// New!
 	InitRenderImpl();
 	InitObjectImpl();
+	InitStringImpl();
 }
 
 LTELClient::~LTELClient()

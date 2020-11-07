@@ -24,6 +24,7 @@ public:
 	void InitFunctionPointers();
 	void InitRenderImpl();
 	void InitObjectImpl();
+	void InitStringImpl();
 
 	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
 
