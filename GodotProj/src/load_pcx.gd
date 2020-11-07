@@ -150,6 +150,7 @@ func load_image(filename : String):
 	
 	# Expects width*height*bpp (3)
 	image.create_from_data(width, height, false, Image.FORMAT_RGB8, colourBuffer)
+	image.convert(Image.FORMAT_RGBA8)
 	
 	var texture = ImageTexture.new()
 	

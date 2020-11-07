@@ -651,6 +651,67 @@ DRESULT impl_FlipScreen(DDWORD flags)
 
 DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 {
+	if (!hSurface)
+	{
+		return DE_OK;
+	}
+
+	LTELSurface* pSurface = (LTELSurface*)hSurface;
+
+	// We don't optimize the screen or text...
+	if (pSurface->bIsScreen || pSurface->bIsText)
+	{
+		return DE_OK;
+	}
+
+	// Null check
+	if (!pSurface->pTextureRect || pSurface->pTextureRect->get_texture().is_null() || pSurface->pTextureRect->get_texture()->get_data().is_null())
+	{
+		// We don't know if this is a jake error, or a game error yet!
+		return DE_OK;
+	}
+
+	godot::Color oColor = godot::Color();
+
+	if (hTransparentColor)
+	{
+		oColor = LT2GodotColor(hTransparentColor);
+	}
+
+	oColor.a = 1.0f;
+
+	godot::Ref<godot::ImageTexture> pTexture = pSurface->pTextureRect->get_texture();
+
+	auto pImage = pTexture->get_data();
+
+	pImage->lock();
+	
+	// Loop through the image, check the pixel and set it to transparent!
+	for (int x = 0; x < pImage->get_width(); x++)
+	{
+		for (int y = 0; y < pImage->get_height(); y++)
+		{
+			auto pPixel = pImage->get_pixel(x, y);
+			pPixel.a = 1.0f;
+
+			if (pPixel == oColor)
+			{
+				// Just swap the alpha, and put it back!
+				pPixel.a = 0.0f;
+				pImage->set_pixel(x, y, pPixel);
+			}
+
+		}
+	}
+	
+	pImage->unlock();
+
+	pImage->save_png("OptimizedSurface.png");
+
+	// Now re-set the image!
+	pTexture->set_data(pImage);
+
+
 	return DE_OK;
 }
 
@@ -686,7 +747,7 @@ HSURFACE impl_CreateSurface(DDWORD width, DDWORD height)
 	// Create a blank image surface
 	godot::Ref<godot::Image> pImage = godot::Image::_new();
 	// This should maybe be RGBA8...
-	pImage->create(width, height, false, godot::Image::FORMAT_RGB8);
+	pImage->create(width, height, false, godot::Image::FORMAT_RGBA8);
 	// debug:
 	//pImage->fill(godot::Color(1.0, 0.4, 0.2));
 
