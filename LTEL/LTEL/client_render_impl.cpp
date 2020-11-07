@@ -836,6 +836,8 @@ DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 				float fVal = (float)pData[x * y] / 255;
 				godot::Color oDepthColor = godot::Color(fVal, fVal, fVal, 1.0f);
 				pDepthImage->set_pixel(x, y, oDepthColor);
+				//pDetailImage->set_pixel(x, y, oDepthColor);
+
 			}
 		}
 

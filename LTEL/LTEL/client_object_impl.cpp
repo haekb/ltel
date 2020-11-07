@@ -215,6 +215,7 @@ void impl_SetObjectFlags(HLOCALOBJ hObj, DDWORD flags)
 		return;
 	}
 
+	
 	pObj->nObjectFlags = flags;
 }
 
@@ -401,9 +402,10 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	pDetail->set_data(pDetailImage);
 	
 	// Disable this for now...
-	//pMat->set_feature(godot::SpatialMaterial::FEATURE_DETAIL, true);
-	//pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pDetail);
-	//pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_MIX);
+	pMat->set_feature(godot::SpatialMaterial::FEATURE_DETAIL, true);
+	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_ALBEDO, pDetail);
+
+	pMat->set_detail_blend_mode(godot::SpatialMaterial::BLEND_MODE_SUB);
 	
 	pExtraData->pColormap = pDetail;
 
@@ -418,6 +420,7 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 
 	pMat->set_feature(godot::SpatialMaterial::FEATURE_DEPTH_MAPPING, true);
 	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DEPTH, pDepth);
+	pMat->set_texture(godot::SpatialMaterial::TEXTURE_DETAIL_MASK, pDepth);
 
 	pExtraData->pHeightmap = pDepth;
 
@@ -504,8 +507,17 @@ void impl_GetObjectColor(HLOCALOBJ hObject, float* r, float* g, float* b, float*
 	*b = 1.0f;
 	*a = 1.0f;
 }
+
 void impl_SetObjectColor(HLOCALOBJ hObject, float r, float g, float b, float a)
 {
+	auto pObj = HObject2LTELObject(hObject);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	bool bHeloo = true;
 // Not right now!
 }
 
