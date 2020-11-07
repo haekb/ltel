@@ -440,6 +440,11 @@ DRESULT impl_GetEngineHook(char* pName, void** pData)
 	return DE_NOTFOUND;
 }
 
+void impl_Shutdown()
+{
+	g_pLTELClient->m_pGodotLink->get_tree()->quit();
+}
+
 //
 // Setup our struct!
 //
@@ -462,6 +467,7 @@ void LTELClient::InitFunctionPointers()
 	GetFrameTime = impl_GetFrameTime;
 	CPrint = impl_CPrint;
 	GetEngineHook = impl_GetEngineHook;
+	Shutdown = impl_Shutdown;
 
 	// Game state functionality
 	GetGameMode = impl_GetGameMode;

@@ -360,7 +360,7 @@ public:
 
         // If we want to manually control drawing, here's how we'd do it!
         auto pVS = godot::VisualServer::get_singleton();
-        pVS->call("set_render_loop_enabled", false);
+        //pVS->call("set_render_loop_enabled", false);
 
         Godot::print("Done!");
         return true;
@@ -373,7 +373,7 @@ public:
         if (bFirstUpdate)
         {
             auto pVS = godot::VisualServer::get_singleton();
-            pVS->call("set_render_loop_enabled", true);
+            //pVS->call("set_render_loop_enabled", true);
             bFirstUpdate = false;
         }
 

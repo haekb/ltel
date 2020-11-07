@@ -32,6 +32,7 @@ extern std::vector<LTELObject*> g_pPolygridsToUpdate;
 struct LTELSurface {
 
 	LTELSurface() {
+		bQueuedForDeletion = false;
 		bIsText = false;
 		bIsScreen = false;
 		pTextureRect = nullptr;
@@ -52,6 +53,7 @@ struct LTELSurface {
 		}
 	}
 
+	bool bQueuedForDeletion;
 	bool bIsText;
 	bool bIsScreen;
 
@@ -61,6 +63,7 @@ struct LTELSurface {
 	godot::Label* pLabel;
 };
 
+std::vector<LTELSurface*> g_pSurfacesQueuedForDeletion;
 
 DRESULT impl_SetRenderMode(RMode* pMode)
 {
@@ -155,10 +158,19 @@ DRESULT impl_DeleteSurface(HSURFACE hSurface)
 {
 	auto pSurface = (LTELSurface*)hSurface;
 
-	// This stuff will be freed on ClearScreen
+	// This stuff will be freed on ClearScreen.
+	pSurface->bQueuedForDeletion = true;
+
+	g_pSurfacesQueuedForDeletion.push_back(pSurface);
+	return DE_OK;
 	
 	if (pSurface->bIsText)
 	{
+		pSurface->bQueuedForDeletion = true;
+
+		g_pSurfacesQueuedForDeletion.push_back(pSurface);
+
+		return DE_OK;
 		if (pSurface->pLabel)
 		{
 			pSurface->pLabel->queue_free();
@@ -192,6 +204,7 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 {
 	auto pSurface = (LTELSurface*)hSurf;
 
+	// This is expected if bitmap fonts fail to load!
 	if (!pSurface)
 	{
 		godot::Godot::print("Failed to GetSurfaceDims, nullptr passed as hSurf!");
@@ -250,7 +263,7 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 	else
 	{
 		vPos = godot::Vector2(pRect->left, pRect->top);
-		vSize = godot::Vector2(pRect->right, pRect->bottom);
+		vSize = godot::Vector2(pRect->right - pRect->left, pRect->bottom - pRect->top);
 	}
 	
 	godot::ColorRect* pColorRect = godot::ColorRect::_new();
@@ -307,6 +320,41 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 		}
 	}
 
+
+	// Incase a few surfaces sneaked in, we'll hold a list of ones that AREN'T queued for deletion
+	std::vector<LTELSurface*> pTemp;
+
+	// Loop through and free!
+	for (auto pSurface : g_pSurfacesQueuedForDeletion)
+	{
+		if (!pSurface->bQueuedForDeletion)
+		{
+			pTemp.push_back(pSurface);
+			continue;
+		}
+
+		if (pSurface->bIsText)
+		{
+			if (!pSurface->pLabel->is_inside_tree())
+			{
+				pSurface->pLabel->queue_free();
+			}
+		}
+		else
+		{
+			if (!pSurface->pTextureRect->is_inside_tree())
+			{
+				pSurface->pTextureRect->queue_free();
+			}
+		}
+
+		delete pSurface;
+	}
+
+	g_pSurfacesQueuedForDeletion.clear();
+	g_pSurfacesQueuedForDeletion = pTemp;
+
+
 	return DE_OK;
 }
 
@@ -340,7 +388,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	}
 
 	auto vPos = godot::Vector2(pDestRect->left, pDestRect->top);
-	auto vSize = godot::Vector2(pDestRect->left - pDestRect->right, pDestRect->top - pDestRect->bottom);
+	auto vSize = godot::Vector2(pDestRect->right - pDestRect->left, pDestRect->bottom - pDestRect->top);
 
 	godot::Node* pNode = GDCAST(godot::Node, pControl);
 
@@ -482,11 +530,13 @@ DRESULT impl_FlipScreen(DDWORD flags)
 	auto pVS = godot::VisualServer::get_singleton();
 	auto bIsRenderLoopEnabled = pVS->call("get_render_loop_enabled");
 
+	/*
 	if (!bIsRenderLoopEnabled)
 	{
 		pVS->force_sync();
 		pVS->force_draw();
 	}
+	*/
 
 	return DE_OK;
 }
@@ -524,7 +574,17 @@ HSURFACE impl_CreateSurface(DDWORD width, DDWORD height)
 
 DRESULT impl_GetBorderSize(HSURFACE hSurface, HDECOLOR hColor, DRect* pRect)
 {
-	pRect = { 0 };
+	unsigned long nWidth = 0;
+	unsigned long nHeight = 0;
+
+	impl_GetSurfaceDims(hSurface, &nWidth, &nHeight);
+
+	pRect->bottom = 0;
+	pRect->left = 0;
+	pRect->right = 0;
+	pRect->top = 0;
+
+	//pRect = { 0 };
 	return DE_OK;
 }
 
