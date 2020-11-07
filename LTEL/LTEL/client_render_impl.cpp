@@ -37,6 +37,7 @@ struct LTELSurface {
 		bIsScreen = false;
 		pTextureRect = nullptr;
 		pLabel = nullptr;
+		bIsFontImage = false;
 	}
 
 	~LTELSurface() {
@@ -56,6 +57,7 @@ struct LTELSurface {
 	bool bQueuedForDeletion;
 	bool bIsText;
 	bool bIsScreen;
+	bool bIsFontImage;
 
 	// If bIsText == false:
 	godot::TextureRect* pTextureRect;
@@ -83,6 +85,8 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 	}
 #endif
 
+	bool isFont = (sBitmapName.find("font") != std::string::npos || sBitmapName.find("Font") != std::string::npos);
+
 	godot::Ref<godot::Texture> pTexture = g_pLTELClient->LoadPCX(sBitmapName);
 
 	if (pTexture.is_null())
@@ -99,6 +103,7 @@ HSURFACE impl_CreateSurfaceFromBitmap(char* pBitmapName)
 
 	LTELSurface* pSurface = new LTELSurface();
 	pSurface->pTextureRect = pTextureRect;
+	pSurface->bIsFontImage = isFont;
 
 	return (HSURFACE)pSurface;
 }
@@ -346,6 +351,8 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	LTELSurface* pDest = (LTELSurface*)hDest;
 	LTELSurface* pSrc = (LTELSurface*)hSrc;
 
+	bool bCanBlit = false;
+
 	godot::Control* pControl = GDCAST(godot::Control, g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
 
 	if (!pControl)
@@ -369,6 +376,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 		else
 		{
 			pNode = GDCAST(godot::Node, pDest->pTextureRect);
+			bCanBlit = true;
 		}
 	}
 
@@ -383,11 +391,71 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	}
 	else
 	{
-		pSrc->pTextureRect->set_position(vPos);
-		pSrc->pTextureRect->set_size(vSize);
-		if (!pSrc->pTextureRect->get_parent())
+		if (bCanBlit)
 		{
-			pNode->add_child(pSrc->pTextureRect);
+			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
+			auto pSrcTexture = pSrc->pTextureRect->get_texture();
+
+			/*
+			if (pSrc->bIsFontImage)
+			{
+				pSrcTexture->get_data()->save_png("Font.png");
+				DebugBreak();
+			}
+			*/
+
+			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
+			{
+				//x,y,w,h
+				godot::Rect2 rSrcRect = godot::Rect2();
+
+				if (pSrcRect)
+				{
+					float nWidth = pSrcRect->right - pSrcRect->left;
+					float nHeight = pSrcRect->bottom - pSrcRect->top;
+					float x = pSrcRect->left;
+					float y = pSrcRect->top;
+
+					rSrcRect.set_size(godot::Vector2(nWidth, nHeight));
+					rSrcRect.set_position(godot::Vector2(x, y));
+				}
+				else
+				{
+
+					rSrcRect.set_position(godot::Vector2(vPos.x, vPos.y));
+				}
+
+				auto pSrcImage = pSrcTexture->get_data();
+				pSrcImage->resize(vSize.width, vSize.height);
+
+				godot::Vector2 vDestRect = godot::Vector2(vPos.x, vPos.y);
+				auto pImage = pDestTexture->get_data();
+				pImage->blit_rect(pSrcImage, rSrcRect, vDestRect);
+				pDestTexture->set_data(pImage);
+
+				/*
+				if (pSrc->bIsFontImage)
+				{
+					pImage->save_png("Font.png");
+					DebugBreak();
+				}
+				*/
+			}
+			else
+			{
+				bCanBlit = false;
+			}
+		}
+
+
+		// Not else, because above path can fallback here!
+		if (!bCanBlit)
+		{
+			pSrc->pTextureRect->set_position(vPos);
+			if (!pSrc->pTextureRect->get_parent())
+			{
+				pNode->add_child(pSrc->pTextureRect);
+			}
 		}
 	}
 
@@ -400,6 +468,8 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 {
 	LTELSurface* pDest = (LTELSurface*)hDest;
 	LTELSurface* pSrc = (LTELSurface*)hSrc;
+
+	bool bCanBlit = false;
 
 	if (!pDest || !pSrc)
 	{
@@ -428,6 +498,7 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 		else
 		{
 			pNode = GDCAST(godot::Node, pDest->pTextureRect);
+			bCanBlit = true;
 		}
 	}
 
@@ -441,10 +512,69 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	}
 	else
 	{
-		pSrc->pTextureRect->set_position(vPos);
-		if (!pSrc->pTextureRect->get_parent())
+		if (bCanBlit)
 		{
-			pNode->add_child(pSrc->pTextureRect);
+			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
+			auto pSrcTexture = pSrc->pTextureRect->get_texture();
+
+			/*
+			if (pSrc->bIsFontImage)
+			{
+				pSrcTexture->get_data()->save_png("Font.png");
+				DebugBreak();
+			}
+			*/
+
+			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
+			{
+				//x,y,w,h
+				godot::Rect2 rSrcRect = godot::Rect2();
+				
+				if (pSrcRect)
+				{
+					float nWidth = pSrcRect->right - pSrcRect->left;
+					float nHeight = pSrcRect->bottom - pSrcRect->top;
+					float x = pSrcRect->left;
+					float y = pSrcRect->top;
+
+					rSrcRect.set_size(godot::Vector2(nWidth, nHeight));
+					rSrcRect.set_position(godot::Vector2(x, y));
+				}
+				else
+				{
+
+					rSrcRect.set_position(godot::Vector2(destX, destY));
+				}
+
+
+				godot::Vector2 vDestRect = godot::Vector2(destX, destY);
+				auto pImage = pDestTexture->get_data();
+				pImage->blit_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
+				pDestTexture->set_data(pImage);
+
+				/*
+				if (pSrc->bIsFontImage)
+				{
+					pImage->save_png("Font.png");
+					DebugBreak();
+				}
+				*/
+			}
+			else
+			{
+				bCanBlit = false;
+			}
+		}
+		
+
+		// Not else, because above path can fallback here!
+		if (!bCanBlit)
+		{
+			pSrc->pTextureRect->set_position(vPos);
+			if (!pSrc->pTextureRect->get_parent())
+			{
+				pNode->add_child(pSrc->pTextureRect);
+			}
 		}
 	}
 
@@ -544,8 +674,28 @@ HSURFACE impl_CreateSurface(DDWORD width, DDWORD height)
 {
 	LTELSurface* pSurface = new LTELSurface();
 	godot::TextureRect* pTextureRect = godot::TextureRect::_new();
-	pTextureRect->set_name("Empty");
+
+	static int nSurfaceCounter = 0;
+
+	std::string sEmpty = "Empty: " + std::to_string(nSurfaceCounter);
+	nSurfaceCounter++;
+
+	pTextureRect->set_name(sEmpty.c_str());
 	pTextureRect->set_size(godot::Vector2(width, height));
+
+	// Create a blank image surface
+	godot::Ref<godot::Image> pImage = godot::Image::_new();
+	// This should maybe be RGBA8...
+	pImage->create(width, height, false, godot::Image::FORMAT_RGB8);
+	// debug:
+	//pImage->fill(godot::Color(1.0, 0.4, 0.2));
+
+	// Create the ImageTexture...from the image.
+	godot::Ref<godot::ImageTexture> pImageTexture = godot::ImageTexture::_new();
+	pImageTexture->create_from_image(pImage);
+	pTextureRect->set_texture(pImageTexture);
+
+	// Set it to the surface, and let's roll out!
 	pSurface->pTextureRect = pTextureRect;
 	return (HSURFACE)pSurface;
 }
