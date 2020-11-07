@@ -14,6 +14,8 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 {
 	g_pLTELClient = this;
 
+	m_nGameMode = GAMEMODE_NONE;
+	m_bIsConnected = false;
 	m_sGameDataDir = "";
 	m_vFOV = godot::Vector2(0.0f, 0.0f);
 	m_fFrametime = 0.1f;

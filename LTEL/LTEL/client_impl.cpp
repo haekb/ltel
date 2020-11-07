@@ -384,7 +384,7 @@ void impl_CPrint(char* pMsg, ...)
 
 DRESULT impl_GetGameMode(int* mode)
 {
-	*mode = GAMEMODE_NONE;
+	*mode = g_pLTELClient->m_nGameMode;
 	return DE_OK;
 }
 
@@ -563,6 +563,23 @@ int	impl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** ar
 	return bMoreData;
 }
 
+DBOOL impl_IsConnected()
+{
+	return g_pLTELClient->m_bIsConnected;
+}
+
+DRESULT impl_StartGame(StartGameRequest* pRequest)
+{
+	bool bHi = false;
+
+	return DE_OK;
+}
+
+HLOCALOBJ impl_GetClientObject()
+{
+	return nullptr;
+}
+
 //
 // Setup our struct!
 //
@@ -592,7 +609,10 @@ void LTELClient::InitFunctionPointers()
 	GetWorldInfoString = impl_GetWorldInfoString;
 
 	// Game state functionality
+	StartGame = impl_StartGame;
 	GetGameMode = impl_GetGameMode;
+	IsConnected = impl_IsConnected;
+	GetClientObject = impl_GetClientObject;
 
 	// Audio functionality
 	InitMusic = impl_InitMusic;

@@ -33,6 +33,9 @@ public:
 	godot::Node* m_pGodotLink;
 	float m_fFrametime;
 
+	int m_nGameMode;
+	bool m_bIsConnected;
+
 	//
 	// CSBASE
 	//
