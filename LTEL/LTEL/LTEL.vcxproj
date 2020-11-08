@@ -200,6 +200,7 @@
     <ClInclude Include="LT1\AppHeaders\specialeffect_de.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="server.h" />
+    <ClInclude Include="shared.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client.cpp" />
@@ -218,6 +219,7 @@
     </ClCompile>
     <ClCompile Include="server.cpp" />
     <ClCompile Include="server_impl.cpp" />
+    <ClCompile Include="shared.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

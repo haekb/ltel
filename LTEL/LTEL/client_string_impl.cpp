@@ -4,7 +4,7 @@
 #include <vector>
 // Here be our accessible functions
 
-
+#include "shared.h"
 #include "helpers.h"
 
 // Godot stuff
@@ -18,9 +18,7 @@ extern LTELClient* g_pLTELClient;
 
 HSTRING impl_CreateString(char* pString)
 {
-	LTELString* pLTELString = new LTELString(pString);
-
-	return (HSTRING)pLTELString;
+	return (HSTRING)shared_CreateString(pString);
 }
 
 HSTRING impl_FormatString(int messageCode, ...)

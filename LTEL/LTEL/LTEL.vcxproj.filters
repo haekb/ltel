@@ -126,6 +126,9 @@
     <ClInclude Include="server.h">
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClInclude>
+    <ClInclude Include="shared.h">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -159,6 +162,9 @@
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
     <ClCompile Include="server_impl.cpp">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="shared.cpp">
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
   </ItemGroup>

@@ -6,11 +6,13 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	m_pSRes = pSRes;
 	m_fFrametime = 0.1f;
 	m_pServerShell = nullptr;
+
+	InitFunctionPointers();
 }
 
 LTELServer::~LTELServer()
 {
-
+	
 }
 
 DRESULT LTELServer::GetGlobalForce(DVector* pVec)
