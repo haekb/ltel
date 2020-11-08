@@ -399,6 +399,9 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	pDetail->create(16, 16, godot::Image::FORMAT_RGB8);
 	pDetailImage->create(16, 16, false, godot::Image::FORMAT_RGB8);
 
+	// Small hack: This isn't how the effect is recreated, but I'm at a loss right now.
+	pDetailImage->fill(godot::Color(0.25f, 0.25f, 0.25f, 1.0f));
+
 	pDetail->set_data(pDetailImage);
 	
 	// Disable this for now...
