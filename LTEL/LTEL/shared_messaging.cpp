@@ -83,6 +83,9 @@ DRESULT shared_WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE
 	godot::StreamPeerBuffer* pDestStream = GD_STREAM_CAST(hMessage);
 	godot::StreamPeerBuffer* pSrcStream = GD_STREAM_CAST(hDataMessage);
 
+
+	// Put the size in first
+	pDestStream->put_32(pSrcStream->get_size());
 	return pDestStream->put_data(pSrcStream->get_data(pSrcStream->get_size())) == godot::Error::OK ? DE_OK : DE_ERROR;
 }
 
@@ -144,43 +147,58 @@ DRESULT shared_WriteToLoadSaveMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj
 
 float shared_ReadFromMessageFloat(HMESSAGEREAD hMessage)
 {
-	return 0.0f;
+	return (GD_STREAM_CAST(hMessage))->get_float();
 }
 
 DBYTE shared_ReadFromMessageByte(HMESSAGEREAD hMessage)
 {
-	return DBYTE();
+	auto pStream = (GD_STREAM_CAST(hMessage));
+	auto nPos = pStream->get_position();
+
+	return (GD_STREAM_CAST(hMessage))->get_8();
 }
 
 D_WORD shared_ReadFromMessageWord(HMESSAGEREAD hMessage)
 {
-	return D_WORD();
+	return (GD_STREAM_CAST(hMessage))->get_16();
 }
 
 DDWORD shared_ReadFromMessageDWord(HMESSAGEREAD hMessage)
 {
-	return DDWORD();
+	return (GD_STREAM_CAST(hMessage))->get_32();
 }
 
 char* shared_ReadFromMessageString(HMESSAGEREAD hMessage)
 {
-	return nullptr;
+	return (GD_STREAM_CAST(hMessage))->get_string().alloc_c_string();
 }
 
 void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
+	godot::Vector3 vVal = (GD_STREAM_CAST(hMessage))->get_var();
+	pVal->x = vVal.x;
+	pVal->y = vVal.y;
+	pVal->z = vVal.z;
 }
 
 void shared_ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
+	shared_ReadFromMessageCompVector(hMessage, pVal);
 }
 
 void shared_ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal)
 {
+	shared_ReadFromMessageCompVector(hMessage, pVal);
 }
 
 void shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
 {
+	godot::Quat qVal = (GD_STREAM_CAST(hMessage))->get_var();
+	pVal->m_Vec.x = qVal.x;
+	pVal->m_Vec.y = qVal.y;
+	pVal->m_Vec.z = qVal.z;
+	pVal->m_Spin = qVal.w;
+
 }
 
 HOBJECT shared_ReadFromMessageObject(HMESSAGEREAD hMessage)
@@ -190,27 +208,53 @@ HOBJECT shared_ReadFromMessageObject(HMESSAGEREAD hMessage)
 
 HSTRING shared_ReadFromMessageHString(HMESSAGEREAD hMessage)
 {
-	return HSTRING();
+	LTELString* pString = new LTELString();
+
+	pString->sData = shared_ReadFromMessageString(hMessage);
+
+	auto pStream = (GD_STREAM_CAST(hMessage));
+	auto nPos = pStream->get_position();
+
+	return (HSTRING)pString;
 }
 
 DRESULT shared_ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hObject)
 {
-	return DRESULT();
+	auto pObj = shared_ReadFromMessageObject(hMessage);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	*hObject = pObj;
+
+	return DE_OK;
 }
 
 HMESSAGEREAD shared_ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 {
-	return HMESSAGEREAD();
+	auto pStream = GD_STREAM_CAST(hMessage);
+	int nSize = pStream->get_32();
+
+	auto pNewStream = new godot::StreamPeerBuffer();
+	pNewStream->put_data(pStream->get_data(nSize));
+
+	return (HMESSAGEREAD)pNewStream;
 }
 
 void shared_EndHMessageRead(HMESSAGEREAD hMessage)
 {
+	(GD_STREAM_CAST(hMessage))->free();
 }
 
 void shared_EndHMessageWrite(HMESSAGEWRITE hMessage)
 {
+	(GD_STREAM_CAST(hMessage))->free();
 }
 
 void shared_ResetRead(HMESSAGEREAD hRead)
 {
+	(GD_STREAM_CAST(hRead))->seek(0);
+	(GD_STREAM_CAST(hRead))->get_8(); // Skip message id
 }
