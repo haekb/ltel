@@ -20,33 +20,24 @@ DRESULT shared_WriteToMessageFloat(HMESSAGEWRITE hMessage, float val)
 {
 	(GD_STREAM_CAST(hMessage))->put_float(val);
 	return DE_OK;
-
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), val);
-	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT shared_WriteToMessageByte(HMESSAGEWRITE hMessage, DBYTE val)
 {
 	(GD_STREAM_CAST(hMessage))->put_8(val);
 	return DE_OK;
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), val);
-	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT shared_WriteToMessageWord(HMESSAGEWRITE hMessage, D_WORD val)
 {
 	(GD_STREAM_CAST(hMessage))->put_16(val);
 	return DE_OK;
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), val);
-	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT shared_WriteToMessageDWord(HMESSAGEWRITE hMessage, DDWORD val)
 {
 	(GD_STREAM_CAST(hMessage))->put_32(val);
 	return DE_OK;
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), (unsigned int)val);
-	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT shared_WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
@@ -54,8 +45,6 @@ DRESULT shared_WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
 	godot::String pString = pStr;
 	(GD_STREAM_CAST(hMessage))->put_string(pString);
 	return DE_OK;
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), pString);
-	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT shared_WriteToMessageVector(HMESSAGEWRITE hMessage, DVector* pVal)
@@ -251,7 +240,7 @@ HMESSAGEREAD shared_ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 	auto pStream = GD_STREAM_CAST(hMessage);
 	int nSize = pStream->get_32();
 
-	auto pNewStream = new godot::StreamPeerBuffer();
+	auto pNewStream = godot::StreamPeerBuffer::_new();
 	pNewStream->put_data(pStream->get_data(nSize));
 
 	return (HMESSAGEREAD)pNewStream;
