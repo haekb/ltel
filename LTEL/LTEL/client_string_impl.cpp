@@ -74,14 +74,7 @@ void impl_FreeString(HSTRING hString)
 
 char* impl_GetStringData(HSTRING hString)
 {
-	LTELString* pString = (LTELString*)hString;
-
-	if (!pString)
-	{
-		return nullptr;
-	}
-
-	return (char*)pString->sData.c_str();
+	return shared_GetStringData(hString);
 }
 
 void impl_GetStringDimensions(HDEFONT hFont, HSTRING hString, int* sizeX, int* sizeY)

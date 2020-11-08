@@ -17,6 +17,8 @@
 //
 LTELString* shared_CreateString(char* pString);
 
+char* shared_GetStringData(HSTRING hString);
+
 
 //
 // Messaging

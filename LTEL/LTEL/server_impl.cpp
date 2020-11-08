@@ -13,6 +13,12 @@ HSTRING simpl_CreateString(char* pString)
 	return (HSTRING)shared_CreateString(pString);
 }
 
+char* simpl_GetStringData(HSTRING hString)
+{
+	return shared_GetStringData(hString);
+}
+
+
 DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 {
 	if (!g_pLTELServer->m_pGameInfo)
@@ -29,17 +35,66 @@ DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 	return DE_OK;
 }
 
+ObjectList* simpl_CreateObjectList()
+{
+	return nullptr;
+}
+
+void* simpl_GetClientUserData(HCLIENT hClient)
+{
+	// We don't have a client user yet...
+	return nullptr;
+}
+
+void simpl_BPrint(char* pMsg, ...)
+{
+	va_list list;
+	char szMessage[256] = "";
+
+
+	va_start(list, pMsg);
+
+	vsnprintf(szMessage, 256, pMsg, list);
+
+	va_end(list);
+
+	godot::Godot::print("[CONSOLE PRINT]: {0}", szMessage);
+}
+
+void simpl_CPrint(char* pMsg, ...)
+{
+	va_list list;
+	char szMessage[256] = "";
+
+
+	va_start(list, pMsg);
+
+	vsnprintf(szMessage, 256, pMsg, list);
+
+	va_end(list);
+
+	godot::Godot::print("[CONSOLE PRINT]: {0}", szMessage);
+}
+
 void LTELServer::InitFunctionPointers()
 {
+	// Object functionality
+	CreateObjectList = simpl_CreateObjectList;
+
+	// System/IO functionality
+	BPrint = simpl_BPrint;
+	CPrint = simpl_CPrint;
 	
 	// String functionality
 	RunGameConString = simpl_RunGameConString;
 	CreateString = simpl_CreateString;
+	GetStringData = simpl_GetStringData;
 
 	// Network functionality
 	
 	// Game State functionality
 	GetGameInfo = simpl_GetGameInfo;
+	GetClientUserData = simpl_GetClientUserData;
 
 }
 
