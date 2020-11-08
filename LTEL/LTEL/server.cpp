@@ -1,4 +1,8 @@
 #include "server.h"
+#include "shared.h"
+
+#include <StreamPeer.hpp>
+#include <StreamPeerBuffer.hpp>
 
 LTELServer* g_pLTELServer = nullptr;
 
@@ -44,6 +48,24 @@ void LTELServer::StartWorld(std::string sWorldName)
 	m_pServerShell->PostStartWorld();
 
 
+}
+
+bool LTELServer::ReceiveMessageFromClient(godot::StreamPeerBuffer* pStream, DDWORD flags)
+{
+	// No server shell, no message!
+	if (!m_pServerShell)
+	{
+		return false;
+	}
+
+	pStream->seek(0);
+
+	DBYTE pMessageId = pStream->get_8();
+
+	m_pServerShell->OnMessage(nullptr, pMessageId, (HMESSAGEREAD)pStream);
+
+	// Ok clean it up!
+	pStream->free();
 }
 
 
@@ -231,5 +253,161 @@ DRESULT LTELServer::GetPolyTextureFlags(HPOLY hPoly, DDWORD* pFlags)
 
 HMESSAGEWRITE LTELServer::StartHMessageWrite()
 {
-	return HMESSAGEWRITE();
+	return shared_StartHMessageWrite();
+}
+
+DRESULT LTELServer::WriteToMessageFloat(HMESSAGEWRITE hMessage, float val)
+{
+	return shared_WriteToMessageFloat(hMessage, val);
+}
+
+DRESULT LTELServer::WriteToMessageByte(HMESSAGEWRITE hMessage, DBYTE val)
+{
+	return shared_WriteToMessageByte(hMessage, val);
+}
+
+DRESULT LTELServer::WriteToMessageWord(HMESSAGEWRITE hMessage, D_WORD val)
+{
+	return shared_WriteToMessageWord(hMessage, val);
+}
+
+DRESULT LTELServer::WriteToMessageDWord(HMESSAGEWRITE hMessage, DDWORD val)
+{
+	return shared_WriteToMessageDWord(hMessage, val);
+}
+
+DRESULT LTELServer::WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
+{
+	return shared_WriteToMessageString(hMessage, pStr);
+}
+
+DRESULT LTELServer::WriteToMessageVector(HMESSAGEWRITE hMessage, DVector* pVal)
+{
+	return shared_WriteToMessageVector(hMessage, pVal);
+}
+
+DRESULT LTELServer::WriteToMessageCompVector(HMESSAGEWRITE hMessage, DVector* pVal)
+{
+	return shared_WriteToMessageCompVector(hMessage, pVal);
+}
+
+DRESULT LTELServer::WriteToMessageCompPosition(HMESSAGEWRITE hMessage, DVector* pVal)
+{
+	return shared_WriteToMessageCompPosition(hMessage, pVal);
+}
+
+DRESULT LTELServer::WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal)
+{
+	return shared_WriteToMessageRotation(hMessage, pVal);
+}
+
+DRESULT LTELServer::WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
+{
+	return shared_WriteToMessageHString(hMessage, hString);
+}
+
+DRESULT LTELServer::WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE hDataMessage)
+{
+	return shared_WriteToMessageHMessageWrite(hMessage, hDataMessage);
+}
+
+DRESULT LTELServer::WriteToMessageHMessageRead(HMESSAGEWRITE hMessage, HMESSAGEREAD hDataMessage)
+{
+	return shared_WriteToMessageHMessageRead(hMessage, hDataMessage);
+}
+
+// Not used in Shogo!
+DRESULT LTELServer::WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messageCode, ...)
+{
+	return DE_ERROR;
+}
+
+DRESULT LTELServer::WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
+{
+	return shared_WriteToMessageObject(hMessage, hObj);
+}
+
+DRESULT LTELServer::WriteToLoadSaveMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObject)
+{
+	return shared_WriteToLoadSaveMessageObject(hMessage, hObject);
+}
+
+float LTELServer::ReadFromMessageFloat(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageFloat(hMessage);
+}
+
+DBYTE LTELServer::ReadFromMessageByte(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageByte(hMessage);
+}
+
+D_WORD LTELServer::ReadFromMessageWord(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageWord(hMessage);
+}
+
+DDWORD LTELServer::ReadFromMessageDWord(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageDWord(hMessage);
+}
+
+char* LTELServer::ReadFromMessageString(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageString(hMessage);
+}
+
+void LTELServer::ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
+{
+	return shared_ReadFromMessageVector(hMessage, pVal);
+}
+
+void LTELServer::ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
+{
+	return shared_ReadFromMessageCompVector(hMessage, pVal);
+}
+
+void LTELServer::ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal)
+{
+	return shared_ReadFromMessageCompPosition(hMessage, pVal);
+}
+
+void LTELServer::ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
+{
+	return shared_ReadFromMessageRotation(hMessage, pVal);
+}
+
+HOBJECT LTELServer::ReadFromMessageObject(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageObject(hMessage);
+}
+
+HSTRING LTELServer::ReadFromMessageHString(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageHString(hMessage);
+}
+
+DRESULT LTELServer::ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hObject)
+{
+	return shared_ReadFromLoadSaveMessageObject(hMessage, hObject);
+}
+
+HMESSAGEREAD LTELServer::ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
+{
+	return shared_ReadFromMessageHMessageRead(hMessage);
+}
+
+void LTELServer::EndHMessageRead(HMESSAGEREAD hMessage)
+{
+	shared_EndHMessageRead(hMessage);
+}
+
+void LTELServer::EndHMessageWrite(HMESSAGEWRITE hMessage)
+{
+	shared_EndHMessageWrite(hMessage);
+}
+
+void LTELServer::ResetRead(HMESSAGEREAD hRead)
+{
+	shared_ResetRead(hRead);
 }

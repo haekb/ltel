@@ -1,6 +1,8 @@
 
 #include "client.h"
+#include "shared.h"
 #include "helpers.h"
+
 
 #include <Basis.hpp>
 #include <ResourceLoader.hpp>
@@ -197,20 +199,31 @@ DRESULT LTELClient::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVect
 
 HMESSAGEWRITE LTELClient::StartMessage(DBYTE messageID)
 {
-	auto pPacket = (godot::PacketPeerUDP*)StartHMessageWrite();
-	pPacket->put_var(messageID);
+	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
+	pStream->put_8(messageID);
 
-	return (HMESSAGEWRITE)pPacket;
+	return (HMESSAGEWRITE)pStream;
 }
 
 DRESULT LTELClient::EndMessage(HMESSAGEWRITE hMessage)
 {
-	return DRESULT();
+	return EndMessage2(hMessage, MESSAGE_GUARANTEED);
 }
 
 DRESULT LTELClient::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 {
-	return DRESULT();
+	if (!m_pLTELServer)
+	{
+		// Clean up...
+		auto pStream = (godot::StreamPeerBuffer*)hMessage;
+		pStream->free();
+
+		return DE_SERVERERROR;
+	}
+
+	m_pLTELServer->ReceiveMessageFromClient((godot::StreamPeerBuffer*)hMessage, flags);
+
+	return DE_OK;
 }
 
 DRESULT LTELClient::SendToServer(LMessage& msg, DBYTE msgID, DDWORD flags)
@@ -255,186 +268,161 @@ DRESULT LTELClient::EndQuery()
 
 HMESSAGEWRITE LTELClient::StartHMessageWrite()
 {
-	godot::PacketPeerUDP* pPacket = godot::PacketPeerUDP::_new();
-
-	// Fake address to make PacketPeerUDP happy.
-	pPacket->set_dest_address("127.0.0.1", 0);
-
-
-	return (HMESSAGEWRITE)pPacket;
+	return shared_StartHMessageWrite();
 }
 
-bool LTELClient::SetPacketValue(godot::PacketPeerUDP* pPacket, godot::Variant pValue)
+DRESULT LTELClient::WriteToMessageFloat(HMESSAGEWRITE hMessage, float val)
 {
-	return pPacket->put_var(pValue) == godot::Error::OK;
+	return shared_WriteToMessageFloat(hMessage, val);
 }
 
-
-DRESULT CSBase::WriteToMessageFloat(HMESSAGEWRITE hMessage, float val)
+DRESULT LTELClient::WriteToMessageByte(HMESSAGEWRITE hMessage, DBYTE val)
 {
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, val);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageByte(hMessage, val);
 }
 
-DRESULT CSBase::WriteToMessageByte(HMESSAGEWRITE hMessage, DBYTE val)
+DRESULT LTELClient::WriteToMessageWord(HMESSAGEWRITE hMessage, D_WORD val)
 {
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, val);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageWord(hMessage, val);
 }
 
-DRESULT CSBase::WriteToMessageWord(HMESSAGEWRITE hMessage, D_WORD val)
+DRESULT LTELClient::WriteToMessageDWord(HMESSAGEWRITE hMessage, DDWORD val)
 {
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, val);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageDWord(hMessage, val);
 }
 
-DRESULT CSBase::WriteToMessageDWord(HMESSAGEWRITE hMessage, DDWORD val)
+DRESULT LTELClient::WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
 {
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, (unsigned int)val);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageString(hMessage, pStr);
 }
 
-DRESULT CSBase::WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
+DRESULT LTELClient::WriteToMessageVector(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	godot::String pString = pStr;
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, pString);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageVector(hMessage, pVal);
 }
 
-DRESULT CSBase::WriteToMessageVector(HMESSAGEWRITE hMessage, DVector* pVal)
+DRESULT LTELClient::WriteToMessageCompVector(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	godot::Vector3 pVector = godot::Vector3(pVal->x, pVal->y, pVal->z);
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, pVector);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageCompVector(hMessage, pVal);
 }
 
-DRESULT CSBase::WriteToMessageCompVector(HMESSAGEWRITE hMessage, DVector* pVal)
+DRESULT LTELClient::WriteToMessageCompPosition(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	return WriteToMessageCompVector(hMessage, pVal);
+	return shared_WriteToMessageCompPosition(hMessage, pVal);
 }
 
-DRESULT CSBase::WriteToMessageCompPosition(HMESSAGEWRITE hMessage, DVector* pVal)
+DRESULT LTELClient::WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal)
 {
-	return WriteToMessageCompVector(hMessage, pVal);
+	return shared_WriteToMessageRotation(hMessage, pVal);
 }
 
-DRESULT CSBase::WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal)
+DRESULT LTELClient::WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
 {
-	godot::Quat pQuat = godot::Quat(pVal->m_Vec.x, pVal->m_Vec.y, pVal->m_Vec.z, pVal->m_Spin);
-	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, pQuat);
-	return bVal ? DE_OK : DE_ERROR;
+	return shared_WriteToMessageHString(hMessage, hString);
 }
 
-DRESULT CSBase::WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
+DRESULT LTELClient::WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE hDataMessage)
 {
-	LTELString* pString = (LTELString*)hString;
-
-	return WriteToMessageString(hMessage, (char*)pString->sData.c_str());
+	return shared_WriteToMessageHMessageWrite(hMessage, hDataMessage);
 }
 
-DRESULT CSBase::WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE hDataMessage)
+DRESULT LTELClient::WriteToMessageHMessageRead(HMESSAGEWRITE hMessage, HMESSAGEREAD hDataMessage)
 {
-	godot::PacketPeerUDP* pDestPacket = (godot::PacketPeerUDP*)hMessage;
-	godot::PacketPeerUDP* pSrcPacket = (godot::PacketPeerUDP*)hDataMessage;
-
-	return pDestPacket->put_packet(pSrcPacket->get_packet()) == godot::Error::OK ? DE_OK : DE_ERROR;
-}
-
-DRESULT CSBase::WriteToMessageHMessageRead(HMESSAGEWRITE hMessage, HMESSAGEREAD hDataMessage)
-{
-	return WriteToMessageHMessageWrite(hMessage, hDataMessage);
+	return shared_WriteToMessageHMessageRead(hMessage, hDataMessage);
 }
 
 // Not used in Shogo!
-DRESULT CSBase::WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messageCode, ...)
+DRESULT LTELClient::WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messageCode, ...)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
-
-DRESULT CSBase::WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
+DRESULT LTELClient::WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 {
-
-	// Not supported yet:
-	// Requires manual serialization of all the core object types :(
-
-	return DRESULT();
+	return shared_WriteToMessageObject(hMessage, hObj);
 }
 
-DRESULT CSBase::WriteToLoadSaveMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObject)
+DRESULT LTELClient::WriteToLoadSaveMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObject)
 {
-	return DRESULT();
+	return shared_WriteToLoadSaveMessageObject(hMessage, hObject);
 }
 
-float CSBase::ReadFromMessageFloat(HMESSAGEREAD hMessage)
+float LTELClient::ReadFromMessageFloat(HMESSAGEREAD hMessage)
 {
-	return 0.0f;
+	return shared_ReadFromMessageFloat(hMessage);
 }
 
-DBYTE CSBase::ReadFromMessageByte(HMESSAGEREAD hMessage)
+DBYTE LTELClient::ReadFromMessageByte(HMESSAGEREAD hMessage)
 {
-	return DBYTE();
+	return shared_ReadFromMessageByte(hMessage);
 }
 
-D_WORD CSBase::ReadFromMessageWord(HMESSAGEREAD hMessage)
+D_WORD LTELClient::ReadFromMessageWord(HMESSAGEREAD hMessage)
 {
-	return D_WORD();
+	return shared_ReadFromMessageWord(hMessage);
 }
 
-DDWORD CSBase::ReadFromMessageDWord(HMESSAGEREAD hMessage)
+DDWORD LTELClient::ReadFromMessageDWord(HMESSAGEREAD hMessage)
 {
-	return DDWORD();
+	return shared_ReadFromMessageDWord(hMessage);
 }
 
-char* CSBase::ReadFromMessageString(HMESSAGEREAD hMessage)
+char* LTELClient::ReadFromMessageString(HMESSAGEREAD hMessage)
 {
-	return nullptr;
+	return shared_ReadFromMessageString(hMessage);
 }
 
-void CSBase::ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
+void LTELClient::ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
+	return shared_ReadFromMessageVector(hMessage, pVal);
 }
 
-void CSBase::ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
+void LTELClient::ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
+	return shared_ReadFromMessageCompVector(hMessage, pVal);
 }
 
-void CSBase::ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal)
+void LTELClient::ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal)
 {
+	return shared_ReadFromMessageCompPosition(hMessage, pVal);
 }
 
-void CSBase::ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
+void LTELClient::ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
 {
+	return shared_ReadFromMessageRotation(hMessage, pVal);
 }
 
-HOBJECT CSBase::ReadFromMessageObject(HMESSAGEREAD hMessage)
+HOBJECT LTELClient::ReadFromMessageObject(HMESSAGEREAD hMessage)
 {
-	return HOBJECT();
+	return shared_ReadFromMessageObject(hMessage);
 }
 
-HSTRING CSBase::ReadFromMessageHString(HMESSAGEREAD hMessage)
+HSTRING LTELClient::ReadFromMessageHString(HMESSAGEREAD hMessage)
 {
-	return HSTRING();
+	return shared_ReadFromMessageHString(hMessage);
 }
 
-DRESULT CSBase::ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hObject)
+DRESULT LTELClient::ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hObject)
 {
-	return DRESULT();
+	return shared_ReadFromLoadSaveMessageObject(hMessage, hObject);
 }
 
-HMESSAGEREAD CSBase::ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
+HMESSAGEREAD LTELClient::ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 {
-	return HMESSAGEREAD();
+	return shared_ReadFromMessageHMessageRead(hMessage);
 }
 
-void CSBase::EndHMessageRead(HMESSAGEREAD hMessage)
+void LTELClient::EndHMessageRead(HMESSAGEREAD hMessage)
 {
+	shared_EndHMessageRead(hMessage);
 }
 
-void CSBase::EndHMessageWrite(HMESSAGEWRITE hMessage)
+void LTELClient::EndHMessageWrite(HMESSAGEWRITE hMessage)
 {
+	shared_EndHMessageWrite(hMessage);
 }
 
-void CSBase::ResetRead(HMESSAGEREAD hRead)
+void LTELClient::ResetRead(HMESSAGEREAD hRead)
 {
+	shared_ResetRead(hRead);
 }
