@@ -437,6 +437,8 @@ DRESULT impl_StartGame(StartGameRequest* pRequest)
 {
 	bool bHi = false;
 
+	g_pLTELClient->StartServerDLL();
+
 	return DE_OK;
 }
 

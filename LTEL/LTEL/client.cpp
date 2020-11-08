@@ -13,6 +13,7 @@ LTELClient* g_pLTELClient = nullptr;
 LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 {
 	g_pLTELClient = this;
+	m_pLTELServer = nullptr;
 
 	m_nGameMode = GAMEMODE_NONE;
 	m_bIsConnected = false;
@@ -33,6 +34,126 @@ LTELClient::~LTELClient()
 {
 }
 
+
+bool LTELClient::StartServerDLL()
+{
+	typedef int f_GetServerShellVersion();
+	typedef void f_GetServerShellFunctions(CreateServerShellFn* pCreate, DeleteServerShellFn* pDelete);
+
+	// CWD is the project folder...
+	HINSTANCE hObjectLTO = LoadLibraryA("./bin/Object.lto");
+
+	if (!hObjectLTO)
+	{
+		godot::Godot::print("Could not locate Object.lto!");
+		return false;
+	}
+
+	HINSTANCE hSRes = LoadLibraryA("./bin/SRes.dll");
+
+	if (!hSRes)
+	{
+		godot::Godot::print("Could not locate SRes.dll!");
+		return false;
+	}
+
+	// Initial test, print out the version!
+	f_GetServerShellVersion* pGetVersion = (f_GetServerShellVersion*)GetProcAddress(hObjectLTO, "GetServerShellVersion");
+
+	if (!pGetVersion)
+	{
+		godot::Godot::print("Could not obtain Proc GetClientShellVersion!");
+		return false;
+	}
+
+	// Print the version!
+	int nVersion = pGetVersion();
+	godot::Godot::print("Object.lto version: {0}", nVersion);
+
+	if (nVersion != 3)
+	{
+		godot::Godot::print("Object interface version is not 3!");
+		return false;
+	}
+
+	// Okay now the real fun begins x2!
+	// we'll need to kick off our server impl in object.lto
+
+	f_GetServerShellFunctions* pServerShellInitFunc = (f_GetServerShellFunctions*)GetProcAddress(hObjectLTO, "GetServerShellFunctions");
+
+	if (!pServerShellInitFunc)
+	{
+		godot::Godot::print("Could not obtain Proc GetServerShellFunctions!");
+		return false;
+	}
+
+	//
+	int pnCreate = 0;
+	int pnDelete = 0;
+
+	pServerShellInitFunc((CreateServerShellFn*)&pnCreate, (DeleteServerShellFn*)&pnDelete);
+
+	if (!pnCreate)
+	{
+		godot::Godot::print("Could not obtain CreateServerShellFn!");
+
+		return false;
+	}
+
+	m_pLTELServer = new LTELServer(m_pGodotLink, hSRes);
+
+	// We'll want to run CreateServerShellFn, to get the game's ObjectLTO instance
+	CreateServerShellFn pCreate = (CreateServerShellFn)pnCreate;
+	auto pServerShell = (ServerShellDE*)pCreate(m_pLTELServer);
+
+	m_pLTELServer->m_pServerShell = pServerShell;
+
+#if 0
+	//
+	int pnCreate = 0;
+	int pnDelete = 0;
+
+	pClientShellInitFunc((CreateClientShellFn*)&pnCreate, (DeleteClientShellFn*)&pnDelete);
+
+	if (!pnCreate)
+	{
+		Godot::print("Could not obtain CreateClientShellFn!");
+
+		return false;
+	}
+
+	// Create our ClientDE instance
+	g_pClient = new LTELClient(this, hCRes);
+
+	// We'll want to run CreateClientShellFn, to get the game's GameClientShell instance
+	CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
+	m_pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
+
+	if (!m_pGameClientShell)
+	{
+		Godot::print("Could not retrieve GameClientShell!");
+		return false;
+	}
+
+	DGUID AppGUID = { 0 };
+
+	g_pClient->m_sGameDataDir = sGameDataDir.alloc_c_string();
+
+	// Kick off OnEngineInit
+	try {
+		// We should really populate RMode soon...
+		auto hResult = m_pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
+		Godot::print("OnEngineInit returned {0}", (int)hResult);
+	}
+	catch (const std::exception& e)
+	{
+		Godot::print("[OnEngineInitalized] Failed with exception: {0}", e.what());
+	}
+
+#endif
+
+	return true;
+}
 
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)

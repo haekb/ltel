@@ -199,6 +199,7 @@
     <ClInclude Include="LT1\AppHeaders\server_de.h" />
     <ClInclude Include="LT1\AppHeaders\specialeffect_de.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="server.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client.cpp" />
@@ -215,6 +216,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="server.cpp" />
+    <ClCompile Include="server_impl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

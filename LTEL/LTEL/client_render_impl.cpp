@@ -606,16 +606,11 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 			}
 		}
 		
-
-		// This actually doesn't work...
 		// Not else, because above path can fallback here!
 		if (!bCanBlit)
 		{
 			pSrc->pTextureRect->set_position(vPos);
 			pSrc->pTextureRect->set_size(godot::Vector2(pSrc->pTextureRect->get_texture()->get_data()->get_width(), pSrc->pTextureRect->get_texture()->get_height()));
-
-
-			pSrc->pTextureRect->get_texture()->get_data()->save_png("CantBlitTex.png");
 
 			if (pSrc->pTextureRect->get_parent())
 			{

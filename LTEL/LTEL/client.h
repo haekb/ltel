@@ -8,6 +8,8 @@
 #include <Ref.hpp>
 #include <ImageTexture.hpp>
 
+#include "server.h"
+
 // Some windows function names clash with ClientDE
 #undef CreateFont
 #undef PlaySound
@@ -19,6 +21,8 @@ class LTELClient :
 public:
 	LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes);
     virtual ~LTELClient();
+
+	bool StartServerDLL();
 
     // Required Impl
 	void InitFunctionPointers();
@@ -33,6 +37,8 @@ public:
 	HINSTANCE m_pCRes;
 	godot::Node* m_pGodotLink;
 	float m_fFrametime;
+
+	LTELServer* m_pLTELServer;
 
 	int m_nGameMode;
 	bool m_bIsConnected;
