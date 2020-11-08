@@ -546,7 +546,7 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 				else
 				{
 					rSrcRect.set_size(godot::Vector2(pSrcTexture->get_data()->get_width(), pSrcTexture->get_data()->get_height()));
-					rSrcRect.set_position(godot::Vector2(destX, destY));
+					rSrcRect.set_position(godot::Vector2(0, 0));
 				}
 
 				
@@ -571,6 +571,8 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 		if (!bCanBlit)
 		{
 			pSrc->pTextureRect->set_position(vPos);
+			pSrc->pTextureRect->set_size(godot::Vector2(pSrc->pTextureRect->get_texture()->get_data()->get_width(), pSrc->pTextureRect->get_texture()->get_height()));
+
 
 			pSrc->pTextureRect->get_texture()->get_data()->save_png("CantBlitTex.png");
 
@@ -753,7 +755,7 @@ HSURFACE impl_CreateSurface(DDWORD width, DDWORD height)
 
 	static int nSurfaceCounter = 0;
 
-	std::string sEmpty = "Empty: " + std::to_string(nSurfaceCounter);
+	std::string sEmpty = "Surface: " + std::to_string(nSurfaceCounter);
 	nSurfaceCounter++;
 
 	pTextureRect->set_name(sEmpty.c_str());
@@ -764,7 +766,7 @@ HSURFACE impl_CreateSurface(DDWORD width, DDWORD height)
 	// This should maybe be RGBA8...
 	pImage->create(width, height, false, godot::Image::FORMAT_RGBA8);
 	// debug:
-	//pImage->fill(godot::Color(1.0, 0.4, 0.2));
+	// pImage->fill(godot::Color(1.0, 0.4, 0.2));
 
 	// Create the ImageTexture...from the image.
 	godot::Ref<godot::ImageTexture> pImageTexture = godot::ImageTexture::_new();
@@ -788,15 +790,11 @@ DRESULT impl_GetBorderSize(HSURFACE hSurface, HDECOLOR hColor, DRect* pRect)
 	pRect->right = 0;
 	pRect->top = 0;
 
-	//pRect = { 0 };
 	return DE_OK;
 }
 
 DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 {
-	// This should make everything but the objects in this list invisible, but for now we do nothing!
-	// This is mainly for interfaces, like the main menu.
-
 	// Because of how game code updates polygrid's height map, 
 	// we need to finish up and apply the new depth texture!
 	for (auto pObj : g_pPolygridsToUpdate)
