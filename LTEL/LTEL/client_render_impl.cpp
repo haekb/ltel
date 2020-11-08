@@ -17,7 +17,8 @@
 #include <DynamicFontData.hpp>
 #include <Material.hpp>
 #include <SpatialMaterial.hpp>
-
+#include <Engine.hpp>
+#include <OS.hpp>
 
 //#define CANVAS_NODE "/root/Scene/Camera/2D/Viewport/Canvas"
 
@@ -866,6 +867,23 @@ DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 	return DE_OK;
 }
 
+DRESULT impl_ShutdownRender(DDWORD flags)
+{
+	if (flags & RSHUTDOWN_MINIMIZEWINDOW)
+	{
+		godot::OS::get_singleton()->set_window_minimized(true);
+	}
+
+	if (flags & RSHUTDOWN_HIDEWINDOW)
+	{
+		// ?
+	}
+
+	godot::Godot::print("[impl_ShutdownRender] Render shutdown requested with flags: {0}", (int)flags);
+
+	return DE_OK;
+}
+
 // This must be last!
 void LTELClient::InitRenderImpl()
 {
@@ -899,4 +917,6 @@ void LTELClient::InitRenderImpl()
 	RenderObjects = impl_RenderObjects;
 
 	GetRenderMode = impl_GetRenderMode;
+
+	ShutdownRender = impl_ShutdownRender;
 }

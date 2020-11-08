@@ -445,6 +445,18 @@ HLOCALOBJ impl_GetClientObject()
 	return nullptr;
 }
 
+DRESULT impl_InitNetworking(char* pDriver, DDWORD dwFlags)
+{
+	godot::Godot::print("[impl_InitNetworking] Networking Init requested!");
+	return DE_ERROR;
+}
+
+DRESULT impl_GetServiceList(NetService*& pListHead)
+{
+	pListHead = nullptr;
+	return DE_OK;
+}
+
 //
 // Setup our struct!
 //
@@ -502,4 +514,6 @@ void LTELClient::InitFunctionPointers()
 
 	// Network functionality
 	IsLobbyLaunched = impl_IsLobbyLaunched;
+	InitNetworking = impl_InitNetworking;
+	GetServiceList = impl_GetServiceList;
 }
