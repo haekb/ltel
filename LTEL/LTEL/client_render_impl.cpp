@@ -553,9 +553,15 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 
 				godot::Vector2 vDestRect = godot::Vector2(destX, destY);
 				auto pImage = pDestTexture->get_data();
-				pImage->blit_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
-				//pSrcTexture->get_data()->save_png("Src.png");
-				//pImage->save_png("Dest.png");
+
+				if (pSrc->bOptimized)
+				{
+					pImage->blend_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
+				}
+				else
+				{
+					pImage->blit_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
+				}
 
 				pDestTexture->set_data(pImage);
 			}
