@@ -249,6 +249,39 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 		vSize = godot::Vector2(pRect->right - pRect->left, pRect->bottom - pRect->top);
 	}
 	
+#if 1
+	godot::Color oColor = LT2GodotColor(hColor);
+
+	auto hSurface = g_pLTELClient->CreateSurface(vSize.width, vSize.height);
+	auto pSurface = (LTELSurface*)hSurface;
+
+	godot::Ref<godot::ImageTexture> pImageTexture = pSurface->pTextureRect->get_texture();
+	godot::Ref<godot::Image> pImage = pImageTexture->get_data();
+	pImage->fill(oColor);
+	pImageTexture->set_data(pImage);
+
+	// Set the position
+	pSurface->pTextureRect->set_position(vPos);
+
+	DRect pDestRect = DRect();
+
+	if (!pRect)
+	{
+		pDestRect.left = 0;
+		pDestRect.top = 0;
+
+		pDestRect.right = vSize.width;
+		pDestRect.bottom = vSize.height;
+	}
+	else
+	{
+		pDestRect = *pRect;
+	}
+
+	// Now scale it!
+	g_pLTELClient->ScaleSurfaceToSurface(hDest, (HSURFACE)pSurface, &pDestRect, nullptr);
+	return DE_OK;
+#else
 	godot::ColorRect* pColorRect = godot::ColorRect::_new();
 	pColorRect->set_size(vSize);
 	pColorRect->set_position(vPos);
@@ -270,6 +303,7 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 
 	pDest->pTextureRect->add_child(pColorRect);
 	return DE_OK;
+#endif
 }
 
 //
@@ -434,7 +468,7 @@ DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 				else
 				{
 					rSrcRect.set_size(godot::Vector2(vSize.width, vSize.height));
-					rSrcRect.set_position(godot::Vector2(vPos.x, vPos.y));
+					rSrcRect.set_position(godot::Vector2(0, 0));
 				}
 
 				auto pSrcImage = pSrcTexture->get_data();
