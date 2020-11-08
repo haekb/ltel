@@ -1,6 +1,8 @@
 #include "server.h"
 #include "shared.h"
 
+extern LTELServer* g_pLTELServer;
+
 void simpl_RunGameConString(char* pString)
 {
 	godot::Godot::print("[impl_RunGameConString] {0}", pString);
@@ -13,10 +15,18 @@ HSTRING simpl_CreateString(char* pString)
 
 DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 {
-	*ppData = nullptr;
-	*pLen = 0;
+	if (!g_pLTELServer->m_pGameInfo)
+	{
+		*ppData = nullptr;
+		*pLen = 0;
 
-	return DE_ERROR;
+		return DE_ERROR;
+	}
+
+	*pLen = sizeof(g_pLTELServer->m_pGameInfo);
+
+	memcpy(*ppData, g_pLTELServer->m_pGameInfo, *pLen);
+	return DE_OK;
 }
 
 void LTELServer::InitFunctionPointers()
@@ -32,3 +42,4 @@ void LTELServer::InitFunctionPointers()
 	GetGameInfo = simpl_GetGameInfo;
 
 }
+

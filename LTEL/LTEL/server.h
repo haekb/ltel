@@ -1,8 +1,9 @@
 #pragma once
-#include "LT1/AppHeaders/server_de.h"
+#include "LT1/AppHeaders/cpp_servershell_de.h"
 #include <Node.hpp>
 #include <Windows.h>
 #include <string>
+
 
 class LTELServer :
     public ServerDE
@@ -15,10 +16,17 @@ public:
     godot::Node* m_pGodotLink;
     float m_fFrametime;
 
-    ServerShellDE* m_pServerShell;
+    void* m_pGameInfo;
+
+    CServerShellDE* m_pServerShell;
+
 
     // Required Impl
     void InitFunctionPointers();
+
+    void SetGameInfo(void* pData, int pLen);
+
+    void StartWorld(std::string sWorldName);
 
     //
     // ServerDE

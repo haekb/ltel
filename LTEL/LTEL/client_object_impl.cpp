@@ -14,8 +14,8 @@
 #include <Material.hpp>
 #include <SpatialMaterial.hpp>
 #include <ResourceLoader.hpp>
-
-
+#include <JSON.hpp>
+#include <JSONParseResult.hpp>
 
 #define USRFLG_VISIBLE					(1<<0)
 #define USRFLG_NIGHT_INFRARED			(1<<1)

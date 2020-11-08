@@ -1,11 +1,15 @@
 #include "server.h"
 
+LTELServer* g_pLTELServer = nullptr;
+
 LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 {
+	g_pLTELServer = this;
 	m_pGodotLink = pGodotLink;
 	m_pSRes = pSRes;
 	m_fFrametime = 0.1f;
 	m_pServerShell = nullptr;
+	m_pGameInfo = nullptr;
 
 	InitFunctionPointers();
 }
@@ -14,6 +18,34 @@ LTELServer::~LTELServer()
 {
 	
 }
+
+void LTELServer::SetGameInfo(void* pData, int pLen)
+{
+	if (m_pGameInfo)
+	{
+		free(m_pGameInfo);
+	}
+
+	m_pGameInfo = malloc(pLen);
+
+	if (m_pGameInfo)
+	{
+		memcpy(m_pGameInfo, pData, pLen);
+	}
+}
+
+void LTELServer::StartWorld(std::string sWorldName)
+{
+
+	m_pServerShell->PreStartWorld(true);
+
+	// Do stuff here...
+
+	m_pServerShell->PostStartWorld();
+
+
+}
+
 
 DRESULT LTELServer::GetGlobalForce(DVector* pVec)
 {

@@ -35,7 +35,7 @@ LTELClient::~LTELClient()
 }
 
 
-bool LTELClient::StartServerDLL()
+bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 {
 	typedef int f_GetServerShellVersion();
 	typedef void f_GetServerShellFunctions(CreateServerShellFn* pCreate, DeleteServerShellFn* pDelete);
@@ -104,53 +104,15 @@ bool LTELClient::StartServerDLL()
 
 	// We'll want to run CreateServerShellFn, to get the game's ObjectLTO instance
 	CreateServerShellFn pCreate = (CreateServerShellFn)pnCreate;
-	auto pServerShell = (ServerShellDE*)pCreate(m_pLTELServer);
+	auto pServerShell = (CServerShellDE*)pCreate(m_pLTELServer);
 
 	m_pLTELServer->m_pServerShell = pServerShell;
 
-#if 0
-	//
-	int pnCreate = 0;
-	int pnDelete = 0;
+	// Ship over some important settings...
+	m_pLTELServer->SetGameInfo(pRequest->m_pGameInfo, pRequest->m_GameInfoLen);
 
-	pClientShellInitFunc((CreateClientShellFn*)&pnCreate, (DeleteClientShellFn*)&pnDelete);
-
-	if (!pnCreate)
-	{
-		Godot::print("Could not obtain CreateClientShellFn!");
-
-		return false;
-	}
-
-	// Create our ClientDE instance
-	g_pClient = new LTELClient(this, hCRes);
-
-	// We'll want to run CreateClientShellFn, to get the game's GameClientShell instance
-	CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
-	m_pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
-
-	if (!m_pGameClientShell)
-	{
-		Godot::print("Could not retrieve GameClientShell!");
-		return false;
-	}
-
-	DGUID AppGUID = { 0 };
-
-	g_pClient->m_sGameDataDir = sGameDataDir.alloc_c_string();
-
-	// Kick off OnEngineInit
-	try {
-		// We should really populate RMode soon...
-		auto hResult = m_pGameClientShell->OnEngineInitialized(nullptr, &AppGUID);
-		Godot::print("OnEngineInit returned {0}", (int)hResult);
-	}
-	catch (const std::exception& e)
-	{
-		Godot::print("[OnEngineInitalized] Failed with exception: {0}", e.what());
-	}
-
-#endif
+	// Maybe kick off the world stuff?
+	//m_pLTELServer->StartWorld(pRequest->m_WorldName);
 
 	return true;
 }
@@ -235,7 +197,10 @@ DRESULT LTELClient::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVect
 
 HMESSAGEWRITE LTELClient::StartMessage(DBYTE messageID)
 {
-	return HMESSAGEWRITE();
+	auto pPacket = (godot::PacketPeerUDP*)StartHMessageWrite();
+	pPacket->put_var(messageID);
+
+	return (HMESSAGEWRITE)pPacket;
 }
 
 DRESULT LTELClient::EndMessage(HMESSAGEWRITE hMessage)
@@ -290,76 +255,109 @@ DRESULT LTELClient::EndQuery()
 
 HMESSAGEWRITE LTELClient::StartHMessageWrite()
 {
-	return HMESSAGEWRITE();
+	godot::PacketPeerUDP* pPacket = godot::PacketPeerUDP::_new();
+
+	// Fake address to make PacketPeerUDP happy.
+	pPacket->set_dest_address("127.0.0.1", 0);
+
+
+	return (HMESSAGEWRITE)pPacket;
 }
+
+bool LTELClient::SetPacketValue(godot::PacketPeerUDP* pPacket, godot::Variant pValue)
+{
+	return pPacket->put_var(pValue) == godot::Error::OK;
+}
+
 
 DRESULT CSBase::WriteToMessageFloat(HMESSAGEWRITE hMessage, float val)
 {
-	return DRESULT();
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, val);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageByte(HMESSAGEWRITE hMessage, DBYTE val)
 {
-	return DRESULT();
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, val);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageWord(HMESSAGEWRITE hMessage, D_WORD val)
 {
-	return DRESULT();
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, val);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageDWord(HMESSAGEWRITE hMessage, DDWORD val)
 {
-	return DRESULT();
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, (unsigned int)val);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
 {
-	return DRESULT();
+	godot::String pString = pStr;
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, pString);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageVector(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	return DRESULT();
+	godot::Vector3 pVector = godot::Vector3(pVal->x, pVal->y, pVal->z);
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, pVector);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageCompVector(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	return DRESULT();
+	return WriteToMessageCompVector(hMessage, pVal);
 }
 
 DRESULT CSBase::WriteToMessageCompPosition(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	return DRESULT();
+	return WriteToMessageCompVector(hMessage, pVal);
 }
 
 DRESULT CSBase::WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal)
 {
-	return DRESULT();
+	godot::Quat pQuat = godot::Quat(pVal->m_Vec.x, pVal->m_Vec.y, pVal->m_Vec.z, pVal->m_Spin);
+	auto bVal = g_pLTELClient->SetPacketValue((godot::PacketPeerUDP*)hMessage, pQuat);
+	return bVal ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
 {
-	return DRESULT();
+	LTELString* pString = (LTELString*)hString;
+
+	return WriteToMessageString(hMessage, (char*)pString->sData.c_str());
 }
 
 DRESULT CSBase::WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE hDataMessage)
 {
-	return DRESULT();
+	godot::PacketPeerUDP* pDestPacket = (godot::PacketPeerUDP*)hMessage;
+	godot::PacketPeerUDP* pSrcPacket = (godot::PacketPeerUDP*)hDataMessage;
+
+	return pDestPacket->put_packet(pSrcPacket->get_packet()) == godot::Error::OK ? DE_OK : DE_ERROR;
 }
 
 DRESULT CSBase::WriteToMessageHMessageRead(HMESSAGEWRITE hMessage, HMESSAGEREAD hDataMessage)
 {
-	return DRESULT();
+	return WriteToMessageHMessageWrite(hMessage, hDataMessage);
 }
 
+// Not used in Shogo!
 DRESULT CSBase::WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messageCode, ...)
 {
 	return DRESULT();
 }
 
+
 DRESULT CSBase::WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 {
+
+	// Not supported yet:
+	// Requires manual serialization of all the core object types :(
+
 	return DRESULT();
 }
 

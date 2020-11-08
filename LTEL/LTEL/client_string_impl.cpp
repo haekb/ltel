@@ -169,3 +169,4 @@ void LTELClient::InitStringImpl()
 	SetupColor2 = impl_SetupColor2;
 
 }
+

@@ -32,7 +32,8 @@ class CServerShellDE
 
 		ServerDE* GetServerDE() const;
 
-	protected :  // These methods should be over-written
+		// Jake: Once again I'm not sure why these are protected...
+	//protected :  // These methods should be over-written
 
 		virtual DRESULT	ServerAppMessageFn(char *pMsg) {return LT_OK;}
 

@@ -7,6 +7,9 @@
 
 #include <Ref.hpp>
 #include <ImageTexture.hpp>
+#include <PacketPeer.hpp>
+#include <PacketPeerUDP.hpp>
+
 
 #include "server.h"
 
@@ -22,13 +25,15 @@ public:
 	LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes);
     virtual ~LTELClient();
 
-	bool StartServerDLL();
+	bool StartServerDLL(StartGameRequest* pRequest);
 
     // Required Impl
 	void InitFunctionPointers();
 	void InitRenderImpl();
 	void InitObjectImpl();
 	void InitStringImpl();
+
+	bool SetPacketValue(godot::PacketPeerUDP* pPacket, godot::Variant pValue);
 
 	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
 
