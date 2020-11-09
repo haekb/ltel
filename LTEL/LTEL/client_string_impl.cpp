@@ -62,14 +62,7 @@ HSTRING impl_FormatString(int messageCode, ...)
 
 void impl_FreeString(HSTRING hString)
 {
-	LTELString* pString = (LTELString*)hString;
-
-	if (!pString)
-	{
-		return;
-	}
-
-	delete pString;
+	shared_FreeString(hString);
 }
 
 char* impl_GetStringData(HSTRING hString)

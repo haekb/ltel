@@ -113,6 +113,8 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	// Ship over some important settings...
 	m_pLTELServer->SetGameInfo(pRequest->m_pGameInfo, pRequest->m_GameInfoLen);
 
+	// Need to run ObjectDLLSetup to get Class definitions!!
+
 	// Maybe kick off the world stuff?
 	//m_pLTELServer->StartWorld(pRequest->m_WorldName);
 

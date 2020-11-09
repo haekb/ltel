@@ -37,7 +37,12 @@ DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 
 ObjectList* simpl_CreateObjectList()
 {
-	return nullptr;
+	return new ObjectList();
+}
+
+void simpl_RelinquishList(ObjectList* pList)
+{
+	delete pList;
 }
 
 void* simpl_GetClientUserData(HCLIENT hClient)
@@ -76,10 +81,45 @@ void simpl_CPrint(char* pMsg, ...)
 	godot::Godot::print("[CONSOLE PRINT]: {0}", szMessage);
 }
 
+DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
+{
+	g_pLTELServer->StartWorld(pszWorldFileName);
+	return DE_OK;
+}
+
+DRESULT simpl_RunWorld()
+{
+	return DE_OK;
+}
+
+HCLASS simpl_GetClass(char* pName)
+{
+	godot::Godot::print("[simpl_GetClass] Class requested: {0}", pName);
+	return nullptr;
+}
+
+HOBJECT simpl_GetNextObject(HOBJECT hObj)
+{
+	return nullptr;
+}
+
+HOBJECT simpl_GetNextInactiveObject(HOBJECT hObj)
+{
+	return nullptr;
+}
+
+void simpl_FreeString(HSTRING hString)
+{
+	return shared_FreeString(hString);
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
 	CreateObjectList = simpl_CreateObjectList;
+	GetNextObject = simpl_GetNextObject;
+	GetNextInactiveObject = simpl_GetNextInactiveObject;
+	RelinquishList = simpl_RelinquishList;
 
 	// System/IO functionality
 	BPrint = simpl_BPrint;
@@ -89,12 +129,17 @@ void LTELServer::InitFunctionPointers()
 	RunGameConString = simpl_RunGameConString;
 	CreateString = simpl_CreateString;
 	GetStringData = simpl_GetStringData;
+	FreeString = simpl_FreeString;
 
 	// Network functionality
 	
 	// Game State functionality
 	GetGameInfo = simpl_GetGameInfo;
 	GetClientUserData = simpl_GetClientUserData;
+	LoadWorld = simpl_LoadWorld;
+	RunWorld = simpl_RunWorld;
+	GetClass = simpl_GetClass;
+
 
 }
 

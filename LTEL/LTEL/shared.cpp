@@ -16,3 +16,15 @@ char* shared_GetStringData(HSTRING hString)
 
 	return (char*)pString->sData.c_str();
 }
+
+void shared_FreeString(HSTRING hString)
+{
+	LTELString* pString = (LTELString*)hString;
+
+	if (!pString)
+	{
+		return;
+	}
+
+	delete pString;
+}
