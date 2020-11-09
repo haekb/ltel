@@ -95,7 +95,21 @@ DRESULT simpl_RunWorld()
 HCLASS simpl_GetClass(char* pName)
 {
 	godot::Godot::print("[simpl_GetClass] Class requested: {0}", pName);
-	return nullptr;
+
+	// TODO: Create a nice hash table so this is a fast lookup
+	auto pClassDefinitions = g_pLTELServer->m_pClassDefList;
+	ClassDef* pCurrentClassDef = *(pClassDefinitions);
+	while (pCurrentClassDef)
+	{
+		if (_stricmp(pName, pCurrentClassDef->m_ClassName) == 0)
+		{
+			break;
+		}
+
+		pCurrentClassDef = *(++pClassDefinitions);
+	}
+
+	return (HCLASS)pCurrentClassDef;
 }
 
 HOBJECT simpl_GetNextObject(HOBJECT hObj)

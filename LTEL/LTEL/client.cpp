@@ -41,6 +41,7 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 {
 	typedef int f_GetServerShellVersion();
 	typedef void f_GetServerShellFunctions(CreateServerShellFn* pCreate, DeleteServerShellFn* pDelete);
+	typedef ClassDef** f_ObjectDLLSetup(int* nDefs, ServerDE* pServer, int* version);
 
 	// CWD is the project folder...
 	HINSTANCE hObjectLTO = LoadLibraryA("./bin/Object.lto");
@@ -114,6 +115,24 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	m_pLTELServer->SetGameInfo(pRequest->m_pGameInfo, pRequest->m_GameInfoLen);
 
 	// Need to run ObjectDLLSetup to get Class definitions!!
+	f_ObjectDLLSetup* pObjectDLLSetup = (f_ObjectDLLSetup*)GetProcAddress(hObjectLTO, "ObjectDLLSetup");
+
+	int nClassDefCount = 0;
+	int nObjectDefVersion = 0;
+
+	auto pClassList = pObjectDLLSetup(&nClassDefCount, m_pLTELServer, &nObjectDefVersion);
+
+	godot::Godot::print("ObjectDLLSetup version: {0}", nObjectDefVersion);
+	godot::Godot::print("Found {0} class definitions!", nClassDefCount);
+
+	if (nObjectDefVersion != 1)
+	{
+		godot::Godot::print("Object class definition version is not 1!");
+		return false;
+	}
+
+	m_pLTELServer->m_nClassDefCount = nClassDefCount;
+	m_pLTELServer->m_pClassDefList = pClassList;
 
 	// Maybe kick off the world stuff?
 	//m_pLTELServer->StartWorld(pRequest->m_WorldName);

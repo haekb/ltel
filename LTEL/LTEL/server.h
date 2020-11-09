@@ -25,6 +25,11 @@ public:
 
     CServerShellDE* m_pServerShell;
 
+    
+    int m_nClassDefCount;
+    ClassDef** m_pClassDefList;
+
+
 
     // Required Impl
     void InitFunctionPointers();
