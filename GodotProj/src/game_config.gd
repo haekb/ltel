@@ -1,6 +1,7 @@
 extends Node
 
 var game_name = "LTEL Project"
+var game_exe_dir = "./"
 var game_data_dir = "./"
 
 # Called when the node enters the scene tree for the first time.
@@ -17,9 +18,10 @@ func load_config():
 	print("[GameConfig] Loading game profile %s" % profile)
 	
 	self.game_name = config.get_value(profile, "name", self.game_name)
+	self.game_exe_dir = config.get_value(profile, "game_dir", self.game_exe_dir)
 	self.game_data_dir = config.get_value(profile, "data_dir", self.game_data_dir)
 	
-	print("[GameConfig] Found config for %s, data directory: %s" % [self.game_name, self.game_data_dir])
+	print("[GameConfig] Found config for %s\n - game directory: %s\n - data directory: %s\n" % [self.game_name, self.game_exe_dir, self.game_data_dir])
 	
 	return true
 # End Func

@@ -3,3 +3,13 @@ godot-cpp
 Debug/
 Release/
 .import
+
+# Music dlls - From SHOGO, but I think Blood 2 will work too
+# You'll need to patch this dll to use dsound.dll instead of dslite.dll!!
+AM18.dll 
+# Rest are vanilla
+IMRT25.DLL
+IMRT1625.DLL
+IMRT3225.DLL
+IMUSIC25.DLL
+MSynth25.dll
