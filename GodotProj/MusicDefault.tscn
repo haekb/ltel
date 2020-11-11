@@ -1,6 +1,165 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://MusicBootup.gd" type="Script" id=1]
+[ext_resource path="res://src/music/Load.gd" type="Script" id=2]
+[ext_resource path="res://src/music/MusicController.gd" type="Script" id=3]
+[ext_resource path="res://src/music/Add.gd" type="Script" id=4]
+[ext_resource path="res://src/music/Remove.gd" type="Script" id=5]
+[ext_resource path="res://src/music/PlayPause.gd" type="Script" id=6]
+[ext_resource path="res://src/music/Stop.gd" type="Script" id=7]
+[ext_resource path="res://src/music/Browse.gd" type="Script" id=8]
 
 [node name="Scene" type="Spatial"]
 script = ExtResource( 1 )
+
+[node name="Control" type="Control" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="SongList" type="ItemList" parent="Control"]
+anchor_bottom = 1.0
+margin_top = 85.0
+margin_right = 225.0
+select_mode = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PlayList" type="ItemList" parent="Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -224.0
+margin_top = 85.0
+margin_right = 1.0
+select_mode = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PlayPause" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -51.5
+margin_top = -83.1433
+margin_right = 51.5
+margin_bottom = -47.1433
+text = "Play"
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Browse" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -51.5
+margin_top = 141.347
+margin_right = 51.5
+margin_bottom = 177.347
+text = "Browse"
+script = ExtResource( 8 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Load" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -51.5
+margin_top = 189.613
+margin_right = 51.5
+margin_bottom = 225.613
+text = "Load"
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Add" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -51.5
+margin_top = 347.88
+margin_right = 51.5
+margin_bottom = 383.88
+text = ">"
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Remove" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -51.5
+margin_top = 396.146
+margin_right = 51.5
+margin_bottom = 432.146
+text = "<"
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Stop" type="Button" parent="Control"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+margin_left = -51.5
+margin_top = -36.0
+margin_right = 51.5
+text = "Stop"
+script = ExtResource( 7 )
+
+[node name="DataDirectory" type="TextEdit" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -135.0
+margin_top = 89.0
+margin_right = 135.0
+margin_bottom = 129.0
+
+[node name="Label" type="Label" parent="Control"]
+anchor_left = 0.5
+anchor_right = 0.5
+margin_left = -51.5
+margin_top = 72.0
+margin_right = 53.5
+margin_bottom = 86.0
+text = "Music Directory:"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label2" type="Label" parent="Control"]
+margin_left = 50.511
+margin_top = 72.0
+margin_right = 155.511
+margin_bottom = 86.0
+text = "Song List"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label3" type="Label" parent="Control"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -165.613
+margin_top = 72.0
+margin_right = -60.613
+margin_bottom = 86.0
+text = "Playlist"
+align = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}

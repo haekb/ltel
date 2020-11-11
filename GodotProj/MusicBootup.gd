@@ -5,6 +5,8 @@ onready var data = preload("res://src/native/IMALBinder.gdns").new()
 onready var config = preload("res://src/game_config.gd").new()
 var is_init = false
 
+signal imal_ready
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	data.set_name("IMALBinder")
@@ -18,5 +20,7 @@ func _ready():
 	OS.set_window_title("IMAL - %s" % self.config.game_name)
 	
 	is_init = data.setup_ima(self.config.game_exe_dir)
+	
+	emit_signal("imal_ready", data)
 # End Func
 

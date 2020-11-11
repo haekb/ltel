@@ -56,6 +56,10 @@ struct MusicMgr {
 
 typedef void f_MusicDLLSetup(MusicMgr* pMusicMgr);
 
+MusicMgr* g_pMusicMgr = nullptr;
+HPLAYLIST g_hPlaylist = nullptr;
+HSONG g_hTransition = nullptr;
+
 void ConsolePrint(char* pMsg, ...)
 {
     va_list list;
@@ -80,6 +84,23 @@ public:
 
     bool setup_ima(String sGameDirectory)
     {
+        //
+        // Setup SEH translator
+        // Be sure to enable "Yes with SEH Exceptions (/EHa)" in C++ / Code Generation;
+        _set_se_translator([](unsigned int u, EXCEPTION_POINTERS* pExp) {
+            std::string error = "SE Exception: ";
+            switch (u) {
+            case 0xC0000005:
+                error += "Access Violation";
+                break;
+            default:
+                char result[11];
+                sprintf_s(result, 11, "0x%08X", u);
+                error += result;
+            };
+            throw std::exception(error.c_str());
+            });
+
         sGameDirectory += "ima.dll";
 
         char szBuffer[256] = "";
@@ -104,61 +125,186 @@ public:
             return false;
         }
 
-        MusicMgr* pMusicMgr = new MusicMgr();
+        g_pMusicMgr = new MusicMgr();
 
         // Clear the sturct
-        memset(pMusicMgr, 0, sizeof(MusicMgr));
+        memset(g_pMusicMgr, 0, sizeof(MusicMgr));
 
         // Can't get hWND from Godot until next build, so let's try this!
-        pMusicMgr->hWND = GetActiveWindow();
+        g_pMusicMgr->hWND = GetActiveWindow();
+        g_pMusicMgr->pUnk = (void*)0x1337; // Just in case it crashes due to access violation, I can track where this is used!
         // Make sure we're really not valid!
-        pMusicMgr->bValid = false;
+        g_pMusicMgr->bValid = false;
         // Setup our print function
-        pMusicMgr->CPrint = ConsolePrint;
+        g_pMusicMgr->CPrint = ConsolePrint;
 
-        pMusicDLLSetupFunc(pMusicMgr);
+        pMusicDLLSetupFunc(g_pMusicMgr);
 
-        if (!pMusicMgr->Init)
+        if (!g_pMusicMgr->Init)
         {
             Godot::print("MusicDLLSetup failed to setup!");
             return false;
         }
 
-        pMusicMgr->Init(pMusicMgr);
+        g_pMusicMgr->Init(g_pMusicMgr);
 
-        if (!pMusicMgr->bValid)
+        if (!g_pMusicMgr->bValid)
         {
             Godot::print("Init failed to init!");
             return false;
         }
 
+        // 100 sounds pretty bad
+        g_pMusicMgr->SetVolume(75);
+
         // Setup our music dir
         bool bOk = false;
+#if 0
+#if 1
+        std::string sDataDir = "D:\\GOG Games\\Blood 2 - dev\\Music\\A1";
+        std::string sDLSFile = "Ancient.dls";
+        std::string sStyleFile = "aoneinit.sty";
+        std::string sFilePrefix = "c";
+        std::string sTransitionFile = "stc.sec";
+        int nFiles = 16;
+#else
+        // Defaults
+        std::string sDataDir = "D:\\GOG Games\\Shogo - Mobile Armor Division - dev\\Music\\RedRiot";
+        std::string sDLSFile = "redriot.dls";
+        std::string sStyleFile = "redinit.sty";
+        std::string sFilePrefix = "c";
+        std::string sTransitionFile = "stc.sec";
+        int nFiles = 13;
+#endif
 
-        bOk = pMusicMgr->SetDataDirectory((char*)"D:\\GOG Games\\Shogo - Mobile Armor Division - dev\\Music\\RedRiot");
-        bOk = pMusicMgr->InitInstruments((char*)"redriot.dls", (char*)"redinit.sty");
-        auto pPlayList = pMusicMgr->CreatePlayList((char*)"AmbientList");
+        bOk = g_pMusicMgr->SetDataDirectory((char*)sDataDir.c_str());
+        bOk = g_pMusicMgr->InitInstruments((char*)sDLSFile.c_str(), (char*)sStyleFile.c_str());
+        auto pPlayList = g_pMusicMgr->CreatePlayList((char*)"AmbientList");
 
-        for (int i = 1; i < 13; i++)
+        for (int i = 2; i < nFiles+1; i++)
         {
-            std::string sSongName = "c" + std::to_string(i) + ".sec";
-            auto pSong = pMusicMgr->CreateSong((char*) sSongName.c_str());
-            bOk = pMusicMgr->AddSongToPlayList(pPlayList, pSong);
+            std::string sSongName = sFilePrefix + std::to_string(i) + ".sec";
+            auto pSong = g_pMusicMgr->CreateSong((char*) sSongName.c_str());
+            bOk = g_pMusicMgr->AddSongToPlayList(pPlayList, pSong);
         }
 
-        auto pTransition = pMusicMgr->CreateSong((char*)"stc.sec");
+        auto pTransition = g_pMusicMgr->CreateSong((char*)sTransitionFile.c_str());
 
-        bOk = pMusicMgr->PlayList(pPlayList, pTransition, true, MUSIC_IMMEDIATE);
+        bOk = g_pMusicMgr->PlayList(pPlayList, pTransition, true, MUSIC_IMMEDIATE);
+#endif
+        return true;
+    }
 
-        bool bHi = true;
+    void resume_playlist()
+    {
+        g_pMusicMgr->Resume();
+    }
+
+    void pause_playlist()
+    {
+        g_pMusicMgr->Pause(MUSIC_IMMEDIATE);
+    }
+
+    void stop_playlist()
+    {
+        g_pMusicMgr->Stop(MUSIC_IMMEDIATE);
+    }
+
+    void play_playlist()
+    {
+        if (!g_hTransition)
+        {
+            return;
+        }
+
+        g_pMusicMgr->PlayList(g_hPlaylist, g_hTransition, true, MUSIC_IMMEDIATE);
+    }
+
+    bool set_data_directory(String sDirectory)
+    {
+        godot::Godot::print("Stopping playback, and clearing memory.");
+
+        g_pMusicMgr->Stop(MUSIC_IMMEDIATE);
+        g_pMusicMgr->DestroyAllSongs();
+
+        char* szDataDir = sDirectory.alloc_c_string();
+
+        godot::Godot::print("Setting data directory {0}", szDataDir);
+
+        return g_pMusicMgr->SetDataDirectory(szDataDir);
+    }
+
+    bool setup_instruments(String sDLSFile, String sStyleFile)
+    {
+        char* szDLS = sDLSFile.alloc_c_string();
+        char* szStyle = sStyleFile.alloc_c_string();
+
+        godot::Godot::print("Setting up instruments\nDLS File: {0}\nStyle File: {1}", szDLS, szStyle);
+
+        return g_pMusicMgr->InitInstruments(szDLS, szStyle);
+    }
+
+    bool set_transition(String sTransition)
+    {
+        char* szTransition = sTransition.alloc_c_string();
+
+        godot::Godot::print("Setting intro transition {0}", szTransition);
+
+        auto pSong = g_pMusicMgr->CreateSong(szTransition);
+
+        if (!pSong)
+        {
+            return false;
+        }
+
+        g_hTransition = pSong;
+        return true;
+    }
+
+    bool create_playlist(Array aSongs)
+    {
+        // Remove any existing playlist
+        if (g_hPlaylist)
+        {
+            g_pMusicMgr->RemovePlayList(g_hPlaylist);
+            g_hPlaylist = nullptr;
+        }
+
+        g_hPlaylist = g_pMusicMgr->CreatePlayList((char*)"CoolTunes");
+
+        bool bOk = false;
+
+        for (int i = 0; i < aSongs.size(); i++)
+        {
+            String sSongname = aSongs[i];
+
+            auto szSong = sSongname.alloc_c_string();
+            godot::Godot::print("Adding {0}", szSong);
+
+            auto pSong = g_pMusicMgr->CreateSong(szSong);
+            bOk = g_pMusicMgr->AddSongToPlayList(g_hPlaylist, pSong);
+
+            if (!bOk)
+            {
+                return false;
+            }
+        }
 
         return true;
-
     }
 
     static void _register_methods() {
 
         register_method("setup_ima", &IMAL::setup_ima);
+        register_method("resume_playlist", &IMAL::resume_playlist);
+        register_method("pause_playlist", &IMAL::pause_playlist);
+        register_method("stop_playlist", &IMAL::stop_playlist);
+        register_method("play_playlist", &IMAL::play_playlist);
+        register_method("set_transition", &IMAL::set_transition);
+        register_method("set_data_directory", &IMAL::set_data_directory);
+        register_method("setup_instruments", &IMAL::setup_instruments);
+        register_method("create_playlist", &IMAL::create_playlist);
+
 
         /**
          * The line below is equivalent to the following GDScript export:
