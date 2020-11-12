@@ -11,15 +11,11 @@ signal imal_ready
 func _ready():
 	data.set_name("IMALBinder")
 	add_child(data)
-	
-	# Load it up!
-	if !self.config.load_config():
-		return
 		
 	# Setup window title
-	OS.set_window_title("IMAL - %s" % self.config.game_name)
+	OS.set_window_title("Lithtech 1.0 - Music Player")
 	
-	is_init = data.setup_ima(self.config.game_exe_dir)
+	is_init = data.setup_ima("")
 	
 	emit_signal("imal_ready", data)
 # End Func

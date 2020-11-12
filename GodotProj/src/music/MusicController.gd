@@ -22,6 +22,12 @@ func _ready():
 func _imal_ready(imal):
 	self.imal = get_node("/root/Scene/IMALBinder")
 	
+func _notification(what):
+	if what == MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		self.imal.shutdown_ima()
+		
+		get_tree().quit() # default behavior
+	
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 #func _process(delta):
 #	pass

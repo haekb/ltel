@@ -6,12 +6,16 @@ extends Button
 # var b = "text"
 var controller : Control
 var data_dir : TextEdit
+var play_list : ItemList
+var play_pause : Button
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	self.connect("pressed", self, "_button_pressed")
 	self.controller = get_node("/root/Scene/Control")
 	self.data_dir = get_node("/root/Scene/Control/DataDirectory") as TextEdit
+	self.play_list = get_node("/root/Scene/Control/PlayList")
+	self.play_pause = get_node("/root/Scene/Control/PlayPause")
 	pass # Replace with function body.
 
 func _button_pressed():
@@ -57,8 +61,11 @@ func _button_pressed():
 		return
 		
 	var song_list := get_node("/root/Scene/Control/SongList") as ItemList 
-	
+	play_list.clear()
 	song_list.clear()
+	self.play_pause.is_playing = false
+	self.play_pause.adjust_text()
+	
 	self.controller.available_songs.clear()
 	
 	for song in file_list:
@@ -66,6 +73,7 @@ func _button_pressed():
 		
 	self.controller.available_songs = song_list
 	
+
 	print ("Finished loading!")
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

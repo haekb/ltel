@@ -225,6 +225,19 @@ public:
         godot::Godot::print("Stopping playback, and clearing memory.");
 
         g_pMusicMgr->Stop(MUSIC_IMMEDIATE);
+
+        if (g_hTransition)
+        {
+            g_pMusicMgr->DestroySong(g_hTransition);
+            g_hTransition = nullptr;
+        }
+
+        if (g_hPlaylist)
+        {
+            g_pMusicMgr->RemovePlayList(g_hPlaylist);
+            g_hPlaylist = nullptr;
+        }
+
         g_pMusicMgr->DestroyAllSongs();
 
         char* szDataDir = sDirectory.alloc_c_string();
@@ -293,9 +306,34 @@ public:
         return true;
     }
 
+    void shutdown_ima()
+    {
+        g_pMusicMgr->Stop(MUSIC_IMMEDIATE);
+
+        if (g_hTransition)
+        {
+            g_pMusicMgr->DestroySong(g_hTransition);
+            g_hTransition = nullptr;
+        }
+
+        if (g_hPlaylist)
+        {
+            g_pMusicMgr->RemovePlayList(g_hPlaylist);
+            g_hPlaylist = nullptr;
+        }
+
+        g_pMusicMgr->DestroyAllSongs();
+        g_pMusicMgr->Term();
+
+        delete g_pMusicMgr;
+        g_pMusicMgr = nullptr;
+    }
+
     static void _register_methods() {
 
         register_method("setup_ima", &IMAL::setup_ima);
+        register_method("shutdown_ima", &IMAL::shutdown_ima);
+
         register_method("resume_playlist", &IMAL::resume_playlist);
         register_method("pause_playlist", &IMAL::pause_playlist);
         register_method("stop_playlist", &IMAL::stop_playlist);
