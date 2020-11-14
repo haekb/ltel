@@ -105,6 +105,10 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 
 	m_pLTELServer = new LTELServer(m_pGodotLink, hSRes);
 
+	// Add a client, because we need one!
+	ClientInfo* pClient = new ClientInfo(true, "Shogoer", this);
+	m_pLTELServer->m_pClientList.push_back(pClient);
+
 	// We'll want to run CreateServerShellFn, to get the game's ObjectLTO instance
 	CreateServerShellFn pCreate = (CreateServerShellFn)pnCreate;
 	auto pServerShell = (CServerShellDE*)pCreate(m_pLTELServer);

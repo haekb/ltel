@@ -25,6 +25,9 @@
     <Filter Include="Lithtech\1.0\Impl">
       <UniqueIdentifier>{f6e91cb9-cd46-47c2-87ba-e3457ef24a2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Lithtech\1.0\Impl\classes">
+      <UniqueIdentifier>{19927e4f-b13e-43e6-a57b-e5d611fb7a1a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -129,6 +132,9 @@
     <ClInclude Include="shared.h">
       <Filter>Lithtech\1.0\Impl</Filter>
     </ClInclude>
+    <ClInclude Include="client_info.h">
+      <Filter>Lithtech\1.0\Impl\classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -169,6 +175,9 @@
     </ClCompile>
     <ClCompile Include="shared_messaging.cpp">
       <Filter>Lithtech\1.0\Impl</Filter>
+    </ClCompile>
+    <ClCompile Include="client_info.cpp">
+      <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

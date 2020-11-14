@@ -168,6 +168,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="client.h" />
+    <ClInclude Include="client_info.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="LT1\AppHeaders\aggregate_de.h" />
@@ -205,6 +206,7 @@
   <ItemGroup>
     <ClCompile Include="client.cpp" />
     <ClCompile Include="client_impl.cpp" />
+    <ClCompile Include="client_info.cpp" />
     <ClCompile Include="client_object_impl.cpp" />
     <ClCompile Include="client_render_impl.cpp" />
     <ClCompile Include="client_string_impl.cpp" />

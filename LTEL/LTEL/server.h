@@ -1,5 +1,7 @@
 #pragma once
 #include "LT1/AppHeaders/cpp_servershell_de.h"
+#include "LT1/AppHeaders/client_de.h"
+#include "client_info.h"
 
 // Godot Stuff
 #include <Node.hpp>
@@ -9,6 +11,7 @@
 
 #include <Windows.h>
 #include <string>
+#include <vector>
 
 class LTELServer :
     public ServerDE
@@ -21,6 +24,7 @@ public:
     godot::Node* m_pGodotLink;
     float m_fFrametime;
 
+    std::string m_sGameDataDir;
     void* m_pGameInfo;
 
     CServerShellDE* m_pServerShell;
@@ -29,7 +33,7 @@ public:
     int m_nClassDefCount;
     ClassDef** m_pClassDefList;
 
-
+    std::vector<ClientInfo*> m_pClientList;
 
     // Required Impl
     void InitFunctionPointers();
@@ -39,6 +43,7 @@ public:
     void StartWorld(std::string sWorldName);
 
     bool ReceiveMessageFromClient(godot::StreamPeerBuffer* pStream, DDWORD flags);
+
 
     //
     // ServerDE

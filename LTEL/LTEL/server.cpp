@@ -3,6 +3,7 @@
 
 #include <StreamPeer.hpp>
 #include <StreamPeerBuffer.hpp>
+#include <File.hpp>
 
 LTELServer* g_pLTELServer = nullptr;
 
@@ -41,10 +42,83 @@ void LTELServer::SetGameInfo(void* pData, int pLen)
 	}
 }
 
+struct DataVector {
+	float x, y, z;
+};
+
+struct DataQuat {
+	float x, y, z, w;
+};
+
+struct WorldProperty {
+	std::string sName;
+	int nType;
+
+	union data {
+		bool bBool;
+		int nInt;
+		float fFloat;
+		DataVector vVector;
+		DataQuat qQuat;
+		short nStringLength;
+	};
+};
+
+struct WorldObject {
+	std::string sName;
+	int nProperties;
+	
+};
+
 void LTELServer::StartWorld(std::string sWorldName)
 {
 
 	m_pServerShell->PreStartWorld(true);
+
+	// Don't run this yet!
+	if (false)
+	{
+		// Reference!
+		struct ShogoWorldHeader {
+			uint32_t Version;
+			uint32_t ObjectDataPosition;
+			uint32_t RenderDataPosition;
+
+			int WorldInfoLength;
+			//LTString WorldInfo;
+		};
+
+		std::string sPath = g_pLTELServer->m_sGameDataDir + sWorldName;
+
+		godot::Ref<godot::File> pFile = godot::File::_new();
+
+		auto hError = pFile->open(sPath.c_str(), godot::File::READ);
+
+		int nVersion = pFile->get_32();
+
+		if (nVersion != 56)
+		{
+			//godot::Godot::print("[impl_GetWorldInfoString] Map {0} is not version 56! Version {1} detected.", pFilename, nVersion);
+		}
+
+		int nObjectDataPosition = pFile->get_32();
+		int nRenderDataPosition = pFile->get_32();
+
+		int nWorldInfoLength = pFile->get_32();
+
+		auto pByteBuffer = pFile->get_buffer(nWorldInfoLength);
+
+		char* szWorldInfo = (char*)pByteBuffer.read().ptr();
+		szWorldInfo[nWorldInfoLength - 1] = '\0';
+
+		// Need to load in a list of classes from the world here...
+		// Then send notifications to the server's PRECREATE notification/message?
+
+
+		pFile->close();
+	}
+
+	m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
 
 	// Do stuff here...
 
@@ -104,17 +178,39 @@ DRESULT LTELServer::StartMessageToServer(LPBASECLASS pSender, DDWORD messageID, 
 
 HMESSAGEWRITE LTELServer::StartMessage(HCLIENT hSendTo, DBYTE messageID)
 {
-	return HMESSAGEWRITE();
-}
+	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
+	pStream->put_8(messageID);
 
-DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
-{
-	return DRESULT();
+	return (HMESSAGEWRITE)pStream;
 }
 
 DRESULT LTELServer::EndMessage(HMESSAGEWRITE hMessage)
 {
-	return DRESULT();
+	return EndMessage2(hMessage, MESSAGE_GUARANTEED);
+}
+
+DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
+{
+	if (!m_pClientList.size() == 0)
+	{
+		// Clean up...
+		auto pStream = (godot::StreamPeerBuffer*)hMessage;
+		pStream->free();
+
+		return DE_SERVERERROR;
+	}
+
+	godot::StreamPeerBuffer* pStream = (godot::StreamPeerBuffer*)hMessage;
+
+	DBYTE pMessageId = pStream->get_8();
+	pStream->seek(0);
+
+	m_pClientList[0]->GetClientShell()->OnMessage(m_pClientList[0]->GetClientShell(), pMessageId, hMessage);
+
+	// Ok clean it up!
+	pStream->free();
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::SetObjectSFXMessage(HOBJECT hObject, LMessage& msg)
