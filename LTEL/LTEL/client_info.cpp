@@ -8,6 +8,7 @@ ClientInfo::ClientInfo(bool bIsHost, std::string sName, ClientDE* pClient)
 	m_pClient = pClient;
 	m_nFlags = CIF_LOCAL;
 	m_pObject = nullptr;
+	m_pUserData = nullptr;
 }
 
 ClientInfo::~ClientInfo()

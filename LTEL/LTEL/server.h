@@ -2,6 +2,7 @@
 #include "LT1/AppHeaders/cpp_servershell_de.h"
 #include "LT1/AppHeaders/client_de.h"
 #include "client_info.h"
+#include "game_object.h"
 
 // Godot Stuff
 #include <Node.hpp>
@@ -34,6 +35,10 @@ public:
     ClassDef** m_pClassDefList;
 
     std::vector<ClientInfo*> m_pClientList;
+    std::vector<GameObject*> m_pObjectList;
+
+    // Stupid stateful
+    GameObject* m_pCurrentObject;
 
     // Required Impl
     void InitFunctionPointers();

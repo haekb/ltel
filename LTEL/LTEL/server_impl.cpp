@@ -1,5 +1,6 @@
 #include "server.h"
 #include "shared.h"
+#include "LT1/AppHeaders/cpp_engineobjects_de.h"
 
 extern LTELServer* g_pLTELServer;
 
@@ -43,12 +44,6 @@ ObjectList* simpl_CreateObjectList()
 void simpl_RelinquishList(ObjectList* pList)
 {
 	delete pList;
-}
-
-void* simpl_GetClientUserData(HCLIENT hClient)
-{
-	// We don't have a client user yet...
-	return nullptr;
 }
 
 void simpl_BPrint(char* pMsg, ...)
@@ -196,14 +191,147 @@ LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
 	return nullptr;
 }
 
+LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStruct)
+{
+	ClassDef* pClass = (ClassDef*)hClass;
+
+	if (!pClass)
+	{
+		return nullptr;
+	}
+
+	LPBASECLASS pBaseClass = new BaseClass(pStruct->m_ObjectType);
+
+	GameObject* pObject = new GameObject(pClass, pBaseClass);
+
+	pClass->m_ConstructFn(pBaseClass);
+	pClass->m_EngineMessageFn = pBaseClass->_EngineMsgFn;
+	pClass->m_ObjectMessageFn = pBaseClass->_ObjectMsgFn;
+
+	pObject->SetFromObjectCreateStruct(*pStruct);
+	
+	g_pLTELServer->m_pCurrentObject = pObject;
+
+
+	
+	auto nResult = pClass->m_EngineMessageFn(pBaseClass, MID_PRECREATE, pStruct, 1.0f);
+
+	// I'm not sure when we lose scope, but it's not here!
+	//g_pLTELServer->m_pCurrentObject = nullptr;
+
+	// 1 is ok?
+	if (nResult == 1)
+	{
+		// We can safely add this to our object list!
+		g_pLTELServer->m_pObjectList.push_back(pObject);
+
+		return pBaseClass;
+	}
+
+	// Cleanup!
+	delete pObject;
+	g_pLTELServer->m_pCurrentObject = nullptr;
+
+	return nullptr;
+}
+
+// These are used to get the property values from the world file.
+// The property names are case sensitive.  If the property doesn't exist,
+// it will return DE_NOTFOUND.
+DRESULT simpl_GetPropString(char* pPropName, char* pRet, int maxLen)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropVector(char* pPropName, DVector* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropColor(char* pPropName, DVector* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropReal(char* pPropName, float* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropFlags(char* pPropName, DDWORD* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropBool(char* pPropName, DBOOL* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropLongInt(char* pPropName, long* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropRotation(char* pPropName, DRotation* pRet)
+{
+	return DE_NOTFOUND;
+}
+DRESULT simpl_GetPropRotationEuler(char* pPropName, DVector* pAngles)
+{
+	return DE_NOTFOUND;
+}
+
+
+// Fills in the GenericProp for the different data types.  For a list
+// of which property types map to which GenericProp variable, see 
+// the GenericProp structure.
+// Note: if the property exists, it always initializes the members in the prop first,
+// so if the GenericProp variable doesn't support that property type, 
+// it'll be zero (or ROT_INIT'd).
+DRESULT simpl_GetPropGeneric(char* pPropName, GenericProp* pProp)
+{
+	memset(pProp, 0, sizeof(GenericProp));
+
+	bool bResult = g_pLTELServer->m_pCurrentObject->GetProperty(pPropName, pProp);
+
+	return bResult ? DE_OK : DE_ERROR;
+}
+
+// User data for HCLIENTs.
+void	simpl_SetClientUserData(HCLIENT hClient, void* pData)
+{
+	if (!hClient)
+	{
+		return;
+	}
+
+	ClientInfo* pClient = (ClientInfo*)hClient;
+	pClient->SetUserData(pData);
+}
+void* simpl_GetClientUserData(HCLIENT hClient)
+{
+	if (!hClient)
+	{
+		return nullptr;
+	}
+
+	ClientInfo* pClient = (ClientInfo*)hClient;
+	return pClient->GetUserData();
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
+	CreateObject = simpl_CreateObject;
 	CreateObjectList = simpl_CreateObjectList;
 	GetNextObject = simpl_GetNextObject;
 	GetNextInactiveObject = simpl_GetNextInactiveObject;
 	RelinquishList = simpl_RelinquishList;
 	HandleToObject = simpl_HandleToObject;
+	GetPropGeneric = simpl_GetPropGeneric;
+	GetPropString = simpl_GetPropString;
+	GetPropVector = simpl_GetPropVector;
+	GetPropColor = simpl_GetPropColor;
+	GetPropReal = simpl_GetPropReal;
+	GetPropFlags = simpl_GetPropFlags;
+	GetPropBool = simpl_GetPropBool;
+	GetPropLongInt = simpl_GetPropLongInt;
+	GetPropRotation = simpl_GetPropRotation;
+	GetPropRotationEuler = simpl_GetPropRotationEuler;
 
 	// System/IO functionality
 	BPrint = simpl_BPrint;
@@ -223,10 +351,11 @@ void LTELServer::InitFunctionPointers()
 	GetClientRefInfoFlags = simpl_GetClientRefInfoFlags;
 	GetClientRefName = simpl_GetClientRefName;
 	GetClientRefObject = simpl_GetClientRefObject;
+	GetClientUserData = simpl_GetClientUserData;
+	SetClientUserData = simpl_SetClientUserData;
 
 	// Game State functionality
 	GetGameInfo = simpl_GetGameInfo;
-	GetClientUserData = simpl_GetClientUserData;
 	LoadWorld = simpl_LoadWorld;
 	RunWorld = simpl_RunWorld;
 	GetClass = simpl_GetClass;

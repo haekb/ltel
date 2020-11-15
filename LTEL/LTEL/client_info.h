@@ -15,6 +15,7 @@ public:
 
     // Setters
     void SetObject(LPBASECLASS pObject) { m_pObject = pObject; }
+    void SetUserData(void* pData) { m_pUserData = pData; }
     
     // Getters
     bool IsHost() { return m_bIsHost; }
@@ -23,6 +24,7 @@ public:
     ClientDE* GetClient() { return m_pClient; }
     ClientShellDE* GetClientShell() { return m_pClient->GetClientShell(); }
     LPBASECLASS GetObject() { return m_pObject; }
+    void* GetUserData() { return m_pUserData; }
 
 protected:
     bool m_bIsHost;
@@ -30,4 +32,5 @@ protected:
     ClientDE* m_pClient;
     uint32_t m_nFlags;
     LPBASECLASS m_pObject;
+    void* m_pUserData;
 };

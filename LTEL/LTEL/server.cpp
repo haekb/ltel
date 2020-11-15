@@ -26,6 +26,8 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	m_nClassDefCount = 0;
 	m_pClassDefList = nullptr;
 
+	m_pCurrentObject = nullptr;
+
 	InitFunctionPointers();
 }
 
