@@ -170,6 +170,20 @@
 					m_PropFlags = propFlags;
 					m_pInternal = 0;
 				}
+
+				// Appeal to the C GODS
+				PropDef_t(const char* pName, int type, DVector valVec,
+					float valFloat, const char* valString, int propFlags)
+				{
+					m_PropName = (char*)pName;
+					m_PropType = type;
+					m_DefaultValueVector = valVec;
+					m_DefaultValueFloat = valFloat;
+					m_DefaultValueString = (char*)valString;
+					m_PropFlags = propFlags;
+					m_pInternal = 0;
+				}
+
 	
 		char	*m_PropName;
 		
@@ -492,7 +506,7 @@
 
 	#define END_CLASS_SYMBOL(name, parentSymbol, flags, construct_fn, destruct_fn, enginemessage_fn, objectmessage_fn, classFlags) \
 		ClassDef _##name##_Class__ = { \
-			#name, parentSymbol, \
+			(char*)#name, parentSymbol, \
 			flags,\
 			construct_fn, destruct_fn, \
 			(EngineMessageFn)enginemessage_fn,\

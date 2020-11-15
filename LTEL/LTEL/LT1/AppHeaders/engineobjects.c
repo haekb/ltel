@@ -27,85 +27,85 @@ DDWORD bc_EngineMessageFn(LPBASECLASS pObject, DDWORD messageID, void *pData, fl
 			{
 				pStruct = (ObjectCreateStruct*)pData;
 
-				if( g_pServerDE->GetPropGeneric( "Name", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric( (char*)"Name", &genProp ) == DE_OK )
 				{
 					SAFE_STRCPY(pStruct->m_Name, genProp.m_String);
 					pStruct->m_Name[MAX_CS_FILENAME_LEN] = '\0';
 				}
-				if( g_pServerDE->GetPropGeneric( "Pos", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Pos", &genProp ) == DE_OK )
 				{
 					VEC_COPY( pStruct->m_Pos, genProp.m_Vec );
 				}
-				if( g_pServerDE->GetPropGeneric( "Rotation", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Rotation", &genProp ) == DE_OK )
 				{
 					ROT_COPY( pStruct->m_Rotation, genProp.m_Rotation );
 				}
-				if( g_pServerDE->GetPropGeneric( "Flags", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Flags", &genProp ) == DE_OK )
 				{
 					pStruct->m_Flags = genProp.m_Long;
 				}
-				if( g_pServerDE->GetPropGeneric( "Visible", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Visible", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_VISIBLE;
 					else
 						pStruct->m_Flags &= ~FLAG_VISIBLE;
 				}
-				if( g_pServerDE->GetPropGeneric( "Shadow", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Shadow", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_SHADOW;
 					else
 						pStruct->m_Flags &= ~FLAG_SHADOW;
 				}
-				if( g_pServerDE->GetPropGeneric( "RotateableSprite", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"RotateableSprite", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_ROTATEABLESPRITE;
 					else
 						pStruct->m_Flags &= ~FLAG_ROTATEABLESPRITE;
 				}
-				if( g_pServerDE->GetPropGeneric( "Chromakey", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Chromakey", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_SPRITECHROMAKEY;
 					else
 						pStruct->m_Flags &= ~FLAG_SPRITECHROMAKEY;
 				}
-				if( g_pServerDE->GetPropGeneric( "Solid", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Solid", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_SOLID;
 					else
 						pStruct->m_Flags &= ~FLAG_SOLID;
 				}
-				if( g_pServerDE->GetPropGeneric( "Gravity", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Gravity", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_GRAVITY;
 					else
 						pStruct->m_Flags &= ~FLAG_GRAVITY;
 				}
-				if( g_pServerDE->GetPropGeneric( "TouchNotify", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"TouchNotify", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_TOUCH_NOTIFY;
 					else
 						pStruct->m_Flags &= ~FLAG_TOUCH_NOTIFY;
 				}
-				if( g_pServerDE->GetPropGeneric( "Rayhit", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Rayhit", &genProp ) == DE_OK )
 				{
 					if( genProp.m_Bool )
 						pStruct->m_Flags |= FLAG_RAYHIT;
 					else
 						pStruct->m_Flags &= ~FLAG_RAYHIT;
 				}
-				if( g_pServerDE->GetPropGeneric( "Filename", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Filename", &genProp ) == DE_OK )
 				{
 					SAFE_STRCPY(pStruct->m_Filename, genProp.m_String);
 					pStruct->m_Filename[MAX_CS_FILENAME_LEN] = '\0';
 				}
-				if( g_pServerDE->GetPropGeneric( "Skin", &genProp ) == DE_OK )
+				if( g_pServerDE->GetPropGeneric((char*)"Skin", &genProp ) == DE_OK )
 				{
 					SAFE_STRCPY(pStruct->m_SkinName, genProp.m_String);
 					pStruct->m_SkinName[MAX_CS_FILENAME_LEN] = '\0';
@@ -196,7 +196,7 @@ static DDWORD wmdl_MessageFn(LPBASECLASS pObject, DDWORD messageID, void *pData,
 
 		if( lData == 1.0f )
 		{
-			g_pServerDE->GetPropString("Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
+			g_pServerDE->GetPropString((char*)"Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
 		}
 	}
 
@@ -231,9 +231,9 @@ static DDWORD cntr_MessageFn(LPBASECLASS pObject, DDWORD messageID, void *pData,
 		if( lData == 1.0f )
 		{
 			code = 0;
-			g_pServerDE->GetPropLongInt("ContainerCode", &code);
+			g_pServerDE->GetPropLongInt((char*)"ContainerCode", &code);
 			pStruct->m_ContainerCode = (D_WORD)code;
-			g_pServerDE->GetPropString("Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
+			g_pServerDE->GetPropString((char*)"Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
 		}
 	}
 
@@ -268,15 +268,15 @@ static DDWORD spr_MessageFn(LPBASECLASS pObject, DDWORD messageID, void *pData, 
 			pStruct = (ObjectCreateStruct*)pData;
 			pStruct->m_ObjectType = OT_SPRITE;
 			
-			g_pServerDE->GetPropGeneric("Color", &prop);
+			g_pServerDE->GetPropGeneric((char*)"Color", &prop);
 			pSprite->m_Color[0] = (DBYTE)prop.m_Color.x;
 			pSprite->m_Color[1] = (DBYTE)prop.m_Color.y;
 			pSprite->m_Color[2] = (DBYTE)prop.m_Color.z;
 
-			g_pServerDE->GetPropGeneric("Scale", &prop);
+			g_pServerDE->GetPropGeneric((char*)"Scale", &prop);
 			VEC_COPY(pStruct->m_Scale, prop.m_Vec);
 
-			g_pServerDE->GetPropGeneric("Alpha", &prop);
+			g_pServerDE->GetPropGeneric((char*)"Alpha", &prop);
 			pSprite->m_Color[3] = (DBYTE)(prop.m_Float * 255.0f);
 		}
 		break;
@@ -342,39 +342,39 @@ static DDWORD as_MessageFn(LPBASECLASS pObject, DDWORD messageID, void *pData, f
 		}
 		else
 		{
-			if( g_pServerDE->GetPropGeneric( "Filename", &genProp ) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"Filename", &genProp ) == DE_OK )
 			{
 				SAFE_STRCPY(pSound->m_Filename, genProp.m_String);
 			}
 			else
 				pSound->m_Filename[0] = '\0';
 
-			if( g_pServerDE->GetPropGeneric("OuterRadius", &genProp ) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"OuterRadius", &genProp ) == DE_OK )
 				pSound->m_fOuterRadius = genProp.m_Float;
 			else
 				pSound->m_fOuterRadius = 100.0f;
 
-			if( g_pServerDE->GetPropGeneric("InnerRadius", &genProp ) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"InnerRadius", &genProp ) == DE_OK )
 				pSound->m_fInnerRadius = genProp.m_Float;
 			else
 				pSound->m_fInnerRadius = 10.0f;
 			
-			if( g_pServerDE->GetPropGeneric("Volume", &genProp) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"Volume", &genProp) == DE_OK )
 				pSound->m_nVolume = (DBYTE)genProp.m_Long;
 			else
 				pSound->m_nVolume = 100;
 			
-			if( g_pServerDE->GetPropGeneric("Priority", &genProp) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"Priority", &genProp) == DE_OK )
 				pSound->m_nPriority = (unsigned char)genProp.m_Long;
 			else
 				pSound->m_nPriority = 0;
 			
-			if( g_pServerDE->GetPropGeneric("Ambient", &genProp) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"Ambient", &genProp) == DE_OK )
 				pSound->m_bAmbient = genProp.m_Bool;
 			else
 				pSound->m_bAmbient = DTRUE;
 
-			if( g_pServerDE->GetPropGeneric("FileStream", &genProp) == DE_OK )
+			if( g_pServerDE->GetPropGeneric((char*)"FileStream", &genProp) == DE_OK )
 				pSound->m_bFileStream = genProp.m_Bool;
 			else
 				pSound->m_bFileStream = DTRUE;
@@ -644,12 +644,12 @@ static DDWORD DemoSky_EngineMessageFn(LPBASECLASS pObject, DDWORD messageID, voi
 
 			if( lData == 1.0f )
 			{
-				g_pServerDE->GetPropVector("SkyDims", &pModel->SkyDims);
-				g_pServerDE->GetPropString("Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
-				g_pServerDE->GetPropReal("InnerPercentX", &pModel->InnerPercentX);
-				g_pServerDE->GetPropReal("InnerPercentY", &pModel->InnerPercentY);
-				g_pServerDE->GetPropReal("InnerPercentZ", &pModel->InnerPercentZ);
-				g_pServerDE->GetPropLongInt("Index", &pModel->Index);
+				g_pServerDE->GetPropVector((char*)"SkyDims", &pModel->SkyDims);
+				g_pServerDE->GetPropString((char*)"Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
+				g_pServerDE->GetPropReal((char*)"InnerPercentX", &pModel->InnerPercentX);
+				g_pServerDE->GetPropReal((char*)"InnerPercentY", &pModel->InnerPercentY);
+				g_pServerDE->GetPropReal((char*)"InnerPercentZ", &pModel->InnerPercentZ);
+				g_pServerDE->GetPropLongInt((char*)"Index", &pModel->Index);
 			}
 			else
 			{
@@ -737,13 +737,13 @@ static DDWORD SkyPointer_EngineMessageFn(LPBASECLASS pObject, DDWORD messageID, 
 
 			if( lData == 1.0f )
 			{
-				g_pServerDE->GetPropVector("SkyDims", &pModel->SkyDims);
-				g_pServerDE->GetPropString("Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
-				g_pServerDE->GetPropString("SkyObjectName", pModel->m_ObjectName, sizeof(pModel->m_ObjectName)-1);
-				g_pServerDE->GetPropReal("InnerPercentX", &pModel->InnerPercentX);
-				g_pServerDE->GetPropReal("InnerPercentY", &pModel->InnerPercentY);
-				g_pServerDE->GetPropReal("InnerPercentZ", &pModel->InnerPercentZ);
-				g_pServerDE->GetPropLongInt("Index", &pModel->Index);
+				g_pServerDE->GetPropVector((char*)"SkyDims", &pModel->SkyDims);
+				g_pServerDE->GetPropString((char*)"Name", pStruct->m_Filename, MAX_CS_FILENAME_LEN);
+				g_pServerDE->GetPropString((char*)"SkyObjectName", pModel->m_ObjectName, sizeof(pModel->m_ObjectName)-1);
+				g_pServerDE->GetPropReal((char*)"InnerPercentX", &pModel->InnerPercentX);
+				g_pServerDE->GetPropReal((char*)"InnerPercentY", &pModel->InnerPercentY);
+				g_pServerDE->GetPropReal((char*)"InnerPercentZ", &pModel->InnerPercentZ);
+				g_pServerDE->GetPropLongInt((char*)"Index", &pModel->Index);
 			}
 			else
 			{
@@ -836,7 +836,7 @@ static DDWORD FogSphere_EngineMessageFn(LPBASECLASS pObject, DDWORD messageID, v
 			pStruct->m_ObjectType = OT_LIGHT;
 			pStruct->m_Flags = FLAG_VISIBLE | FLAG_FOGLIGHT;
 
-			g_pServerDE->GetPropGeneric("LightRadius", &prop);
+			g_pServerDE->GetPropGeneric((char*)"LightRadius", &prop);
 			pSphere->m_Radius = prop.m_Float;			
 		}
 		break;
