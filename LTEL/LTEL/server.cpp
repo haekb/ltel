@@ -7,9 +7,16 @@
 
 LTELServer* g_pLTELServer = nullptr;
 
+// Backwards compat
+ServerDE* g_pServerDE = nullptr;
+
+// I'm not sure where else to throw this, but if we don't have this some macro fails, and it sucks.
+__ClassDefiner* __g_ClassDefinerHead = nullptr;
+
 LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 {
 	g_pLTELServer = this;
+	g_pServerDE = this;
 	m_pGodotLink = pGodotLink;
 	m_pSRes = pSRes;
 	m_fFrametime = 0.1f;
