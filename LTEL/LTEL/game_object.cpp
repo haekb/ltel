@@ -24,6 +24,8 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_sName = "";
 	m_fNextUpdate = 0.0f;
 	m_fDeactivationTime = 0.0f;
+
+	m_nState = 0;
 }
 
 GameObject::~GameObject()
@@ -104,4 +106,10 @@ bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
 	}
 
 	return true;
+}
+
+void GameObject::Teleport(DVector vNewPos)
+{
+	m_vPos = vNewPos;
+	// TODO: actually move the godot object
 }

@@ -48,6 +48,8 @@ public:
 	int m_nGameMode;
 	bool m_bIsConnected;
 
+    ClientInfo* m_pClientInfo;
+
 	//
 	// CSBASE
 	//

@@ -47,7 +47,7 @@ public:
 
     void StartWorld(std::string sWorldName);
 
-    bool ReceiveMessageFromClient(godot::StreamPeerBuffer* pStream, DDWORD flags);
+    bool ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags);
 
 
     //

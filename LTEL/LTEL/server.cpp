@@ -136,7 +136,7 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 }
 
-bool LTELServer::ReceiveMessageFromClient(godot::StreamPeerBuffer* pStream, DDWORD flags)
+bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags)
 {
 	// No server shell, no message!
 	if (!m_pServerShell)
@@ -148,7 +148,7 @@ bool LTELServer::ReceiveMessageFromClient(godot::StreamPeerBuffer* pStream, DDWO
 
 	DBYTE pMessageId = pStream->get_8();
 
-	m_pServerShell->OnMessage(nullptr, pMessageId, (HMESSAGEREAD)pStream);
+	m_pServerShell->OnMessage((HCLIENT)pClientInfo, pMessageId, (HMESSAGEREAD)pStream);
 
 	// Ok clean it up!
 	pStream->free();

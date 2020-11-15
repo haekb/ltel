@@ -17,6 +17,8 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	g_pLTELClient = this;
 	m_pLTELServer = nullptr;
 
+	m_pClientInfo = nullptr;
+
 	m_nGameMode = GAMEMODE_NONE;
 	m_bIsConnected = false;
 	m_sGameDataDir = "";
@@ -106,8 +108,8 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	m_pLTELServer = new LTELServer(m_pGodotLink, hSRes);
 
 	// Add a client, because we need one!
-	ClientInfo* pClient = new ClientInfo(true, "Shogoer", this);
-	m_pLTELServer->m_pClientList.push_back(pClient);
+	m_pClientInfo = new ClientInfo(true, "Shogoer", this);
+	m_pLTELServer->m_pClientList.push_back(m_pClientInfo);
 
 	// We'll want to run CreateServerShellFn, to get the game's ObjectLTO instance
 	CreateServerShellFn pCreate = (CreateServerShellFn)pnCreate;
@@ -246,7 +248,7 @@ DRESULT LTELClient::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 		return DE_SERVERERROR;
 	}
 
-	m_pLTELServer->ReceiveMessageFromClient((godot::StreamPeerBuffer*)hMessage, flags);
+	m_pLTELServer->ReceiveMessageFromClient(m_pClientInfo, (godot::StreamPeerBuffer*)hMessage, flags);
 
 	return DE_OK;
 }

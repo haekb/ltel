@@ -313,6 +313,112 @@ void* simpl_GetClientUserData(HCLIENT hClient)
 	return pClient->GetUserData();
 }
 
+ObjectList* simpl_FindNamedObjects(char* pName)
+{
+	return nullptr;
+}
+
+DRESULT simpl_TeleportObject(HOBJECT hObj, DVector* pNewPos)
+{
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	pObject->Teleport(*pNewPos);
+
+	return DE_OK;
+}
+
+void simpl_SetObjectState(HOBJECT hObj, int state)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	pObject->SetState(state);
+}
+int	simpl_GetObjectState(HOBJECT hObj)
+{
+	if (!hObj)
+	{
+		return 0;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	return pObject->GetState();
+}
+
+void simpl_SetObjectFlags(HLOCALOBJ hObj, DDWORD flags)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	pObject->SetFlags(flags);
+}
+
+DDWORD simpl_GetObjectFlags(HLOCALOBJ hObj)
+{
+	if (!hObj)
+	{
+		return 0;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	return pObject->GetFlags();
+}
+
+void simpl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	*pPos = pObject->GetPosition();
+}
+
+void simpl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObject = (GameObject*)hObj;
+	pObject->SetPosition(*pPos);
+}
+
+// A combination of the CIF_ flags above.
+void simpl_SetClientInfoFlags(HCLIENT hClient, DDWORD dwClientFlags)
+{
+	if (!hClient)
+	{
+		return;
+	}
+
+	ClientInfo* pClient = (ClientInfo*)hClient;
+	pClient->SetFlags(dwClientFlags);
+}
+
+DDWORD simpl_GetClientInfoFlags(HCLIENT hClient)
+{
+	if (!hClient)
+	{
+		return 0;
+	}
+
+	ClientInfo* pClient = (ClientInfo*)hClient;
+	return pClient->GetFlags();
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -322,6 +428,17 @@ void LTELServer::InitFunctionPointers()
 	GetNextInactiveObject = simpl_GetNextInactiveObject;
 	RelinquishList = simpl_RelinquishList;
 	HandleToObject = simpl_HandleToObject;
+	FindNamedObjects = simpl_FindNamedObjects;
+	TeleportObject = simpl_TeleportObject;
+
+	// Get/Sets
+	GetObjectState = simpl_GetObjectState;
+	SetObjectState = simpl_SetObjectState;
+	GetObjectFlags = simpl_GetObjectFlags;
+	SetObjectFlags = simpl_SetObjectFlags;
+	GetObjectPos = simpl_GetObjectPos;
+	SetObjectPos = simpl_SetObjectPos;
+
 	GetPropGeneric = simpl_GetPropGeneric;
 	GetPropString = simpl_GetPropString;
 	GetPropVector = simpl_GetPropVector;
@@ -353,6 +470,8 @@ void LTELServer::InitFunctionPointers()
 	GetClientRefObject = simpl_GetClientRefObject;
 	GetClientUserData = simpl_GetClientUserData;
 	SetClientUserData = simpl_SetClientUserData;
+	GetClientInfoFlags = simpl_GetClientInfoFlags;
+	SetClientInfoFlags = simpl_SetClientInfoFlags;
 
 	// Game State functionality
 	GetGameInfo = simpl_GetGameInfo;

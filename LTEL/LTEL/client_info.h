@@ -16,6 +16,7 @@ public:
     // Setters
     void SetObject(LPBASECLASS pObject) { m_pObject = pObject; }
     void SetUserData(void* pData) { m_pUserData = pData; }
+    void SetFlags(uint32_t nFlags) { m_nFlags = nFlags; }
     
     // Getters
     bool IsHost() { return m_bIsHost; }

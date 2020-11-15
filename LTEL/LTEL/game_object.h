@@ -12,6 +12,8 @@ public:
 	GameObject(ClassDef* pClass, BaseClass* pBaseClass);
 	~GameObject();
 
+	void Teleport(DVector vNewPos);
+
 	void SetFromObjectCreateStruct(ObjectCreateStruct pStruct);
 
 	bool GetProperty(std::string sName, GenericProp* pProp);
@@ -19,11 +21,21 @@ public:
 	BaseClass* GetBaseClass() { return m_pBaseClass; }
 	ClassDef* GetClassDef() { return m_pClassDef; }
 
+	void SetState(int nState) { m_nState = nState; }
+	int GetState() { return m_nState; }
+
+	void SetFlags(int nFlag) { m_nFlags = nFlag; }
+	uint32_t GetFlags() { return m_nFlags; }
+
+	void SetPosition(DVector vPos) { m_vPos = vPos; }
+	DVector GetPosition() { return m_vPos; }
+
 	//std::unordered_map<std::string, GenericProp*> m_mProps;
 
 protected:
-	unsigned short m_nObjectType;
-	unsigned int   m_nFlags;
+	int m_nState;
+	uint16_t m_nObjectType;
+	uint32_t m_nFlags;
 	DVector m_vPos;
 	DVector m_vScale;
 	DRotation m_vRotation;
