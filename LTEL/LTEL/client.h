@@ -1,6 +1,7 @@
 #pragma once
 
-#include "LT1/AppHeaders/client_de.h"
+#include "LT1/AppHeaders/cpp_client_de.h"
+#include "LT1/AppHeaders/cpp_clientshell_de.h"
 #include <Node.hpp>
 #include <Windows.h>
 #include <string>
@@ -35,6 +36,7 @@ public:
 
 	bool SetStreamValue(godot::StreamPeerBuffer* pPacket, godot::Variant pValue);
 
+
 	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
 
 	std::string m_sGameDataDir;
@@ -49,6 +51,8 @@ public:
 	bool m_bIsConnected;
 
     ClientInfo* m_pClientInfo;
+
+    CClientShellDE* m_pClientShell;
 
 	//
 	// CSBASE

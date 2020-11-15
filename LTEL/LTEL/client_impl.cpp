@@ -459,11 +459,39 @@ DRESULT impl_GetServiceList(NetService*& pListHead)
 	return DE_OK;
 }
 
+LPCLIENTSHELLDE impl_GetClientShell()
+{
+	return (LPCLIENTSHELLDE)g_pLTELClient->m_pClientShell;
+}
+
+DRESULT impl_ClearInput()
+{
+	return DE_OK;
+}
+
+void impl_SetGlobalLightScale(DVector* pScale)
+{
+	return;
+}
+
+void impl_DestroyAllSongs()
+{
+	return;
+}
+
+DBOOL impl_PlayList(char* szPlayList, char* szTransition, DBOOL bLoop, DDWORD dwBoundaryFlags)
+{
+	godot::Godot::print("[impl_PlayList] Game wants to play {0} with transition {1}", szPlayList, szTransition);
+	return DE_OK;
+}
+
 //
 // Setup our struct!
 //
 void LTELClient::InitFunctionPointers()
 {
+	GetClientShell = impl_GetClientShell;
+
 	GetConsoleVar = impl_GetConsoleVar;
 	RunConsoleString = impl_RunConsoleString;
 	GetVarValueFloat = impl_GetVarValueFloat;
@@ -486,6 +514,7 @@ void LTELClient::InitFunctionPointers()
 
 	// World functionality
 	GetWorldInfoString = impl_GetWorldInfoString;
+	SetGlobalLightScale = impl_SetGlobalLightScale;
 
 	// Game state functionality
 	StartGame = impl_StartGame;
@@ -505,6 +534,8 @@ void LTELClient::InitFunctionPointers()
 	ResumeMusic = impl_ResumeMusic;
 	PlaySound = impl_PlaySound;
 	KillSound = impl_KillSound;
+	DestroyAllSongs = impl_DestroyAllSongs;
+	PlayList = impl_PlayList;
 
 	// Input functionality
 	GetDeviceName = impl_GetDeviceName;
@@ -513,6 +544,7 @@ void LTELClient::InitFunctionPointers()
 	GetDeviceBindings = impl_GetDeviceBindings;
 	FreeDeviceBindings = impl_FreeDeviceBindings;
 	SetInputState = impl_SetInputState;
+	ClearInput = impl_ClearInput;
 
 	// Network functionality
 	IsLobbyLaunched = impl_IsLobbyLaunched;

@@ -22,7 +22,7 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	m_fFrametime = 0.1f;
 	m_pServerShell = nullptr;
 	m_pGameInfo = nullptr;
-
+	m_nFlags = 0;
 	m_nClassDefCount = 0;
 	m_pClassDefList = nullptr;
 
@@ -130,6 +130,18 @@ void LTELServer::StartWorld(std::string sWorldName)
 	m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
 
 	// Do stuff here...
+
+	for (auto pClient : m_pClientList)
+	{
+		if (!pClient->GetClientShell())
+		{
+			continue;
+		}
+
+		CClientShellDE* pClientShell = (CClientShellDE*)pClient->GetClientShell();
+
+		pClientShell->OnEnterWorld();
+	}
 
 	m_pServerShell->PostStartWorld();
 

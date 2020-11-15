@@ -92,6 +92,35 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 	return (HLOCALOBJ)pObject;
 }
 
+DRESULT impl_DeleteObject(HLOCALOBJ hObj)
+{
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	LTELObject* pObject = (LTELObject*)hObj;
+
+	godot::Spatial* pNode = pObject->pData.pNode;
+
+	if (!pNode)
+	{
+		return DE_ERROR;
+	}
+
+	pNode->queue_free();
+
+	if (pObject->nObjectType == OT_POLYGRID)
+	{
+		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->pExtraData;
+		free(pExtraData->pColorTable);
+	}
+
+	delete pObject;
+	pObject = nullptr;
+	return DE_OK;
+}
+
 void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 {
 	auto pObj = HObject2LTELObject(hObj);
@@ -530,6 +559,7 @@ void LTELClient::InitObjectImpl()
 {
 	// Object functionality
 	CreateObject = impl_CreateObject;
+	DeleteObject = impl_DeleteObject;
 	GetObjectColor = impl_GetObjectColor;
 	SetObjectColor = impl_SetObjectColor;
 	GetObjectPos = impl_GetObjectPos;

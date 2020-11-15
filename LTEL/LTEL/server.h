@@ -30,6 +30,8 @@ public:
 
     CServerShellDE* m_pServerShell;
 
+    uint32_t m_nFlags;
+
     
     int m_nClassDefCount;
     ClassDef** m_pClassDefList;

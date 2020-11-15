@@ -146,7 +146,6 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	return true;
 }
 
-
 godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 {
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();

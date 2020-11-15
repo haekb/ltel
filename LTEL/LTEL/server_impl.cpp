@@ -419,6 +419,16 @@ DDWORD simpl_GetClientInfoFlags(HCLIENT hClient)
 	return pClient->GetFlags();
 }
 
+DDWORD simpl_GetServerFlags()
+{
+	return g_pLTELServer->m_nFlags;
+}
+DDWORD simpl_SetServerFlags(DDWORD flags)
+{
+	g_pLTELServer->m_nFlags = flags;
+	return flags;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -462,6 +472,10 @@ void LTELServer::InitFunctionPointers()
 
 	// Network functionality
 	
+	// Server functionality
+	GetServerFlags = simpl_GetServerFlags;
+	SetServerFlags = simpl_SetServerFlags;
+
 	// Client functionality
 	GetClientName = simpl_GetClientName;
 	GetNextClientRef = simpl_GetNextClientRef;
@@ -478,6 +492,7 @@ void LTELServer::InitFunctionPointers()
 	LoadWorld = simpl_LoadWorld;
 	RunWorld = simpl_RunWorld;
 	GetClass = simpl_GetClass;
+
 
 
 }

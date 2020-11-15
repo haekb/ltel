@@ -335,7 +335,10 @@ public:
 
         // We'll want to run CreateClientShellFn, to get the game's GameClientShell instance
         CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
-        m_pGameClientShell = (CClientShellDE*)pCreate(g_pClient);
+        auto pClient = pCreate(g_pClient);
+        m_pGameClientShell = (CClientShellDE*)pClient;
+
+        g_pClient->m_pClientShell = m_pGameClientShell;
 
         if (!m_pGameClientShell)
         {
@@ -346,6 +349,7 @@ public:
         DGUID AppGUID = { 0 };
 
         g_pClient->m_sGameDataDir = sGameDataDir.alloc_c_string();
+        
 
         // Kick off OnEngineInit
         try {
@@ -380,6 +384,17 @@ public:
         // This is for GetFrameTime() impl
         g_pClient->m_fFrametime = fDelta;
 
+        try {
+            if (g_pClient->m_pLTELServer && g_pClient->m_pLTELServer->m_pServerShell)
+            {
+                g_pClient->m_pLTELServer->m_pServerShell->Update(fDelta);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            Godot::print("[game_update] Failed with server exception: {0}", e.what());
+        }
+
         // Run our update functions
         try {
             m_pGameClientShell->PreUpdate();
@@ -390,7 +405,7 @@ public:
         }
         catch (const std::exception& e)
         {
-            Godot::print("[game_update] Failed with exception: {0}", e.what());
+            Godot::print("[game_update] Failed with client exception: {0}", e.what());
         }
 
     }
