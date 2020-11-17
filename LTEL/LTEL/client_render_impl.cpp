@@ -200,6 +200,14 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 		return;
 	}
 
+	if (!pSurface->pTextureRect)
+	{
+		godot::Godot::print("Failed to GetSurfaceDims, pTextureRect nullptr passed as hSurf!");
+		*pWidth = 0;
+		*pHeight = 0;
+		return;
+	}
+
 	// TextureRect
 	auto rTexture = pSurface->pTextureRect->get_texture();
 

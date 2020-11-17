@@ -444,7 +444,7 @@ DRESULT impl_StartGame(StartGameRequest* pRequest)
 
 HLOCALOBJ impl_GetClientObject()
 {
-	return nullptr;
+	return (HLOCALOBJ)g_pLTELClient->m_pClientInfo->GetObj();
 }
 
 DRESULT impl_InitNetworking(char* pDriver, DDWORD dwFlags)

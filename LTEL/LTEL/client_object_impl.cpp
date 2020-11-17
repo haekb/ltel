@@ -553,6 +553,39 @@ void impl_SetObjectColor(HLOCALOBJ hObject, float r, float g, float b, float a)
 // Not right now!
 }
 
+DBOOL impl_GetModelLooping(HLOCALOBJ hObj)
+{
+	return DTRUE;
+}
+void impl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
+{
+	return;
+}
+
+DDWORD impl_GetObjectClientFlags(HLOCALOBJ hObj)
+{
+	return 0;
+}
+
+void impl_SetObjectClientFlags(HLOCALOBJ hObj, DDWORD flags)
+{
+	return;
+}
+
+// Returns the animation the model is currently on.  (DDWORD)-1 if none.
+DDWORD impl_GetModelAnimation(HLOCALOBJ hObj)
+{
+	return -1;
+}
+void impl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
+{
+	return;
+}
+
+HMODELANIM impl_GetAnimIndex(HOBJECT hObj, char* pAnimName)
+{
+	return -1;
+}
 
 // This must be last!
 void LTELClient::InitObjectImpl()
@@ -572,6 +605,15 @@ void LTELClient::InitObjectImpl()
 	GetObjectFlags = impl_GetObjectFlags;
 	GetObjectUserFlags = impl_GetObjectUserFlags;
 	SetObjectUserFlags = impl_SetObjectUserFlags;
+	GetObjectClientFlags = impl_GetObjectClientFlags;
+	SetObjectClientFlags = impl_SetObjectClientFlags;
+
+	// Animation
+	GetModelLooping = impl_GetModelLooping;
+	SetModelLooping = impl_SetModelLooping;
+	GetModelAnimation = impl_GetModelAnimation;
+	SetModelAnimation = impl_SetModelAnimation;
+	GetAnimIndex = impl_GetAnimIndex;
 
 	// Polygrid
 	SetupPolyGrid = impl_SetupPolyGrid;

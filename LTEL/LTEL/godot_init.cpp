@@ -384,16 +384,7 @@ public:
         // This is for GetFrameTime() impl
         g_pClient->m_fFrametime = fDelta;
 
-        try {
-            if (g_pClient->m_pLTELServer && g_pClient->m_pLTELServer->m_pServerShell)
-            {
-                g_pClient->m_pLTELServer->m_pServerShell->Update(fDelta);
-            }
-        }
-        catch (const std::exception& e)
-        {
-            Godot::print("[game_update] Failed with server exception: {0}", e.what());
-        }
+
 
         // Run our update functions
         try {
@@ -406,6 +397,20 @@ public:
         catch (const std::exception& e)
         {
             Godot::print("[game_update] Failed with client exception: {0}", e.what());
+        }
+
+        try {
+            if (g_pClient->m_pLTELServer && g_pClient->m_pLTELServer->m_pServerShell)
+            {
+                // Object update
+                g_pClient->m_pLTELServer->Update(fDelta);
+
+                g_pClient->m_pLTELServer->m_pServerShell->Update(fDelta);
+            }
+        }
+        catch (const std::exception& e)
+        {
+            Godot::print("[game_update] Failed with server exception: {0}", e.what());
         }
 
     }

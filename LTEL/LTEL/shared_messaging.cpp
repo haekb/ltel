@@ -74,11 +74,16 @@ DRESULT shared_WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal)
 DRESULT shared_WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
 {
 	LTELString* pString = (LTELString*)hString;
+
+	if (!pString)
+	{
+		return DE_OK;
+	}
+
 	godot::String pGDString = pString->sData.c_str();
 	(GD_STREAM_CAST(hMessage))->put_string(pGDString);
-	return DE_OK;
 
-	return shared_WriteToMessageString(hMessage, (char*)pString->sData.c_str());
+	return DE_OK;
 }
 
 DRESULT shared_WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE hDataMessage)
@@ -86,6 +91,10 @@ DRESULT shared_WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE
 	godot::StreamPeerBuffer* pDestStream = GD_STREAM_CAST(hMessage);
 	godot::StreamPeerBuffer* pSrcStream = GD_STREAM_CAST(hDataMessage);
 
+	if (!pSrcStream)
+	{
+		return DE_OK;
+	}
 
 	// Put the size in first
 	pDestStream->put_32(pSrcStream->get_size());
@@ -107,6 +116,11 @@ DRESULT shared_WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 {
 	LTELObject* pObject = (LTELObject*)hObj;
 	auto pStream = GD_STREAM_CAST(hMessage);
+
+	if (!pObject)
+	{
+		return DE_OK;
+	}
 
 	shared_SetStreamValue(pStream, pObject->nObjectType);
 	shared_SetStreamValue(pStream, pObject->nObjectFlags);

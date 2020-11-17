@@ -26,6 +26,7 @@ struct LTELObject {
 		nObjectType = OT_NORMAL;
 		nObjectFlags = 0;
 		nUserFlags = 0;
+		pServerObject = nullptr;
 	};
 
 	// OT_*
@@ -35,6 +36,7 @@ struct LTELObject {
 	int nUserFlags;
 
 	void* pExtraData;
+	void* pServerObject;
 
 	// Camera:
 	union {

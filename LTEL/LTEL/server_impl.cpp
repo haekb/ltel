@@ -202,28 +202,36 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 
 	LPBASECLASS pBaseClass = new BaseClass(pStruct->m_ObjectType);
 
+
+
+	
+
 	GameObject* pObject = new GameObject(pClass, pBaseClass);
 
 	pClass->m_ConstructFn(pBaseClass);
 	pClass->m_EngineMessageFn = pBaseClass->_EngineMsgFn;
 	pClass->m_ObjectMessageFn = pBaseClass->_ObjectMsgFn;
 
+	auto nResult = pClass->m_EngineMessageFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
+
 	pObject->SetFromObjectCreateStruct(*pStruct);
-	
+
 	g_pLTELServer->m_pCurrentObject = pObject;
-
-
-	
-	auto nResult = pClass->m_EngineMessageFn(pBaseClass, MID_PRECREATE, pStruct, 1.0f);
-
-	// I'm not sure when we lose scope, but it's not here!
-	//g_pLTELServer->m_pCurrentObject = nullptr;
 
 	// 1 is ok?
 	if (nResult == 1)
 	{
+		auto pClient = g_pLTELServer->m_pClientList.end();
+
+		for (auto pClient : g_pLTELServer->m_pClientList)
+		{
+			pClient->GetClient()->CreateObject(pStruct);
+		}
+
 		// We can safely add this to our object list!
 		g_pLTELServer->m_pObjectList.push_back(pObject);
+
+
 
 		return pBaseClass;
 	}
@@ -429,6 +437,51 @@ DDWORD simpl_SetServerFlags(DDWORD flags)
 	return flags;
 }
 
+void simpl_SetNextUpdate(HOBJECT hObj, DFLOAT nextUpdate)
+{
+	BaseClass* pClass = (BaseClass*)hObj;
+
+	// FIXME: This sucks! IDs maybe?
+	for (auto pObj : g_pLTELServer->m_pObjectList)
+	{
+		if (pObj->GetBaseClass() != pClass)
+		{
+			continue;
+		}
+
+		pObj->SetNextUpdate(nextUpdate);
+		break;
+	}
+}
+
+float simpl_GetTime()
+{
+	return g_pLTELServer->m_fTime;
+}
+float simpl_GetFrameTime()
+{
+	return g_pLTELServer->m_fFrametime;
+}
+
+
+HCONVAR simpl_GetGameConVar(char* pName)
+{
+	godot::Godot::print("[simpl_GetGameConVar] Wants to get command: {0}", pName);
+	return nullptr;
+}
+
+
+float simpl_GetVarValueFloat(HCONVAR hVar)
+{
+	return 0.0f;
+}
+
+char* simpl_GetVarValueString(HCONVAR hVar)
+{
+	return nullptr;
+}
+
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -440,6 +493,7 @@ void LTELServer::InitFunctionPointers()
 	HandleToObject = simpl_HandleToObject;
 	FindNamedObjects = simpl_FindNamedObjects;
 	TeleportObject = simpl_TeleportObject;
+	SetNextUpdate = simpl_SetNextUpdate;
 
 	// Get/Sets
 	GetObjectState = simpl_GetObjectState;
@@ -463,6 +517,11 @@ void LTELServer::InitFunctionPointers()
 	// System/IO functionality
 	BPrint = simpl_BPrint;
 	CPrint = simpl_CPrint;
+	GetTime = simpl_GetTime;
+	GetFrameTime = simpl_GetFrameTime;
+	GetGameConVar = simpl_GetGameConVar;
+	GetVarValueFloat = simpl_GetVarValueFloat;
+	GetVarValueString = simpl_GetVarValueString;
 	
 	// String functionality
 	RunGameConString = simpl_RunGameConString;

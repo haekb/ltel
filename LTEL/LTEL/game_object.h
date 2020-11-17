@@ -30,6 +30,10 @@ public:
 	void SetPosition(DVector vPos) { m_vPos = vPos; }
 	DVector GetPosition() { return m_vPos; }
 
+	void SetNextUpdate(float fVal) { m_fNextUpdate = fVal; }
+	float GetNextUpdate() { return m_fNextUpdate; }
+
+
 	//std::unordered_map<std::string, GenericProp*> m_mProps;
 
 protected:

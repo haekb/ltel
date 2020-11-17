@@ -127,10 +127,17 @@ void LTELServer::StartWorld(std::string sWorldName)
 		pFile->close();
 	}
 
-	m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
+	auto pClass = m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
+
+	// Setup the client object
+	m_pClientList[0]->SetObj(pClass);
+
+	//auto pClientController = (LTELClient*)m_pClientList[0]->GetClient();
+	//pClientController->m_pClientInfo->SetObject(pClass);
 
 	// Do stuff here...
 
+	// This is probably wrong
 	for (auto pClient : m_pClientList)
 	{
 		if (!pClient->GetClientShell())
@@ -145,7 +152,23 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 	m_pServerShell->PostStartWorld();
 
+#if 0
+	// Fake an auto-save!
+	g_pLTELServer->CPrint((char*)"Faking an auto save!");
+	auto pMessage = StartHMessageWrite();
+	for (auto pObj : m_pObjectList)
+	{
+		auto pClass = pObj->GetBaseClass();
+		if (!pClass)
+		{
+			continue;
+		}
 
+		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_SAVEOBJECT, pMessage, 0.0f);
+	}
+	EndHMessageWrite(pMessage);
+	g_pLTELServer->CPrint((char*)"Fake auto save done!");
+#endif
 }
 
 bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags)
@@ -164,6 +187,35 @@ bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::Stream
 
 	// Ok clean it up!
 	pStream->free();
+}
+
+void LTELServer::Update(DFLOAT timeElapsed)
+{
+	m_fFrametime = timeElapsed;
+	m_fTime += timeElapsed;
+
+	for (auto pObj : m_pObjectList)
+	{
+		float fNextUpdate = pObj->GetNextUpdate();
+		fNextUpdate -= timeElapsed;
+		
+		if (fNextUpdate > 0.001f)
+		{
+			pObj->SetNextUpdate(fNextUpdate);
+			continue;
+		}
+
+		pObj->SetNextUpdate(0.0f);
+
+		auto pClass = pObj->GetBaseClass();
+		if (!pClass)
+		{
+			continue;
+		}
+
+		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_UPDATE, nullptr, timeElapsed);
+		//(pClass, (HOBJECT)m_pClientList[0], MID_UPDATE, nullptr);
+	}
 }
 
 
@@ -212,7 +264,7 @@ DRESULT LTELServer::EndMessage(HMESSAGEWRITE hMessage)
 
 DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 {
-	if (!m_pClientList.size() == 0)
+	if (m_pClientList.size() == 0)
 	{
 		// Clean up...
 		auto pStream = (godot::StreamPeerBuffer*)hMessage;
@@ -223,10 +275,13 @@ DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 
 	godot::StreamPeerBuffer* pStream = (godot::StreamPeerBuffer*)hMessage;
 
-	DBYTE pMessageId = pStream->get_8();
 	pStream->seek(0);
+	DBYTE pMessageId = pStream->get_8();
+	//pStream->seek(0);
 
-	m_pClientList[0]->GetClientShell()->OnMessage(m_pClientList[0]->GetClientShell(), pMessageId, hMessage);
+	auto pClientShell = (CClientShellDE*)m_pClientList[0]->GetClientShell();
+
+	pClientShell->OnMessage(pMessageId, hMessage);
 
 	// Ok clean it up!
 	pStream->free();

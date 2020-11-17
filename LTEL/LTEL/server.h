@@ -24,6 +24,7 @@ public:
     HINSTANCE m_pSRes;
     godot::Node* m_pGodotLink;
     float m_fFrametime;
+    float m_fTime;
 
     std::string m_sGameDataDir;
     void* m_pGameInfo;
@@ -51,6 +52,9 @@ public:
 
     bool ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags);
 
+    void Update(DFLOAT timeElapsed);
+
+    
 
     //
     // ServerDE

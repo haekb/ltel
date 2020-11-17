@@ -247,6 +247,7 @@ DRESULT LTELClient::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 		return DE_SERVERERROR;
 	}
 
+
 	m_pLTELServer->ReceiveMessageFromClient(m_pClientInfo, (godot::StreamPeerBuffer*)hMessage, flags);
 
 	return DE_OK;
