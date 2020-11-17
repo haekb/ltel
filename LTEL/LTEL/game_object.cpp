@@ -6,14 +6,12 @@
 
 GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 {
-	//m_pClassDef = new ClassDef();
-	//memcpy(m_pClassDef, pClass, sizeof(ClassDef));
-
 	m_pClassDef = pClass;
 	m_pBaseClass = pBaseClass;
 
 	m_nObjectType = OT_NORMAL;
 	m_nFlags = 0;
+	m_nUserFlags = 0;
 	m_vPos = DVector();
 	m_vScale = DVector();
 	m_vRotation = DRotation();
@@ -26,6 +24,10 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_fDeactivationTime = 0.0f;
 
 	m_nState = 0;
+
+	m_pData.pNode = nullptr;
+	m_pExtraData = nullptr;
+	m_pServerObject = nullptr; // Needed??
 }
 
 GameObject::~GameObject()

@@ -114,7 +114,7 @@ DRESULT shared_WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messag
 
 DRESULT shared_WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 {
-	LTELObject* pObject = (LTELObject*)hObj;
+	GameObject* pObject = (GameObject*)hObj;
 	auto pStream = GD_STREAM_CAST(hMessage);
 
 	if (!pObject)
@@ -122,17 +122,17 @@ DRESULT shared_WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 		return DE_OK;
 	}
 
-	shared_SetStreamValue(pStream, pObject->nObjectType);
-	shared_SetStreamValue(pStream, pObject->nObjectFlags);
-	shared_SetStreamValue(pStream, pObject->nUserFlags);
+	shared_SetStreamValue(pStream, pObject->GetType());
+	shared_SetStreamValue(pStream, pObject->GetFlags());
+	shared_SetStreamValue(pStream, pObject->GetUserFlags());
 
 	// Serialize the node!
-	switch (pObject->nObjectType)
+	switch (pObject->GetType())
 	{
 	case OT_POLYGRID:
 	{
-		shared_SetStreamValue(pStream, pObject->pData.pPolyGrid);
-		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->pExtraData;
+		shared_SetStreamValue(pStream, pObject->GetPolyGrid());
+		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->GetExtraData();
 
 		// Extra data!
 		shared_SetStreamValue(pStream, pExtraData->bLocked);
@@ -146,11 +146,11 @@ DRESULT shared_WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 	}
 		break;
 	case OT_CAMERA:
-		shared_SetStreamValue(pStream, pObject->pData.pCamera);
+		shared_SetStreamValue(pStream, pObject->GetCamera());
 
 		break;
 	default:
-		shared_SetStreamValue(pStream, pObject->pData.pNode);
+		shared_SetStreamValue(pStream, pObject->GetNode());
 
 	}
 

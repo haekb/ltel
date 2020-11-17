@@ -8,6 +8,9 @@
 #include <Texture.hpp>
 #include <ImageTexture.hpp>
 
+#include "client_info.h"
+#include "game_object.h"
+
 // Defs
 #define GDCAST(casting_to, object) godot::Object::cast_to<casting_to>(object);
 
@@ -17,34 +20,6 @@ struct LTELString {
 	}
 
 	std::string sData;
-};
-
-struct LTELObject {
-	LTELObject() {
-		pData.pNode = nullptr;
-		pExtraData = nullptr;
-		nObjectType = OT_NORMAL;
-		nObjectFlags = 0;
-		nUserFlags = 0;
-		pServerObject = nullptr;
-	};
-
-	// OT_*
-	int nObjectType;
-
-	int nObjectFlags;
-	int nUserFlags;
-
-	void* pExtraData;
-	void* pServerObject;
-
-	// Camera:
-	union {
-		godot::Spatial* pNode; // Normies only
-		godot::Camera* pCamera;
-		godot::MeshInstance* pPolyGrid;
-
-	} pData;
 };
 
 // Extra Data
@@ -88,5 +63,5 @@ godot::Color LT2GodotColor(HDECOLOR hColor);
 
 godot::Quat LT2GodotQuat(DRotation* pDRotation);
 
-LTELObject* HObject2LTELObject(HOBJECT hObj);
+GameObject* HObject2GameObject(HOBJECT hObj);
 

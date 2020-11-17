@@ -28,7 +28,7 @@
 #define CANVAS_NODE "/root/Scene/Canvas"
 
 extern LTELClient* g_pLTELClient;
-extern std::vector<LTELObject*> g_pPolygridsToUpdate;
+extern std::vector<GameObject*> g_pPolygridsToUpdate;
 
 struct LTELSurface {
 
@@ -849,7 +849,7 @@ DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 			continue;
 		}
 
-		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->GetExtraData();
 		auto pDetailImage = pExtraData->pColormap->get_data();
 		auto pDepthImage = pExtraData->pHeightmap->get_data();
 		auto pData = pExtraData->pData;

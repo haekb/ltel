@@ -23,14 +23,15 @@
 
 extern LTELClient* g_pLTELClient;
 
-std::vector<LTELObject*> g_pPolygridsToUpdate;
+std::vector<GameObject*> g_pPolygridsToUpdate;
 
 
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
-	LTELObject* pObject = new LTELObject();
-	pObject->nObjectType = pStruct->m_ObjectType;
-	pObject->nObjectFlags = pStruct->m_Flags;
+	GameObject* pObject = new GameObject(nullptr, nullptr);
+	//pObject->SetType(pStruct->m_ObjectType);
+	//pObject->nObjectFlags pStruct->m_Flags;
+	pObject->SetFromObjectCreateStruct(*pStruct);
 	
 
 	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
@@ -38,7 +39,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 	switch (pStruct->m_ObjectType)
 	{
 	case OT_CAMERA:
-		pObject->pData.pCamera = godot::Object::cast_to<godot::Camera>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera"));
+		pObject->SetCamera(godot::Object::cast_to<godot::Camera>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera")));
 		break;
 	case OT_NORMAL:
 	{
@@ -54,7 +55,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pNode->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
 		pNode->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
-		pObject->pData.pNode = pNode;
+		pObject->SetNode(pNode);
 	}
 		break;
 	case OT_POLYGRID:
@@ -81,7 +82,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pMeshInstance->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
 		pMeshInstance->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
-		pObject->pData.pPolyGrid = pMeshInstance;
+		pObject->SetPolyGrid(pMeshInstance);
 	}
 		break;
 	default:
@@ -99,9 +100,9 @@ DRESULT impl_DeleteObject(HLOCALOBJ hObj)
 		return DE_ERROR;
 	}
 
-	LTELObject* pObject = (LTELObject*)hObj;
+	GameObject* pObject = (GameObject*)hObj;
 
-	godot::Spatial* pNode = pObject->pData.pNode;
+	godot::Spatial* pNode = pObject->GetNode();
 
 	if (!pNode)
 	{
@@ -110,9 +111,9 @@ DRESULT impl_DeleteObject(HLOCALOBJ hObj)
 
 	pNode->queue_free();
 
-	if (pObject->nObjectType == OT_POLYGRID)
+	if (pObject->IsType(OT_POLYGRID))
 	{
-		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->pExtraData;
+		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->GetExtraData();
 		free(pExtraData->pColorTable);
 	}
 
@@ -123,14 +124,14 @@ DRESULT impl_DeleteObject(HLOCALOBJ hObj)
 
 void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return;
 	}
 
-	godot::Spatial* pNode = pObj->pData.pNode;
+	godot::Spatial* pNode = pObj->GetNode();
 
 	if (!pNode)
 	{
@@ -146,14 +147,14 @@ void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 
 void impl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return;
 	}
 
-	godot::Spatial* pNode = pObj->pData.pNode;
+	godot::Spatial* pNode = pObj->GetNode();
 
 	if (!pNode)
 	{
@@ -165,14 +166,14 @@ void impl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 
 DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return DE_ERROR;
 	}
 
-	godot::Spatial* pNode = pObj->pData.pNode;
+	godot::Spatial* pNode = pObj->GetNode();
 
 	if (!pNode)
 	{
@@ -185,14 +186,14 @@ DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
 
 void impl_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return;
 	}
 
-	godot::Spatial* pNode = pObj->pData.pNode;
+	godot::Spatial* pNode = pObj->GetNode();
 
 	if (!pNode)
 	{
@@ -225,51 +226,50 @@ void impl_EulerRotateX(DRotation* pRotation, float amount)
 
 DDWORD impl_GetObjectFlags(HLOCALOBJ hObj)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return 0;
 	}
 
-	return pObj->nObjectFlags;
+	return pObj->GetFlags();
 }
 
 void impl_SetObjectFlags(HLOCALOBJ hObj, DDWORD flags)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return;
 	}
 
-	
-	pObj->nObjectFlags = flags;
+	pObj->SetFlags(flags);
 }
 
 DRESULT impl_GetObjectUserFlags(HLOCALOBJ hObj, DDWORD* pFlags)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return DE_ERROR;
 	}
 
-	*pFlags = pObj->nUserFlags;
+	*pFlags = pObj->GetUserFlags();
 }
 
 DRESULT impl_SetObjectUserFlags(HLOCALOBJ hObj, DDWORD flags)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return DE_ERROR;
 	}
 
-	godot::Spatial* pNode = pObj->pData.pNode;
+	godot::Spatial* pNode = pObj->GetNode();
 
 	if (!pNode)
 	{
@@ -278,7 +278,7 @@ DRESULT impl_SetObjectUserFlags(HLOCALOBJ hObj, DDWORD flags)
 
 	// We only support this right now!
 	pNode->set_visible(flags & USRFLG_VISIBLE);
-	pObj->nUserFlags = flags;
+	pObj->SetUserFlags(flags);
 	return DE_OK;
 }
 
@@ -303,14 +303,14 @@ void impl_SetCameraRect(HLOCALOBJ hObj, DBOOL bFullscreen,
 
 void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
 		return;
 	}
 
-	godot::Camera* pCamera = pObj->pData.pCamera;
+	godot::Camera* pCamera = pObj->GetCamera();
 
 	if (!pCamera)
 	{
@@ -329,7 +329,7 @@ void impl_SetCameraFOV(HLOCALOBJ hObj, float fovX, float fovY)
 
 void impl_GetCameraFOV(HLOCALOBJ hObj, float* pX, float* pY)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
@@ -338,7 +338,7 @@ void impl_GetCameraFOV(HLOCALOBJ hObj, float* pX, float* pY)
 		return;
 	}
 
-	godot::Camera* pCamera = pObj->pData.pCamera;
+	godot::Camera* pCamera = pObj->GetCamera();
 
 	if (!pCamera)
 	{
@@ -355,7 +355,7 @@ void impl_GetCameraFOV(HLOCALOBJ hObj, float* pX, float* pY)
 
 DBOOL impl_SetupPolyGrid(HLOCALOBJ hObj, DDWORD width, DDWORD height, DBOOL bHalfTrianges)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
@@ -363,21 +363,21 @@ DBOOL impl_SetupPolyGrid(HLOCALOBJ hObj, DDWORD width, DDWORD height, DBOOL bHal
 	}
 
 	auto pExtraData = new LTELPolyGrid(width, height);
-	pObj->pExtraData = pExtraData;
+	pObj->SetExtraData(pExtraData);
 
 	return DE_OK;
 }
 
 DRESULT impl_FitPolyGrid(HLOCALOBJ hObj, DVector* pMin, DVector* pMax, DVector* pPos, DVector* pScale)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
-	if (!pObj || !pObj->pExtraData)
+	if (!pObj || !pObj->GetExtraData())
 	{
 		return DE_ERROR;
 	}
 
-	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->GetExtraData();
 
 	DVector pNewPos = (*pMax - *pMin) + *pMin;
 
@@ -394,7 +394,7 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	// This will take in a .spr
 	godot::Godot::print("[impl_SetPolyGridTexture] Set texture to {0}", pFilename);
 
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
 	if (!pObj)
 	{
@@ -414,7 +414,7 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();
 	
 	godot::Ref<godot::SpatialMaterial> pMat = godot::SpatialMaterial::_new();
-	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->GetExtraData();
 
 	// Albedo
 	godot::Ref<godot::Texture> pTexture = pResourceLoader->load(sResourcePath.c_str());
@@ -466,7 +466,7 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 	//pMat->set_flag(godot::SpatialMaterial::FLAG_UNSHADED, true);
 
 	// Set the material to the mesh
-	pObj->pData.pPolyGrid->set_surface_material(0, pMat);
+	pObj->GetPolyGrid()->set_surface_material(0, pMat);
 	
 	return DE_OK;
 }
@@ -489,14 +489,14 @@ DRESULT impl_SetPolyGridTextureInfo(HLOCALOBJ hObj, float xPan, float yPan, floa
 
 DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWORD* pHeight, PGColor** pColorTable)
 {
-	auto pObj = HObject2LTELObject(hObj);
+	auto pObj = HObject2GameObject(hObj);
 
-	if (!pObj || !pObj->pExtraData)
+	if (!pObj || !pObj->GetExtraData())
 	{
 		return DE_ERROR;
 	}
 
-	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->pExtraData;
+	LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObj->GetExtraData();
 
 	// We want to get the image data, and copy it to our bare char* pointer. 
 	// This allows the game code to modify it
@@ -520,14 +520,14 @@ DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWO
 // RGB 0-1.
 void impl_GetObjectColor(HLOCALOBJ hObject, float* r, float* g, float* b, float* a)
 {
-	auto pObj = HObject2LTELObject(hObject);
+	auto pObj = HObject2GameObject(hObject);
 
 	if (!pObj)
 	{
 		return;
 	}
 
-	godot::Spatial* pNode = pObj->pData.pNode;
+	godot::Spatial* pNode = pObj->GetNode();
 
 	if (!pNode)
 	{
@@ -542,7 +542,7 @@ void impl_GetObjectColor(HLOCALOBJ hObject, float* r, float* g, float* b, float*
 
 void impl_SetObjectColor(HLOCALOBJ hObject, float r, float g, float b, float a)
 {
-	auto pObj = HObject2LTELObject(hObject);
+	auto pObj = HObject2GameObject(hObject);
 
 	if (!pObj)
 	{

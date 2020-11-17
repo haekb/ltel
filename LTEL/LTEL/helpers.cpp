@@ -38,12 +38,12 @@ godot::Quat LT2GodotQuat(DRotation* pDRotation)
 	return godot::Quat(pDRotation->m_Vec.x, pDRotation->m_Vec.y, pDRotation->m_Vec.z, pDRotation->m_Spin);
 }
 
-LTELObject* HObject2LTELObject(HOBJECT hObj)
+GameObject* HObject2GameObject(HOBJECT hObj)
 {
 	if (!hObj)
 	{
 		return nullptr;
 	}
 
-	return (LTELObject*)hObj;
+	return (GameObject*)hObj;
 }
