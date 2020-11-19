@@ -1,12 +1,23 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Bootup.gd" type="Script" id=1]
 [ext_resource path="res://src/load_pcx.gd" type="Script" id=2]
 [ext_resource path="res://src/debug_framerate_counter.gd" type="Script" id=3]
+[ext_resource path="res://shogo/sidewalk1.png" type="Texture" id=4]
+[ext_resource path="res://Addons/ABCReader/ModelBuilder.gd" type="Script" id=5]
+[ext_resource path="res://Addons/DTXReader/TextureBuilder.gd" type="Script" id=6]
 
 [sub_resource type="PlaneMesh" id=1]
 subdivide_width = 16
 subdivide_depth = 16
+
+[sub_resource type="SpatialMaterial" id=2]
+albedo_texture = ExtResource( 4 )
+uv1_scale = Vector3( 20, 20, 20 )
+
+[sub_resource type="PlaneMesh" id=3]
+material = SubResource( 2 )
+size = Vector2( 20, 20 )
 
 [node name="Scene" type="Spatial"]
 script = ExtResource( 1 )
@@ -41,3 +52,17 @@ script = ExtResource( 2 )
 
 [node name="DebugFramerateCounter" type="Node" parent="Scripts"]
 script = ExtResource( 3 )
+
+[node name="LoadABC" type="Node" parent="Scripts"]
+script = ExtResource( 5 )
+
+[node name="LoadDTX" type="Node" parent="Scripts"]
+script = ExtResource( 6 )
+
+[node name="DemoScene" type="Spatial" parent="."]
+visible = false
+
+[node name="MeshInstance" type="MeshInstance" parent="DemoScene"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0 )
+mesh = SubResource( 3 )
+material/0 = null

@@ -16,6 +16,9 @@
 #include <ResourceLoader.hpp>
 #include <JSON.hpp>
 #include <JSONParseResult.hpp>
+#include <PackedScene.hpp>
+#include <Animation.hpp>
+#include <AnimationPlayer.hpp>
 
 #define USRFLG_VISIBLE					(1<<0)
 #define USRFLG_NIGHT_INFRARED			(1<<1)
@@ -83,6 +86,72 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pMeshInstance->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
 		pObject->SetPolyGrid(pMeshInstance);
+	}
+		break;
+	case OT_MODEL:
+	{
+		std::string sABC = g_pLTELClient->m_sGameDataDir + pStruct->m_Filename;
+		std::string sDTX = g_pLTELClient->m_sGameDataDir + pStruct->m_SkinName;
+
+		auto pScene = g_pLTELClient->LoadABC(sABC.c_str());
+		
+		if (pScene.is_null())
+		{
+			return nullptr;
+		}
+
+		godot::Spatial* pModel = GDCAST(godot::Spatial, pScene->instance());
+
+
+
+		if (!pModel)
+		{
+			return nullptr;
+		}
+
+		
+
+		auto pTexture = g_pLTELClient->LoadDTX(sDTX.c_str());
+
+		if (pTexture.is_null())
+		{
+			return nullptr;
+		}
+
+		p3DNode->add_child(pModel, false);
+
+		auto pSkeleton = pModel->get_child(0);
+		pSkeleton->set_name("Skeleton");
+
+		// Root -> Skeleton -> MeshInstance
+		// Messy, but get_node isn't working??
+		godot::MeshInstance* pPiece = GDCAST(godot::MeshInstance, pSkeleton->get_child(0));
+		
+		auto pMat = godot::SpatialMaterial::_new();
+		pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
+		pPiece->set_surface_material(0, pMat);
+
+		pModel->set_translation(LT2GodotVec3(pStruct->m_Pos));
+		pModel->set_rotation(LT2GodotQuat(&pStruct->m_Rotation).get_euler());
+
+		godot::AnimationPlayer* pAnimationPlayer = GDCAST(godot::AnimationPlayer, pModel->get_child(1));
+
+		if (pAnimationPlayer)
+		{
+			// NPCs
+			if (!pAnimationPlayer->get_animation("IK1").is_null())
+			{
+				pAnimationPlayer->get_animation("IK1")->set_loop(true);
+				pAnimationPlayer->play("IK1");
+			}
+			// Weapons
+			else if (!pAnimationPlayer->get_animation("Idle_1").is_null())
+			{
+				pAnimationPlayer->get_animation("Idle_1")->set_loop(true);
+				pAnimationPlayer->play("Idle_1");
+			}
+		}
+
 	}
 		break;
 	default:

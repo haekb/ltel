@@ -61,6 +61,7 @@ bool replace(std::string& str, const std::string& from, const std::string& to);
 
 godot::Color LT2GodotColor(HDECOLOR hColor);
 
+godot::Vector3 LT2GodotVec3(DVector pVector);
 godot::Quat LT2GodotQuat(DRotation* pDRotation);
 
 GameObject* HObject2GameObject(HOBJECT hObj);

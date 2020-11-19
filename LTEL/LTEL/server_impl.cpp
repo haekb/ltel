@@ -466,7 +466,7 @@ float simpl_GetFrameTime()
 
 HCONVAR simpl_GetGameConVar(char* pName)
 {
-	godot::Godot::print("[simpl_GetGameConVar] Wants to get command: {0}", pName);
+	//godot::Godot::print("[simpl_GetGameConVar] Wants to get command: {0}", pName);
 	return nullptr;
 }
 

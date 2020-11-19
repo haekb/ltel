@@ -9,6 +9,8 @@
 #include <Script.hpp>
 #include <ClassDB.hpp>
 #include <Reference.hpp>
+#include <PackedScene.hpp>
+#include <Texture.hpp>
 
 LTELClient* g_pLTELClient = nullptr;
 
@@ -158,6 +160,24 @@ godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 	godot::Ref<godot::ImageTexture> pTexture = pNode->call("load_image", sPath.c_str());
 
 	return pTexture;
+}
+
+godot::Ref<godot::ImageTexture> LTELClient::LoadDTX(std::string sPath)
+{
+	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadDTX");
+
+	godot::Ref<godot::ImageTexture> pTexture = pNode->call("build", sPath.c_str(), godot::Array());
+
+	return pTexture;
+}
+
+godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
+{
+	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadABC");
+
+	godot::Ref<godot::PackedScene> pScene = pNode->call("build", sPath.c_str(), godot::Array());
+	
+	return pScene;
 }
 
 

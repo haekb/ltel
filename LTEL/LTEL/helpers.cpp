@@ -33,6 +33,11 @@ godot::Color LT2GodotColor(HDECOLOR hColor)
 	return godot::Color(r, g, b, a);
 }
 
+godot::Vector3 LT2GodotVec3(DVector pVector)
+{
+	return godot::Vector3( pVector.x, pVector.y, pVector.z );
+}
+
 godot::Quat LT2GodotQuat(DRotation* pDRotation)
 {
 	return godot::Quat(pDRotation->m_Vec.x, pDRotation->m_Vec.y, pDRotation->m_Vec.z, pDRotation->m_Spin);
