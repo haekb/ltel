@@ -1,0 +1,6 @@
+[submodule "GodotProj/Addons/ABCReader"]
+	path = GodotProj/Addons/ABCReader
+	url = https://github.com/haekb/godot-abc-reader.git
+[submodule "GodotProj/Addons/DTXReader"]
+	path = GodotProj/Addons/DTXReader
+	url = https://github.com/haekb/godot-dtx-reader.git
