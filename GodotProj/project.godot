@@ -24,6 +24,10 @@ config/icon="res://icon.png"
 window/size/height=768
 window/size/resizable=false
 
+[editor_plugins]
+
+enabled=PoolStringArray( "ABCReader", "DTXReader" )
+
 [rendering]
 
 quality/filters/anisotropic_filter_level=16
