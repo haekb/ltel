@@ -59,9 +59,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		break;
 	case OT_POLYGRID:
 	{
-		//auto pMeshInstance = godot::MeshInstance::_new();
-		//auto pMesh = godot::Mesh::_new();
-
 		// Grab our in-scene prefab
 		auto pMeshInstance = godot::Object::cast_to<godot::MeshInstance>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Prefabs/PolyGrid"));
 
@@ -154,7 +151,10 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 	}
 		break;
 	default:
+		delete pObject;
+
 		godot::Godot::print("Trying to make some other object! aaaaaaaaaaaaa");
+		return nullptr;
 	}
 
 	pObject->SetFlags(pStruct->m_Flags);
@@ -466,7 +466,7 @@ DRESULT impl_SetPolyGridTexture(HLOCALOBJ hObj, char* pFilename)
 
 	auto pObj = HObject2GameObject(hObj);
 
-	if (!pObj)
+	if (!pObj || !pObj->GetPolyGrid())
 	{
 		return DE_ERROR;
 	}

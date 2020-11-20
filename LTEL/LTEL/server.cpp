@@ -5,6 +5,8 @@
 #include <StreamPeerBuffer.hpp>
 #include <File.hpp>
 
+#include "common.h"
+
 LTELServer* g_pLTELServer = nullptr;
 
 // Backwards compat
@@ -31,6 +33,8 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	m_bInWorld = false;
 
 	InitFunctionPointers();
+
+	m_pCommonLT = new LTELCommon();
 }
 
 LTELServer::~LTELServer()
@@ -126,8 +130,6 @@ bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::Stream
 
 	m_pServerShell->OnMessage((HCLIENT)pClientInfo, pMessageId, (HMESSAGEREAD)pStream);
 
-	// Ok clean it up!
-	pStream->free();
 	return true;
 }
 
@@ -267,7 +269,7 @@ DRESULT LTELServer::GetClientPing(HCLIENT hClient, float& ping)
 
 DRESULT LTELServer::SetupEuler(DRotation* pRotation, float pitch, float yaw, float roll)
 {
-	return DE_ERROR;
+	return m_pCommonLT->SetupEuler(*pRotation, pitch, yaw, roll);
 }
 
 float LTELServer::GetObjectMass(HOBJECT hObj)

@@ -138,6 +138,9 @@
     <ClInclude Include="game_object.h">
       <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Lithtech\1.0\Impl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -187,6 +190,9 @@
     </ClCompile>
     <ClCompile Include="LT1\AppHeaders\cpp_engineobjects_de.cpp">
       <Filter>Lithtech\1.0\AppHeaders</Filter>
+    </ClCompile>
+    <ClCompile Include="common.cpp">
+      <Filter>Lithtech\1.0\Impl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

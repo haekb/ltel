@@ -14,6 +14,7 @@
 #include <Texture.hpp>
 #include <Control.hpp>
 
+#include "common.h"
 #include "game_object.h"
 
 LTELClient* g_pLTELClient = nullptr;
@@ -38,6 +39,8 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	InitRenderImpl();
 	InitObjectImpl();
 	InitStringImpl();
+
+	m_pCommonLT = new LTELCommon();
 }
 
 LTELClient::~LTELClient()
@@ -339,29 +342,12 @@ char* LTELClient::GetServerConVarValueString(char* pName)
 
 DRESULT LTELClient::SetupEuler(DRotation* pRotation, float pitch, float yaw, float roll)
 {
-	godot::Quat qRot = godot::Quat();
-	qRot.set_euler(godot::Vector3(pitch, yaw, roll));
-
-	*pRotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
-
-	return DE_OK;
+	return m_pCommonLT->SetupEuler(*pRotation, pitch, yaw, roll);
 }
 
 DRESULT LTELClient::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)
 {
-	godot::Quat vQuat = LT2GodotQuat(pRotation);
-
-	godot::Basis vBasis = godot::Basis(vQuat);
-
-	godot::Vector3 vForward = -vBasis.z;
-	godot::Vector3 vRight = vBasis.x;
-	godot::Vector3 vUp = vBasis.y;
-
-	*pForward = DVector(vForward.x, vForward.y, vForward.z);
-	*pRight = DVector(vRight.x, vRight.y, vRight.z);
-	*pUp = DVector(vUp.x, vUp.y, vUp.z);
-
-	return DE_OK;
+	return m_pCommonLT->GetRotationVectors(*pRotation, *pUp, *pRight, *pForward);
 }
 
 HMESSAGEWRITE LTELClient::StartMessage(DBYTE messageID)
