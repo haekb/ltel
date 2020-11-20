@@ -362,19 +362,33 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 		{
 			if (!pSurface->pLabel->is_inside_tree())
 			{
-				pSurface->pLabel->queue_free();
+				pSurface->pLabel->free();
+			}
+			else
+			{
+				pTemp.push_back(pSurface);
+				continue;
 			}
 		}
 		else
 		{
 			if (!pSurface->pTextureRect->is_inside_tree())
 			{
-				pSurface->pTextureRect->queue_free();
+				pSurface->pTextureRect->free();
+			}
+			else
+			{
+				pTemp.push_back(pSurface);
+				continue;
 			}
 		}
 
+		//memset(pSurface, 0, sizeof(LTELServer));
+
 		delete pSurface;
+		pSurface = nullptr;
 	}
+
 
 	g_pSurfacesQueuedForDeletion.clear();
 	g_pSurfacesQueuedForDeletion = pTemp;
@@ -556,7 +570,7 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 		}
 	}
 
-	if (pSrc->bIsText)
+	if (pSrc->bIsText && pSrc->pLabel)
 	{
 		pSrc->pLabel->set_position(vPos);
 		if (!pSrc->pLabel->get_parent())
@@ -564,11 +578,17 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 			pNode->add_child(pSrc->pLabel);
 		}
 	}
-	else
+	else if (pSrc->pTextureRect)
 	{
 		if (bCanBlit)
 		{
 			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
+
+			if (!pSrc->pTextureRect)
+			{
+				return DE_ERROR;
+			}
+
 			auto pSrcTexture = pSrc->pTextureRect->get_texture();
 
 			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
@@ -630,6 +650,11 @@ DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 				pNode->add_child(pSrc->pTextureRect);
 			}
 		}
+	}
+	else
+	{
+		godot::Godot::print("Possible memory leak!");
+		return DE_ERROR;
 	}
 
 	// Don't need this yet

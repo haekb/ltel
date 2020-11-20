@@ -485,6 +485,11 @@ DBOOL impl_PlayList(char* szPlayList, char* szTransition, DBOOL bLoop, DDWORD dw
 	return DE_OK;
 }
 
+DBOOL impl_IsCommandOn(int commandNum)
+{
+	return FALSE;
+}
+
 //
 // Setup our struct!
 //
@@ -545,6 +550,7 @@ void LTELClient::InitFunctionPointers()
 	FreeDeviceBindings = impl_FreeDeviceBindings;
 	SetInputState = impl_SetInputState;
 	ClearInput = impl_ClearInput;
+	IsCommandOn = impl_IsCommandOn;
 
 	// Network functionality
 	IsLobbyLaunched = impl_IsLobbyLaunched;

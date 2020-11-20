@@ -32,10 +32,12 @@ std::vector<GameObject*> g_pPolygridsToUpdate;
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
 	GameObject* pObject = new GameObject(nullptr, nullptr);
+
 	//pObject->SetType(pStruct->m_ObjectType);
 	//pObject->nObjectFlags pStruct->m_Flags;
 	pObject->SetFromObjectCreateStruct(*pStruct);
 	
+
 
 	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
 
@@ -56,7 +58,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		auto vEuler = vQuat.get_euler();
 		pNode->set_rotation(vEuler);
 		pNode->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
-		pNode->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
 		pObject->SetNode(pNode);
 	}
@@ -83,7 +84,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		pMeshInstance->set_rotation_degrees(vEuler);
 		pMeshInstance->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
-		pMeshInstance->set_visible(pStruct->m_Flags & FLAG_VISIBLE);
 
 		pObject->SetPolyGrid(pMeshInstance);
 	}
@@ -119,6 +119,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		}
 
 		p3DNode->add_child(pModel, false);
+		pObject->SetNode(pModel);
 
 		auto pSkeleton = pModel->get_child(0);
 		pSkeleton->set_name("Skeleton");
@@ -158,6 +159,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		godot::Godot::print("Trying to make some other object! aaaaaaaaaaaaa");
 	}
 
+	pObject->SetFlags(pStruct->m_Flags);
 
 	return (HLOCALOBJ)pObject;
 }
@@ -656,6 +658,14 @@ HMODELANIM impl_GetAnimIndex(HOBJECT hObj, char* pAnimName)
 	return -1;
 }
 
+DRESULT impl_GetAttachments(HLOCALOBJ hObj, HLOCALOBJ* inList, DDWORD inListSize,
+	DDWORD* outListSize, DDWORD* outNumAttachments)
+{
+	*outListSize = 0;
+	*outNumAttachments = 0;
+	return DE_OK;
+}
+
 // This must be last!
 void LTELClient::InitObjectImpl()
 {
@@ -676,6 +686,8 @@ void LTELClient::InitObjectImpl()
 	SetObjectUserFlags = impl_SetObjectUserFlags;
 	GetObjectClientFlags = impl_GetObjectClientFlags;
 	SetObjectClientFlags = impl_SetObjectClientFlags;
+
+	GetAttachments = impl_GetAttachments;
 
 	// Animation
 	GetModelLooping = impl_GetModelLooping;

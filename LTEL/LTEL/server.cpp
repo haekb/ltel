@@ -127,16 +127,6 @@ void LTELServer::StartWorld(std::string sWorldName)
 		pFile->close();
 	}
 
-	auto pClass = m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
-
-	// Setup the client object
-	m_pClientList[0]->SetObj(pClass);
-
-	//auto pClientController = (LTELClient*)m_pClientList[0]->GetClient();
-	//pClientController->m_pClientInfo->SetObject(pClass);
-
-	// Do stuff here...
-
 	// This is probably wrong
 	for (auto pClient : m_pClientList)
 	{
@@ -149,6 +139,18 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 		pClientShell->OnEnterWorld();
 	}
+
+
+	auto pClass = m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
+
+	// Setup the client object
+	m_pClientList[0]->SetObj(pClass);
+
+	//auto pClientController = (LTELClient*)m_pClientList[0]->GetClient();
+	//pClientController->m_pClientInfo->SetObject(pClass);
+
+	// Do stuff here...
+
 
 	m_pServerShell->PostStartWorld();
 

@@ -33,7 +33,7 @@ public:
 	void SetType(uint16_t nType) { m_nObjectType = nType; }
 	uint16_t GetType() { return m_nObjectType; }
 
-	void SetFlags(int nFlag) { m_nFlags = nFlag; }
+	void SetFlags(int nFlag);
 	uint32_t GetFlags() { return m_nFlags; }
 
 	void SetUserFlags(int nFlag) { m_nUserFlags = nFlag; }

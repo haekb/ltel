@@ -37,7 +37,7 @@ GameObject::~GameObject()
 void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 {
 	m_nObjectType = pStruct.m_ObjectType;
-	m_nFlags = pStruct.m_Flags;
+	SetFlags(pStruct.m_Flags);
 	m_vPos = pStruct.m_Pos;
 	m_vScale = pStruct.m_Scale;
 	m_vRotation = pStruct.m_Rotation;
@@ -108,6 +108,43 @@ bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
 	}
 
 	return true;
+}
+
+void GameObject::SetFlags(int nFlag)
+{
+	m_nFlags = nFlag;
+
+	godot::Spatial* pNode = nullptr;
+
+	switch (m_nObjectType)
+	{
+	case OT_NORMAL:
+	case OT_MODEL:
+		pNode = GetNode();
+		break;
+	case OT_CAMERA:
+		pNode = godot::Object::cast_to<godot::Spatial>(GetCamera());
+		break;
+	case OT_POLYGRID:
+		pNode = godot::Object::cast_to<godot::Spatial>(GetPolyGrid());
+		break;
+	default:
+		return;
+	}
+
+	if (!pNode)
+	{
+		return;
+	}
+
+	if (nFlag & FLAG_VISIBLE)
+	{
+		pNode->set_visible(true);
+	}
+	else
+	{
+		pNode->set_visible(false);
+	}
 }
 
 void GameObject::Teleport(DVector vNewPos)
