@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 
+#include <Godot.hpp>
 #include <Object.hpp>
 #include <Node.hpp>
 #include <Spatial.hpp>

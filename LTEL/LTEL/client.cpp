@@ -172,12 +172,8 @@ godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 	return pScene;
 }
 
-
-#if 1
-
 bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale)
 {
-
 	bool bCanBlit = false;
 
 	if (!pDest || !pSrc)
@@ -300,8 +296,6 @@ bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRe
 	// Don't need this yet
 	return DE_OK;
 }
-#endif
-
 
 //
 // STUB FUNCTIONS
@@ -345,7 +339,12 @@ char* LTELClient::GetServerConVarValueString(char* pName)
 
 DRESULT LTELClient::SetupEuler(DRotation* pRotation, float pitch, float yaw, float roll)
 {
-	return DE_ERROR;
+	godot::Quat qRot = godot::Quat();
+	qRot.set_euler(godot::Vector3(pitch, yaw, roll));
+
+	*pRotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+
+	return DE_OK;
 }
 
 DRESULT LTELClient::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)

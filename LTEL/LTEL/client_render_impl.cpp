@@ -20,16 +20,9 @@
 #include <Engine.hpp>
 #include <OS.hpp>
 
-//#define CANVAS_NODE "/root/Scene/Camera/2D/Viewport/Canvas"
-
-// This lets us fallback to system fonts while we develop bitmap font support
-//#define BLOCK_FONTS
-
 
 extern LTELClient* g_pLTELClient;
 extern std::vector<GameObject*> g_pPolygridsToUpdate;
-
-
 
 std::vector<LTELSurface*> g_pSurfacesQueuedForDeletion;
 
@@ -555,6 +548,7 @@ DRESULT impl_GetBorderSize(HSURFACE hSurface, HDECOLOR hColor, DRect* pRect)
 
 DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 {
+
 	// Because of how game code updates polygrid's height map, 
 	// we need to finish up and apply the new depth texture!
 	for (auto pObj : g_pPolygridsToUpdate)

@@ -33,6 +33,8 @@ public:
 
     uint32_t m_nFlags;
 
+    bool m_bInWorld;
+
     
     int m_nClassDefCount;
     ClassDef** m_pClassDefList;

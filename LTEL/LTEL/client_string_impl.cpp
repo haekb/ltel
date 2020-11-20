@@ -95,11 +95,6 @@ void impl_GetStringDimensions(HDEFONT hFont, HSTRING hString, int* sizeX, int* s
 HDEFONT impl_CreateFont(char* pFontName, int width, int height,
 	DBOOL bItalic, DBOOL bUnderline, DBOOL bBold)
 {
-	//godot::Godot::print("[impl_CreateFont] Wants to create {0}", pFontName);
-
-	// TODO: Need to implement dynamic / bitmap fonts
-	//auto pFont = godot::DynamicFont::_new();
-
 	auto pResourceLoader = godot::ResourceLoader::get_singleton();
 
 	godot::Ref<godot::DynamicFontData> pFontData = pResourceLoader->load("res://fonts/arial.ttf");
@@ -115,10 +110,6 @@ HDEFONT impl_CreateFont(char* pFontName, int width, int height,
 void impl_DeleteFont(HDEFONT hFont)
 {
 	godot::DynamicFont* pFont = (godot::DynamicFont*)hFont;
-
-	// Remove font data
-	pFont->set_font_data(nullptr);
-
 	pFont->free();
 }
 

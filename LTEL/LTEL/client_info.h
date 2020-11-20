@@ -1,6 +1,7 @@
 #pragma once
 #include "LT1/AppHeaders/client_de.h"
 
+#include "game_object.h"
 #include <string>
 
 class ClientInfo
@@ -14,7 +15,7 @@ public:
     //void SetClient(ClientDE* pClient);
 
     // Setters
-    void SetObj(LPBASECLASS pObject) { m_pObject = pObject; }
+    void SetObj(GameObject* pObject) { m_pObject = pObject; }
     void SetUserData(void* pData) { m_pUserData = pData; }
     void SetFlags(uint32_t nFlags) { m_nFlags = nFlags; }
     
@@ -24,7 +25,7 @@ public:
     uint32_t GetFlags() { return m_nFlags; }
     ClientDE* GetClient() { return m_pClient; }
     ClientShellDE* GetClientShell() { return m_pClient->GetClientShell(); }
-    LPBASECLASS GetObj() { return m_pObject; }
+    GameObject* GetObj() { return m_pObject; }
     void* GetUserData() { return m_pUserData; }
 
 protected:
@@ -32,6 +33,7 @@ protected:
     std::string m_sName;
     ClientDE* m_pClient;
     uint32_t m_nFlags;
-    LPBASECLASS m_pObject;
+    //LPBASECLASS m_pObject;
     void* m_pUserData;
+    GameObject* m_pObject;
 };

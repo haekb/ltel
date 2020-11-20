@@ -32,13 +32,8 @@ std::vector<GameObject*> g_pPolygridsToUpdate;
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
 	GameObject* pObject = new GameObject(nullptr, nullptr);
-
-	//pObject->SetType(pStruct->m_ObjectType);
-	//pObject->nObjectFlags pStruct->m_Flags;
 	pObject->SetFromObjectCreateStruct(*pStruct);
 	
-
-
 	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
 
 	switch (pStruct->m_ObjectType)
@@ -97,6 +92,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		
 		if (pScene.is_null())
 		{
+			delete pObject;
 			return nullptr;
 		}
 
@@ -106,6 +102,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		if (!pModel)
 		{
+			delete pObject;
 			return nullptr;
 		}
 
@@ -115,6 +112,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		if (pTexture.is_null())
 		{
+			delete pObject;
 			return nullptr;
 		}
 
@@ -667,6 +665,20 @@ DRESULT impl_GetAttachments(HLOCALOBJ hObj, HLOCALOBJ* inList, DDWORD inListSize
 	return DE_OK;
 }
 
+void impl_SetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	godot::Quat qRot = LT2GodotQuat(pRotation);
+
+	GameObject* pObject = (GameObject*)hObj;
+
+	pObject->GetNode()->set_rotation(qRot.get_euler());
+}
+
 // This must be last!
 void LTELClient::InitObjectImpl()
 {
@@ -679,6 +691,7 @@ void LTELClient::InitObjectImpl()
 	SetObjectPos = impl_SetObjectPos;
 	SetObjectScale = impl_SetObjectScale;
 	GetObjectRotation = impl_GetObjectRotation;
+	SetObjectRotation = impl_SetObjectRotation;
 	EulerRotateX = impl_EulerRotateX;
 
 	SetObjectFlags = impl_SetObjectFlags;

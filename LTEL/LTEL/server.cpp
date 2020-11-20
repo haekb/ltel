@@ -28,6 +28,8 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 
 	m_pCurrentObject = nullptr;
 
+	m_bInWorld = false;
+
 	InitFunctionPointers();
 }
 
@@ -100,10 +102,14 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 	auto pClass = m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
 
+	auto pGameObj = new GameObject(nullptr, pClass);
+
 	// Setup the client object
-	m_pClientList[0]->SetObj(pClass);
+	m_pClientList[0]->SetObj(pGameObj);
 
 	m_pServerShell->PostStartWorld();
+
+	m_bInWorld = true;
 }
 
 bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags)
@@ -127,6 +133,12 @@ bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::Stream
 
 void LTELServer::Update(DFLOAT timeElapsed)
 {
+	if (!m_bInWorld)
+	{
+		m_fFrametime = 0.0f;
+		return;
+	}
+
 	m_fFrametime = timeElapsed;
 	m_fTime += timeElapsed;
 
@@ -156,7 +168,7 @@ void LTELServer::Update(DFLOAT timeElapsed)
 
 DRESULT LTELServer::GetGlobalForce(DVector* pVec)
 {
-	return DE_OK;
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetGlobalForce(DVector* pVec)
@@ -212,7 +224,6 @@ DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 
 	pStream->seek(0);
 	DBYTE pMessageId = pStream->get_8();
-	//pStream->seek(0);
 
 	auto pClientShell = (CClientShellDE*)m_pClientList[0]->GetClientShell();
 
@@ -284,6 +295,8 @@ DRESULT LTELServer::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)
 
 void LTELServer::GetObjectDims(HOBJECT hObj, DVector* pNewDims)
 {
+	DVector pDims = DVector(0.0f, 0.0f, 0.0f);
+	*pNewDims = pDims;
 }
 
 DRESULT LTELServer::SetObjectDims(HOBJECT hObj, DVector* pNewDims)

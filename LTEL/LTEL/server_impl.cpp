@@ -201,11 +201,6 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 	}
 
 	LPBASECLASS pBaseClass = new BaseClass(pStruct->m_ObjectType);
-
-
-
-	
-
 	GameObject* pObject = new GameObject(pClass, pBaseClass);
 
 	pClass->m_ConstructFn(pBaseClass);
@@ -237,6 +232,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 	}
 
 	// Cleanup!
+	delete pBaseClass;
 	delete pObject;
 	g_pLTELServer->m_pCurrentObject = nullptr;
 

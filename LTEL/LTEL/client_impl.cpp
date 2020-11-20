@@ -284,13 +284,14 @@ DBOOL impl_ResumeMusic()
 
 DRESULT impl_PlaySound(PlaySoundInfo* pPlaySoundInfo)
 {
-	char pFake[16] = "Lol";
-	pPlaySoundInfo->m_hSound = (HSOUNDDE)pFake;
+	void* pData = malloc(4);
+	pPlaySoundInfo->m_hSound = (HSOUNDDE)pData;
 	return DE_OK;
 }
 
 void impl_KillSound(HSOUNDDE pSoundHandle)
 {
+	free(pSoundHandle);
 	return;
 }
 
