@@ -84,49 +84,6 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 	m_pServerShell->PreStartWorld(true);
 
-	// Don't run this yet!
-	if (false)
-	{
-		// Reference!
-		struct ShogoWorldHeader {
-			uint32_t Version;
-			uint32_t ObjectDataPosition;
-			uint32_t RenderDataPosition;
-
-			int WorldInfoLength;
-			//LTString WorldInfo;
-		};
-
-		std::string sPath = g_pLTELServer->m_sGameDataDir + sWorldName;
-
-		godot::Ref<godot::File> pFile = godot::File::_new();
-
-		auto hError = pFile->open(sPath.c_str(), godot::File::READ);
-
-		int nVersion = pFile->get_32();
-
-		if (nVersion != 56)
-		{
-			//godot::Godot::print("[impl_GetWorldInfoString] Map {0} is not version 56! Version {1} detected.", pFilename, nVersion);
-		}
-
-		int nObjectDataPosition = pFile->get_32();
-		int nRenderDataPosition = pFile->get_32();
-
-		int nWorldInfoLength = pFile->get_32();
-
-		auto pByteBuffer = pFile->get_buffer(nWorldInfoLength);
-
-		char* szWorldInfo = (char*)pByteBuffer.read().ptr();
-		szWorldInfo[nWorldInfoLength - 1] = '\0';
-
-		// Need to load in a list of classes from the world here...
-		// Then send notifications to the server's PRECREATE notification/message?
-
-
-		pFile->close();
-	}
-
 	// This is probably wrong
 	for (auto pClient : m_pClientList)
 	{
@@ -146,31 +103,7 @@ void LTELServer::StartWorld(std::string sWorldName)
 	// Setup the client object
 	m_pClientList[0]->SetObj(pClass);
 
-	//auto pClientController = (LTELClient*)m_pClientList[0]->GetClient();
-	//pClientController->m_pClientInfo->SetObject(pClass);
-
-	// Do stuff here...
-
-
 	m_pServerShell->PostStartWorld();
-
-#if 0
-	// Fake an auto-save!
-	g_pLTELServer->CPrint((char*)"Faking an auto save!");
-	auto pMessage = StartHMessageWrite();
-	for (auto pObj : m_pObjectList)
-	{
-		auto pClass = pObj->GetBaseClass();
-		if (!pClass)
-		{
-			continue;
-		}
-
-		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_SAVEOBJECT, pMessage, 0.0f);
-	}
-	EndHMessageWrite(pMessage);
-	g_pLTELServer->CPrint((char*)"Fake auto save done!");
-#endif
 }
 
 bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags)
@@ -189,6 +122,7 @@ bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::Stream
 
 	// Ok clean it up!
 	pStream->free();
+	return true;
 }
 
 void LTELServer::Update(DFLOAT timeElapsed)
@@ -216,7 +150,6 @@ void LTELServer::Update(DFLOAT timeElapsed)
 		}
 
 		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_UPDATE, nullptr, timeElapsed);
-		//(pClass, (HOBJECT)m_pClientList[0], MID_UPDATE, nullptr);
 	}
 }
 
@@ -228,27 +161,27 @@ DRESULT LTELServer::GetGlobalForce(DVector* pVec)
 
 DRESULT LTELServer::SetGlobalForce(DVector* pVec)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 HMESSAGEWRITE LTELServer::StartSpecialEffectMessage(LPBASECLASS pObject)
 {
-	return HMESSAGEWRITE();
+	return nullptr;
 }
 
 HMESSAGEWRITE LTELServer::StartInstantSpecialEffectMessage(DVector* pPos)
 {
-	return HMESSAGEWRITE();
+	return nullptr;
 }
 
 HMESSAGEWRITE LTELServer::StartMessageToObject(LPBASECLASS pSender, HOBJECT hSendTo, DDWORD messageID)
 {
-	return HMESSAGEWRITE();
+	return nullptr;
 }
 
 DRESULT LTELServer::StartMessageToServer(LPBASECLASS pSender, DDWORD messageID, HMESSAGEWRITE* hWrite)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 HMESSAGEWRITE LTELServer::StartMessage(HCLIENT hSendTo, DBYTE messageID)
@@ -293,37 +226,37 @@ DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 
 DRESULT LTELServer::SetObjectSFXMessage(HOBJECT hObject, LMessage& msg)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SendToObject(LMessage& msg, DDWORD msgID, HOBJECT hSender, HOBJECT hSendTo, DDWORD flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SendToServer(LMessage& msg, DDWORD msgID, HOBJECT hSender, DDWORD flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SendToClient(LMessage& msg, DBYTE msgID, HCLIENT hSendTo, DDWORD flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SendSFXMessage(LMessage& msg, DVector& pos, DDWORD flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetClientPing(HCLIENT hClient, float& ping)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetupEuler(DRotation* pRotation, float pitch, float yaw, float roll)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 float LTELServer::GetObjectMass(HOBJECT hObj)
@@ -346,7 +279,7 @@ void LTELServer::SetForceIgnoreLimit(HOBJECT hObj, float limit)
 
 DRESULT LTELServer::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 void LTELServer::GetObjectDims(HOBJECT hObj, DVector* pNewDims)
@@ -355,77 +288,77 @@ void LTELServer::GetObjectDims(HOBJECT hObj, DVector* pNewDims)
 
 DRESULT LTELServer::SetObjectDims(HOBJECT hObj, DVector* pNewDims)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetObjectDims2(HOBJECT hObj, DVector* pNewDims)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetVelocity(HOBJECT hObj, DVector* pVel)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetVelocity(HOBJECT hObj, DVector* pVel)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetAcceleration(HOBJECT hObj, DVector* pAccel)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetAcceleration(HOBJECT hObj, DVector* pAccel)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetModelAnimUserDims(HOBJECT hObj, DVector* pDims, HMODELANIM hAnim)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 HOBJECT LTELServer::GetWorldObject()
 {
-	return HOBJECT();
+	return nullptr;
 }
 
 DRESULT LTELServer::GetWorldBox(DVector& min, DVector& max)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetFrictionCoefficient(HOBJECT hObj, float coeff)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::MoveObject(HOBJECT hObj, DVector* pNewPos)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetNetFlags(HOBJECT hObj, DDWORD& flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::SetNetFlags(HOBJECT hObj, DDWORD flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELServer::GetPolyTextureFlags(HPOLY hPoly, DDWORD* pFlags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 HMESSAGEWRITE LTELServer::StartHMessageWrite()

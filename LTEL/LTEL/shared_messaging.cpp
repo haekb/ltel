@@ -200,12 +200,12 @@ void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
 
 void shared_ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
-	shared_ReadFromMessageCompVector(hMessage, pVal);
+	shared_ReadFromMessageVector(hMessage, pVal);
 }
 
 void shared_ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal)
 {
-	shared_ReadFromMessageCompVector(hMessage, pVal);
+	shared_ReadFromMessageVector(hMessage, pVal);
 }
 
 void shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)

@@ -12,6 +12,7 @@
 #include <StreamPeerBuffer.hpp>
 #include <PackedScene.hpp>
 
+#include "helpers.h"
 #include "server.h"
 
 // Some windows function names clash with ClientDE
@@ -41,6 +42,7 @@ public:
     godot::Ref<godot::ImageTexture> LoadDTX(std::string sPath);
     godot::Ref<godot::PackedScene> LoadABC(std::string sPath);
 
+    bool BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale);
 
 	std::string m_sGameDataDir;
 	godot::Vector2 m_vFOV;

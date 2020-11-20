@@ -25,49 +25,11 @@
 // This lets us fallback to system fonts while we develop bitmap font support
 //#define BLOCK_FONTS
 
-#define CANVAS_NODE "/root/Scene/Canvas"
 
 extern LTELClient* g_pLTELClient;
 extern std::vector<GameObject*> g_pPolygridsToUpdate;
 
-struct LTELSurface {
 
-	LTELSurface() {
-		bQueuedForDeletion = false;
-		bIsFontImage = false;
-		bOptimized = false;
-
-		bIsText = false;
-		bIsScreen = false;
-		pTextureRect = nullptr;
-		pLabel = nullptr;
-	}
-
-	~LTELSurface() {
-		return;
-
-		// Freeing the real object will occur on ClearScreen!
-		if (pTextureRect)
-		{
-			pTextureRect->queue_free();
-		}
-		if (pLabel)
-		{
-			pLabel->queue_free();
-		}
-	}
-
-	bool bOptimized;
-	bool bQueuedForDeletion;
-	bool bIsText;
-	bool bIsScreen;
-	bool bIsFontImage;
-
-	// If bIsText == false:
-	godot::TextureRect* pTextureRect;
-	// Else:
-	godot::Label* pLabel;
-};
 
 std::vector<LTELSurface*> g_pSurfacesQueuedForDeletion;
 
@@ -230,13 +192,6 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 {
 	LTELSurface* pDest = (LTELSurface*)hDest;
 
-	godot::Control* pControl = godot::Object::cast_to<godot::Control>(g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
-
-	if (!pControl)
-	{
-		return DE_ERROR;
-	}
-
 	godot::Vector2 vPos;
 	godot::Vector2 vSize;
 
@@ -257,7 +212,6 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 		vSize = godot::Vector2(pRect->right - pRect->left, pRect->bottom - pRect->top);
 	}
 	
-#if 1
 	godot::Color oColor = LT2GodotColor(hColor);
 
 	auto hSurface = g_pLTELClient->CreateSurface(vSize.width, vSize.height);
@@ -288,30 +242,10 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 
 	// Now scale it!
 	g_pLTELClient->ScaleSurfaceToSurface(hDest, (HSURFACE)pSurface, &pDestRect, nullptr);
+
+	g_pLTELClient->DeleteSurface((HSURFACE)pSurface);
+
 	return DE_OK;
-#else
-	godot::ColorRect* pColorRect = godot::ColorRect::_new();
-	pColorRect->set_size(vSize);
-	pColorRect->set_position(vPos);
-
-	godot::Color oColor = LT2GodotColor(hColor);
-
-	pColorRect->set_frame_color(oColor);
-
-	if (pDest->bIsText)
-	{
-		pDest->pLabel->add_child(pColorRect);
-		return DE_OK;
-	}
-	else if (pDest->bIsScreen)
-	{
-		pControl->add_child(pColorRect);
-		return DE_OK;
-	}
-
-	pDest->pTextureRect->add_child(pColorRect);
-	return DE_OK;
-#endif
 }
 
 //
@@ -330,19 +264,10 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 	auto pChildren = pControl->get_children();
 	auto nSize = pChildren.size();
 
+	// First pass just remove them from the scene tree!
 	for (int i = 0; i < pChildren.size(); i++)
 	{
-
 		pControl->remove_child(pChildren[i]);
-
-		//godot::Node* pNode = GDCAST(godot::Node, pChildren[i]);
-
-		//if (pNode)
-		{
-			//godot::Godot::print("Deleting node: {0}", pNode->get_name());
-
-			//pNode->free();
-		}
 	}
 
 
@@ -383,8 +308,6 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 			}
 		}
 
-		//memset(pSurface, 0, sizeof(LTELServer));
-
 		delete pSurface;
 		pSurface = nullptr;
 	}
@@ -416,249 +339,16 @@ DRESULT impl_StartOptimized2D()
 DRESULT impl_ScaleSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	DRect* pDestRect, DRect* pSrcRect)
 {
-	LTELSurface* pDest = (LTELSurface*)hDest;
-	LTELSurface* pSrc = (LTELSurface*)hSrc;
-
-	bool bCanBlit = false;
-
-	godot::Control* pControl = GDCAST(godot::Control, g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
-
-	if (!pControl)
-	{
-		return DE_ERROR;
-	}
-
-	auto vPos = godot::Vector2(pDestRect->left, pDestRect->top);
-	auto vSize = godot::Vector2(pDestRect->right - pDestRect->left, pDestRect->bottom - pDestRect->top);
-
-	godot::Node* pNode = GDCAST(godot::Node, pControl);
-
-	// Screen!
-	if (!pDest->bIsScreen)
-	{
-		//return DE_OK;
-		if (pDest->bIsText)
-		{
-			pNode = GDCAST(godot::Node, pDest->pLabel);
-		}
-		else
-		{
-			pNode = GDCAST(godot::Node, pDest->pTextureRect);
-			bCanBlit = true;
-		}
-	}
-
-	if (pSrc->bIsText)
-	{
-		pSrc->pLabel->set_position(vPos);
-		pSrc->pLabel->set_size(vSize);
-		if (!pSrc->pLabel->get_parent())
-		{
-			pNode->add_child(pSrc->pLabel);
-		}
-	}
-	else
-	{
-		if (bCanBlit)
-		{
-			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
-			auto pSrcTexture = pSrc->pTextureRect->get_texture();
-
-			/*
-			if (pSrc->bIsFontImage)
-			{
-				pSrcTexture->get_data()->save_png("Font.png");
-				DebugBreak();
-			}
-			*/
-
-			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
-			{
-				//x,y,w,h
-				godot::Rect2 rSrcRect = godot::Rect2();
-
-				if (pSrcRect)
-				{
-					float nWidth = pSrcRect->right - pSrcRect->left;
-					float nHeight = pSrcRect->bottom - pSrcRect->top;
-					float x = pSrcRect->left;
-					float y = pSrcRect->top;
-
-					rSrcRect.set_size(godot::Vector2(nWidth, nHeight));
-					rSrcRect.set_position(godot::Vector2(x, y));
-				}
-				else
-				{
-					rSrcRect.set_size(godot::Vector2(vSize.width, vSize.height));
-					rSrcRect.set_position(godot::Vector2(0, 0));
-				}
-
-				auto pSrcImage = pSrcTexture->get_data();
-				pSrcImage->resize(vSize.width, vSize.height);
-
-				godot::Vector2 vDestRect = godot::Vector2(vPos.x, vPos.y);
-				auto pImage = pDestTexture->get_data();
-				pImage->blit_rect(pSrcImage, rSrcRect, vDestRect);
-				pDestTexture->set_data(pImage);
-
-				/*
-				if (pSrc->bIsFontImage)
-				{
-					pImage->save_png("Font.png");
-					DebugBreak();
-				}
-				*/
-			}
-			else
-			{
-				bCanBlit = false;
-			}
-		}
-
-
-		// Not else, because above path can fallback here!
-		if (!bCanBlit)
-		{
-			pSrc->pTextureRect->set_position(vPos);
-			if (!pSrc->pTextureRect->get_parent())
-			{
-				pNode->add_child(pSrc->pTextureRect);
-			}
-		}
-	}
-
-	// Don't need this yet
-	return DE_OK;
+	bool bRet = g_pLTELClient->BlitSurfaceToSurface((LTELSurface*)hDest, (LTELSurface*)hSrc, pDestRect, pSrcRect, true);
+	return bRet ? DE_OK : DE_ERROR;
 }
 
 DRESULT impl_DrawSurfaceToSurface(HSURFACE hDest, HSURFACE hSrc,
 	DRect* pSrcRect, int destX, int destY)
 {
-	LTELSurface* pDest = (LTELSurface*)hDest;
-	LTELSurface* pSrc = (LTELSurface*)hSrc;
-
-	bool bCanBlit = false;
-
-	if (!pDest || !pSrc)
-	{
-		return DE_ERROR;
-	}
-
-	godot::Control* pControl = GDCAST(godot::Control,g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
-
-	if (!pControl)
-	{
-		return DE_ERROR;
-	}
-
-	auto vPos = godot::Vector2(destX, destY);
-
-	godot::Node* pNode = GDCAST(godot::Node, pControl);
-
-	// Screen!
-	if (!pDest->bIsScreen)
-	{
-		//return DE_OK;
-		if (pDest->bIsText)
-		{
-			pNode = GDCAST(godot::Node, pDest->pLabel);
-		}
-		else
-		{
-			pNode = GDCAST(godot::Node, pDest->pTextureRect);
-			bCanBlit = true;
-		}
-	}
-
-	if (pSrc->bIsText && pSrc->pLabel)
-	{
-		pSrc->pLabel->set_position(vPos);
-		if (!pSrc->pLabel->get_parent())
-		{
-			pNode->add_child(pSrc->pLabel);
-		}
-	}
-	else if (pSrc->pTextureRect)
-	{
-		if (bCanBlit)
-		{
-			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
-
-			if (!pSrc->pTextureRect)
-			{
-				return DE_ERROR;
-			}
-
-			auto pSrcTexture = pSrc->pTextureRect->get_texture();
-
-			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
-			{
-				//x,y,w,h
-				godot::Rect2 rSrcRect = godot::Rect2();
-				
-				if (pSrcRect)
-				{
-					float nWidth = pSrcRect->right - pSrcRect->left;
-					float nHeight = pSrcRect->bottom - pSrcRect->top;
-					float x = pSrcRect->left;
-					float y = pSrcRect->top;
-
-					rSrcRect.set_size(godot::Vector2(nWidth, nHeight));
-					rSrcRect.set_position(godot::Vector2(x, y));
-				}
-				else
-				{
-					rSrcRect.set_size(godot::Vector2(pSrcTexture->get_data()->get_width(), pSrcTexture->get_data()->get_height()));
-					rSrcRect.set_position(godot::Vector2(0, 0));
-				}
-
-				
-
-				godot::Vector2 vDestRect = godot::Vector2(destX, destY);
-				auto pImage = pDestTexture->get_data();
-
-				if (pSrc->bOptimized)
-				{
-					pImage->blend_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
-				}
-				else
-				{
-					pImage->blit_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
-				}
-
-				pDestTexture->set_data(pImage);
-			}
-			else
-			{
-				bCanBlit = false;
-			}
-		}
-		
-		// Not else, because above path can fallback here!
-		if (!bCanBlit)
-		{
-			pSrc->pTextureRect->set_position(vPos);
-			pSrc->pTextureRect->set_size(godot::Vector2(pSrc->pTextureRect->get_texture()->get_data()->get_width(), pSrc->pTextureRect->get_texture()->get_height()));
-
-			if (pSrc->pTextureRect->get_parent())
-			{
-				pSrc->pTextureRect->get_parent()->remove_child(pSrc->pTextureRect);
-			}
-
-			//if (!pSrc->pTextureRect->get_parent())
-			{
-				pNode->add_child(pSrc->pTextureRect);
-			}
-		}
-	}
-	else
-	{
-		godot::Godot::print("Possible memory leak!");
-		return DE_ERROR;
-	}
-
-	// Don't need this yet
-	return DE_OK;
+	DRect DestRect = { destX, destY, 0, 0 };
+	bool bRet = g_pLTELClient->BlitSurfaceToSurface((LTELSurface*)hDest, (LTELSurface*)hSrc, &DestRect, pSrcRect, false);
+	return bRet ? DE_OK : DE_ERROR;
 }
 
 DRESULT impl_DrawSurfaceToSurfaceTransparent(HSURFACE hDest, HSURFACE hSrc,
@@ -720,7 +410,7 @@ DRESULT impl_End3D()
 #include <VisualServer.hpp>
 DRESULT impl_FlipScreen(DDWORD flags)
 {
-	/*
+#if 0
 	auto pVS = godot::VisualServer::get_singleton();
 	auto bIsRenderLoopEnabled = pVS->call("get_render_loop_enabled");
 
@@ -730,13 +420,14 @@ DRESULT impl_FlipScreen(DDWORD flags)
 		pVS->force_sync();
 		pVS->force_draw();
 	}
-	*/
+#endif
 
 	return DE_OK;
 }
 
 DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 {
+
 	if (!hSurface)
 	{
 		return DE_OK;

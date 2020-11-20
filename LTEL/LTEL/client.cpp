@@ -1,9 +1,10 @@
 
 #include "client.h"
 #include "shared.h"
-#include "helpers.h"
 
-
+#include <Godot.hpp>
+#include <Object.hpp>
+#include <Node.hpp>
 #include <Basis.hpp>
 #include <ResourceLoader.hpp>
 #include <Script.hpp>
@@ -11,6 +12,9 @@
 #include <Reference.hpp>
 #include <PackedScene.hpp>
 #include <Texture.hpp>
+#include <Control.hpp>
+
+#include "game_object.h"
 
 LTELClient* g_pLTELClient = nullptr;
 
@@ -30,7 +34,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	m_pGodotLink = pGodotLink;
 	InitFunctionPointers();
 
-	// New!
+	// Additional function implementations
 	InitRenderImpl();
 	InitObjectImpl();
 	InitStringImpl();
@@ -40,7 +44,9 @@ LTELClient::~LTELClient()
 {
 }
 
-
+//
+// Called when the client creates a server (either by starting singleplayer or multiplayer)
+//
 bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 {
 	typedef int f_GetServerShellVersion();
@@ -142,43 +148,159 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	m_pLTELServer->m_nClassDefCount = nClassDefCount;
 	m_pLTELServer->m_pClassDefList = pClassList;
 
-	// Maybe kick off the world stuff?
-	//m_pLTELServer->StartWorld(pRequest->m_WorldName);
-
 	return true;
 }
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 {
-	auto pResourceLoader = godot::ResourceLoader::get_singleton();
-	auto pClassDB = godot::ClassDB::get_singleton();
-
 	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadPCX");
-
-	auto bDoIHas = pNode->has_method("load_image");
-
 	godot::Ref<godot::ImageTexture> pTexture = pNode->call("load_image", sPath.c_str());
-
 	return pTexture;
 }
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadDTX(std::string sPath)
 {
 	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadDTX");
-
 	godot::Ref<godot::ImageTexture> pTexture = pNode->call("build", sPath.c_str(), godot::Array());
-
 	return pTexture;
 }
 
 godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 {
 	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadABC");
-
 	godot::Ref<godot::PackedScene> pScene = pNode->call("build", sPath.c_str(), godot::Array());
-	
 	return pScene;
 }
+
+
+#if 1
+
+bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale)
+{
+
+	bool bCanBlit = false;
+
+	if (!pDest || !pSrc)
+	{
+		return DE_ERROR;
+	}
+
+	godot::Control* pControl = GDCAST(godot::Control, g_pLTELClient->m_pGodotLink->get_node(CANVAS_NODE));
+
+	if (!pControl)
+	{
+		return DE_ERROR;
+	}
+
+	auto vPos = godot::Vector2(pDestRect->left, pDestRect->top);
+	auto vSize = godot::Vector2(pDestRect->right - pDestRect->left, pDestRect->bottom - pDestRect->top);
+
+	godot::Node* pNode = godot::Object::cast_to<godot::Node>(pControl);//GDCAST(godot::Node, pControl);
+
+	// Screen!
+	if (!pDest->bIsScreen)
+	{
+		//return DE_OK;
+		if (pDest->bIsText)
+		{
+			pNode = GDCAST(godot::Node, pDest->pLabel);
+		}
+		else
+		{
+			pNode = GDCAST(godot::Node, pDest->pTextureRect);
+			bCanBlit = true;
+		}
+	}
+
+	if (pSrc->bIsText && pSrc->pLabel)
+	{
+		pSrc->pLabel->set_position(vPos);
+		if (bScale)
+		{
+			pSrc->pLabel->set_size(vSize);
+		}
+		if (!pSrc->pLabel->get_parent())
+		{
+			pNode->add_child(pSrc->pLabel);
+		}
+	}
+	else if (pSrc->pTextureRect)
+	{
+		if (bCanBlit)
+		{
+			godot::Ref<godot::ImageTexture> pDestTexture = pDest->pTextureRect->get_texture();
+			auto pSrcTexture = pSrc->pTextureRect->get_texture();
+
+			if (!pDestTexture.is_null() && !pSrcTexture.is_null())
+			{
+				//x,y,w,h
+				godot::Rect2 rSrcRect = godot::Rect2();
+
+				if (pSrcRect)
+				{
+					float nWidth = pSrcRect->right - pSrcRect->left;
+					float nHeight = pSrcRect->bottom - pSrcRect->top;
+					float x = pSrcRect->left;
+					float y = pSrcRect->top;
+
+					rSrcRect.set_size(godot::Vector2(nWidth, nHeight));
+					rSrcRect.set_position(godot::Vector2(x, y));
+				}
+				else
+				{
+					rSrcRect.set_size(godot::Vector2(pSrcTexture->get_data()->get_width(), pSrcTexture->get_data()->get_height()));
+					rSrcRect.set_position(godot::Vector2(0, 0));
+				}
+
+
+
+				godot::Vector2 vDestRect = godot::Vector2(pDestRect->left, pDestRect->top);
+				auto pImage = pDestTexture->get_data();
+
+				if (pSrc->bOptimized)
+				{
+					pImage->blend_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
+				}
+				else
+				{
+					pImage->blit_rect(pSrcTexture->get_data(), rSrcRect, vDestRect);
+				}
+
+				pDestTexture->set_data(pImage);
+			}
+			else
+			{
+				bCanBlit = false;
+			}
+		}
+
+		// Not else, because above path can fallback here!
+		if (!bCanBlit)
+		{
+			pSrc->pTextureRect->set_position(vPos);
+			pSrc->pTextureRect->set_size(godot::Vector2(pSrc->pTextureRect->get_texture()->get_data()->get_width(), pSrc->pTextureRect->get_texture()->get_height()));
+
+			if (pSrc->pTextureRect->get_parent())
+			{
+				pSrc->pTextureRect->get_parent()->remove_child(pSrc->pTextureRect);
+			}
+
+			//if (!pSrc->pTextureRect->get_parent())
+			{
+				pNode->add_child(pSrc->pTextureRect);
+			}
+		}
+	}
+	else
+	{
+		godot::Godot::print("Possible memory leak!");
+		return DE_ERROR;
+	}
+
+	// Don't need this yet
+	return DE_OK;
+}
+#endif
 
 
 //
@@ -188,27 +310,27 @@ godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 
 DRESULT LTELClient::GetPointStatus(DVector* pPoint)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::GetPointShade(DVector* pPoint, DVector* pColor)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::OpenFile(char* pFilename, DStream** pStream)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::GetSConValueFloat(char* pName, float& val)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::GetSConValueString(char* pName, char* valBuf, DDWORD bufLen)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 float LTELClient::GetServerConVarValueFloat(char* pName)
@@ -223,7 +345,7 @@ char* LTELClient::GetServerConVarValueString(char* pName)
 
 DRESULT LTELClient::SetupEuler(DRotation* pRotation, float pitch, float yaw, float roll)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)
@@ -270,17 +392,21 @@ DRESULT LTELClient::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 
 	m_pLTELServer->ReceiveMessageFromClient(m_pClientInfo, (godot::StreamPeerBuffer*)hMessage, flags);
 
+	// Clean up...
+	auto pStream = (godot::StreamPeerBuffer*)hMessage;
+	pStream->free();
+
 	return DE_OK;
 }
 
 DRESULT LTELClient::SendToServer(LMessage& msg, DBYTE msgID, DDWORD flags)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::ProcessAttachments(HOBJECT hObj)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DEParticle* LTELClient::AddParticle(HLOCALOBJ hObj, DVector* pPos, DVector* pVelocity, DVector* pColor, float lifeTime)
@@ -290,27 +416,27 @@ DEParticle* LTELClient::AddParticle(HLOCALOBJ hObj, DVector* pPos, DVector* pVel
 
 DRESULT LTELClient::GetSpriteControl(HLOCALOBJ hObj, SpriteControl*& pControl)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::StartQuery(char* pInfo)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::UpdateQuery()
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::GetQueryResults(NetSession*& pListHead)
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 DRESULT LTELClient::EndQuery()
 {
-	return DRESULT();
+	return DE_ERROR;
 }
 
 HMESSAGEWRITE LTELClient::StartHMessageWrite()

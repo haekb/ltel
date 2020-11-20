@@ -1,6 +1,8 @@
 #pragma once
-#include "client.h"
 #include <string>
+
+#include <Object.hpp>
+#include <Node.hpp>
 #include <Spatial.hpp>
 #include <Camera.hpp>
 #include <MeshInstance.hpp>
@@ -8,11 +10,47 @@
 #include <Texture.hpp>
 #include <ImageTexture.hpp>
 
+
+#include <Label.hpp>
+#include <TextureRect.hpp>
+
 #include "client_info.h"
 #include "game_object.h"
 
 // Defs
+#define CANVAS_NODE "/root/Scene/Canvas"
 #define GDCAST(casting_to, object) godot::Object::cast_to<casting_to>(object);
+
+
+struct LTELSurface 
+{
+
+	LTELSurface() {
+		bQueuedForDeletion = false;
+		bIsFontImage = false;
+		bOptimized = false;
+
+		bIsText = false;
+		bIsScreen = false;
+		pTextureRect = nullptr;
+		pLabel = nullptr;
+	}
+
+	~LTELSurface() {
+		return;
+	}
+
+	bool bOptimized;
+	bool bQueuedForDeletion;
+	bool bIsText;
+	bool bIsScreen;
+	bool bIsFontImage;
+
+	// If bIsText == false:
+	godot::TextureRect* pTextureRect;
+	// Else:
+	godot::Label* pLabel;
+};
 
 struct LTELString {
 	LTELString(std::string sIncoming = "") {

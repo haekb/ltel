@@ -490,6 +490,61 @@ DBOOL impl_IsCommandOn(int commandNum)
 	return FALSE;
 }
 
+void impl_GetAxisOffsets(DFLOAT* offsets)
+{
+	offsets[0] = 0.0f;
+	offsets[1] = 0.0f;
+	offsets[2] = 0.0f;
+
+	return;
+
+	POINT lpPoint;
+	int deltaX = 0, deltaY = 0;
+
+	static int m_iCurrentMouseX = 0;
+	static int m_iCurrentMouseY = 0;
+	static int m_iPreviousMouseX = 0;
+	static int m_iPreviousMouseY = 0;
+	static float m_fMouseSensitivity = 0.0025f;
+
+#if 0
+	SDL_PumpEvents();
+
+	// Firstly, we need a point of reference.
+	// This conditional is here, in case we need to reset the mouse.
+	if (m_bGetBaseMouse)
+	{
+		SDL_GetMouseState(&m_iCurrentMouseX, &m_iCurrentMouseY);
+		m_bGetBaseMouse = false;
+	}
+
+	SDL_GetRelativeMouseState(&deltaX, &deltaY);
+#endif
+
+	m_iCurrentMouseX += deltaX;
+	m_iCurrentMouseY += deltaY;
+
+	float nScaleX = m_fMouseSensitivity + (1.0f * m_fMouseSensitivity);
+
+	// Nerf the sensitivity scale so it matches the OG games.
+	nScaleX *= 0.10f;
+	float nScaleY = nScaleX;
+
+	offsets[0] = (float)(m_iCurrentMouseX - m_iPreviousMouseX) * nScaleX;
+	offsets[1] = (float)(m_iCurrentMouseY - m_iPreviousMouseY) * (nScaleY);
+	offsets[2] = 0.0f;
+
+	m_iPreviousMouseX = m_iCurrentMouseX;
+	m_iPreviousMouseY = m_iCurrentMouseY;
+
+	// Cache the results so it can be used again this frame
+	//m_fOffsets[0] = offsets[0];
+	//m_fOffsets[1] = offsets[1];
+	//m_fOffsets[2] = offsets[2];
+
+	//m_bGetAxisOffsetCalledThisFrame = true;
+}
+
 //
 // Setup our struct!
 //
@@ -551,6 +606,7 @@ void LTELClient::InitFunctionPointers()
 	SetInputState = impl_SetInputState;
 	ClearInput = impl_ClearInput;
 	IsCommandOn = impl_IsCommandOn;
+	GetAxisOffsets = impl_GetAxisOffsets;
 
 	// Network functionality
 	IsLobbyLaunched = impl_IsLobbyLaunched;

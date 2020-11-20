@@ -329,6 +329,7 @@ DRESULT impl_GetObjectUserFlags(HLOCALOBJ hObj, DDWORD* pFlags)
 	}
 
 	*pFlags = pObj->GetUserFlags();
+	return DE_OK;
 }
 
 DRESULT impl_SetObjectUserFlags(HLOCALOBJ hObj, DDWORD flags)
