@@ -220,7 +220,7 @@ bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRe
 			pNode->add_child(pSrc->pLabel);
 		}
 	}
-	else if (pSrc->pTextureRect)
+	else if (pDest->pTextureRect && pSrc->pTextureRect)
 	{
 		if (bCanBlit)
 		{

@@ -56,7 +56,7 @@ public:
 	void SetPolyGrid(godot::MeshInstance* pMesh) { m_pData.pPolyGrid = pMesh; }
 
 	// Data get!
-	godot::Spatial* GetNode() { return m_pData.pNode; }
+	godot::Spatial* GetNode();
 	godot::Camera* GetCamera() { return m_pData.pCamera; }
 	godot::MeshInstance* GetPolyGrid() { return m_pData.pPolyGrid; }
 

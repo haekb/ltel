@@ -147,6 +147,22 @@ void GameObject::SetFlags(int nFlag)
 	}
 }
 
+godot::Spatial* GameObject::GetNode()
+{
+	switch (m_nObjectType)
+	{
+	case OT_MODEL:
+	case OT_NORMAL:
+		return m_pData.pNode;
+	case OT_POLYGRID:
+		return godot::Object::cast_to<godot::Spatial>(m_pData.pPolyGrid);
+	case OT_CAMERA:
+		return godot::Object::cast_to<godot::Spatial>(m_pData.pCamera);
+	}
+
+	return nullptr;
+}
+
 void GameObject::Teleport(DVector vNewPos)
 {
 	m_vPos = vNewPos;
