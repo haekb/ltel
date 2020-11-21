@@ -195,32 +195,52 @@ DRESULT shared_WriteToLoadSaveMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj
 	return shared_WriteToMessageObject(hMessage, hObject);
 }
 
+void shared_CheckAndReset(HMESSAGEREAD hMessage)
+{
+	auto pStream = GD_STREAM_CAST(hMessage);
+	auto nPos = pStream->get_position();
+	auto nSize = pStream->get_size();
+
+	if (nPos >= nSize)
+	{
+		pStream->seek(0);
+		pStream->get_8(); // Skip message id
+	}
+}
+
 float shared_ReadFromMessageFloat(HMESSAGEREAD hMessage)
 {
-	return (GD_STREAM_CAST(hMessage))->get_float();
+	auto fVal = (GD_STREAM_CAST(hMessage))->get_float();
+	shared_CheckAndReset(hMessage);
+	return fVal;
 }
 
 DBYTE shared_ReadFromMessageByte(HMESSAGEREAD hMessage)
 {
-	auto pStream = (GD_STREAM_CAST(hMessage));
-	auto nPos = pStream->get_position();
-
-	return (GD_STREAM_CAST(hMessage))->get_8();
+	auto bVal = (GD_STREAM_CAST(hMessage))->get_8();
+	shared_CheckAndReset(hMessage);
+	return bVal;
 }
 
 D_WORD shared_ReadFromMessageWord(HMESSAGEREAD hMessage)
 {
-	return (GD_STREAM_CAST(hMessage))->get_16();
+	auto nVal = (GD_STREAM_CAST(hMessage))->get_16();
+	shared_CheckAndReset(hMessage);
+	return nVal;
 }
 
 DDWORD shared_ReadFromMessageDWord(HMESSAGEREAD hMessage)
 {
-	return (GD_STREAM_CAST(hMessage))->get_32();
+	auto nVal = (GD_STREAM_CAST(hMessage))->get_32();
+	shared_CheckAndReset(hMessage);
+	return nVal;
 }
 
 char* shared_ReadFromMessageString(HMESSAGEREAD hMessage)
 {
-	return (GD_STREAM_CAST(hMessage))->get_string().alloc_c_string();
+	auto szVal = (GD_STREAM_CAST(hMessage))->get_string().alloc_c_string();
+	shared_CheckAndReset(hMessage);
+	return szVal;
 }
 
 void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
@@ -228,6 +248,7 @@ void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
 	auto pStream = (GD_STREAM_CAST(hMessage));
 	DVector dVec = DVector(pStream->get_float(), pStream->get_float(), pStream->get_float());
 	*pVal = dVec;
+	shared_CheckAndReset(hMessage);
 }
 
 void shared_ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
@@ -246,6 +267,7 @@ void shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
 
 	DRotation dRot = DRotation(pStream->get_float(), pStream->get_float(), pStream->get_float(), pStream->get_float());
 	*pVal = dRot;
+	shared_CheckAndReset(hMessage);
 }
 
 HOBJECT shared_ReadFromMessageObject(HMESSAGEREAD hMessage)
@@ -258,10 +280,7 @@ HSTRING shared_ReadFromMessageHString(HMESSAGEREAD hMessage)
 	LTELString* pString = new LTELString();
 
 	pString->sData = shared_ReadFromMessageString(hMessage);
-
-	auto pStream = (GD_STREAM_CAST(hMessage));
-	auto nPos = pStream->get_position();
-
+	shared_CheckAndReset(hMessage);
 	return (HSTRING)pString;
 }
 
@@ -275,7 +294,7 @@ DRESULT shared_ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hOb
 	}
 
 	*hObject = pObj;
-
+	shared_CheckAndReset(hMessage);
 	return DE_OK;
 }
 
@@ -286,7 +305,7 @@ HMESSAGEREAD shared_ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 
 	auto pNewStream = godot::StreamPeerBuffer::_new();
 	pNewStream->put_data(pStream->get_data(nSize));
-
+	shared_CheckAndReset(hMessage);
 	return (HMESSAGEREAD)pNewStream;
 }
 
