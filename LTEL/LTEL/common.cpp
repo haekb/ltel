@@ -44,7 +44,7 @@ DRESULT LTELCommon::GetRotationVectors(DRotation& rot, DVector& up, DVector& rig
 DRESULT LTELCommon::SetupEuler(DRotation& rot, float pitch, float yaw, float roll)
 {
 	godot::Quat qRot = godot::Quat();
-	qRot.set_euler(godot::Vector3(pitch, yaw, roll));
+	qRot.set_euler(godot::Vector3(yaw, pitch, roll));
 
 	rot = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
 

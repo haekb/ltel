@@ -350,6 +350,7 @@ public:
 
         g_pClient->m_sGameDataDir = sGameDataDir.alloc_c_string();
         
+        g_pClient->RunConsoleString((char*)"MouseLook 1.0");
 
         // Kick off OnEngineInit
         try {
@@ -376,6 +377,7 @@ public:
 
         if (bFirstUpdate)
         {
+
             auto pVS = godot::VisualServer::get_singleton();
             //pVS->call("set_render_loop_enabled", true);
             bFirstUpdate = false;
@@ -413,6 +415,9 @@ public:
             Godot::print("[game_update] Failed with server exception: {0}", e.what());
         }
 
+        // Clear mouse motion for this frame!
+        g_pClient->m_vRelativeMouse = godot::Vector2();
+
     }
 
     void on_key_input(int nScancode, bool bPressed)
@@ -424,6 +429,12 @@ public:
             return;
         }
         m_pGameClientShell->OnKeyUp(nVK);
+    }
+
+    void on_mouse_motion(Vector2 vRelative)
+    {
+        //Godot::print("[on_mouse_motion] {0}", vRelative);
+        g_pClient->m_vRelativeMouse = vRelative;
     }
 
     void test_void_method() {
@@ -448,6 +459,7 @@ public:
         register_method("init_cshell", &LTEL::initialize_cshell);
         register_method("game_update", &LTEL::game_update);
         register_method("on_key_input", &LTEL::on_key_input);
+        register_method("on_mouse_motion", &LTEL::on_mouse_motion);
 
         /**
          * The line below is equivalent to the following GDScript export:

@@ -276,13 +276,15 @@ void impl_EulerRotateX(DRotation* pRotation, float amount)
 	godot::Quat vQuat = godot::Quat(pRotation->m_Vec.x, pRotation->m_Vec.y, pRotation->m_Vec.z, pRotation->m_Spin);
 	auto vEuler = vQuat.get_euler();
 
-	vEuler = vEuler.rotated(godot::Vector3(1.0f, 0.0f, 0.0f), amount);
+	vQuat.set_axis_angle(godot::Vector3(0.0f, 1.0f, 0.0f), amount);
 
-	vQuat.set_euler(vEuler);
-	pRotation->m_Vec.x = vQuat.x;
-	pRotation->m_Vec.y = vQuat.y;
-	pRotation->m_Vec.z = vQuat.z;
-	pRotation->m_Spin = vQuat.w;//1.0f;
+	//vEuler = godot::Vector3(1.0f, 1.0f, 1.0f).rotated(godot::Vector3(0.0f, 1.0f, 0.0f), amount);
+
+	//vQuat.set_euler(vEuler);
+	pRotation->m_Vec.x += vQuat.x;
+	pRotation->m_Vec.y += vQuat.y;
+	pRotation->m_Vec.z += vQuat.z;
+	pRotation->m_Spin += vQuat.w;//1.0f;
 }
 
 DDWORD impl_GetObjectFlags(HLOCALOBJ hObj)

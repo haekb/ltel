@@ -30,6 +30,14 @@ func _process(delta):
 	pass
 # End Func
 
+func _input(event):
+	if is_init == false:
+		return
+	# End If
+	if event is InputEventMouseMotion:
+		data.on_mouse_motion(event.relative)
+	# End If
+
 func _unhandled_input(event):
 	if is_init == false:
 		return
@@ -37,5 +45,11 @@ func _unhandled_input(event):
 	
 	if event is InputEventKey:		
 		data.on_key_input(event.scancode, event.pressed)
+	#elif event is InputEventMouseButton:
+	#	pass
+	#elif event is InputEventMouseMotion:
+	#	data.on_mouse_motion(event.relative)
 	# End If
+	
+	
 # End Func

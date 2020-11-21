@@ -497,16 +497,18 @@ void impl_GetAxisOffsets(DFLOAT* offsets)
 	offsets[1] = 0.0f;
 	offsets[2] = 0.0f;
 
-	return;
 
 	POINT lpPoint;
 	int deltaX = 0, deltaY = 0;
+
+	deltaX = g_pLTELClient->m_vRelativeMouse.x;
+	deltaY = g_pLTELClient->m_vRelativeMouse.y;
 
 	static int m_iCurrentMouseX = 0;
 	static int m_iCurrentMouseY = 0;
 	static int m_iPreviousMouseX = 0;
 	static int m_iPreviousMouseY = 0;
-	static float m_fMouseSensitivity = 0.0025f;
+	static float m_fMouseSensitivity = 1.0025f;
 
 #if 0
 	SDL_PumpEvents();
@@ -534,6 +536,8 @@ void impl_GetAxisOffsets(DFLOAT* offsets)
 	offsets[0] = (float)(m_iCurrentMouseX - m_iPreviousMouseX) * nScaleX;
 	offsets[1] = (float)(m_iCurrentMouseY - m_iPreviousMouseY) * (nScaleY);
 	offsets[2] = 0.0f;
+
+	//g_pLTELClient->CPrint((char*)"[GetAxisOffset] %f/%f/%f", offsets[0], offsets[1], offsets[2]);
 
 	m_iPreviousMouseX = m_iCurrentMouseX;
 	m_iPreviousMouseY = m_iCurrentMouseY;

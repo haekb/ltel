@@ -59,6 +59,8 @@ public:
 
     CClientShellDE* m_pClientShell;
 
+    godot::Vector2 m_vRelativeMouse;
+
 	//
 	// CSBASE
 	//
