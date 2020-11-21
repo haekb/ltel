@@ -26,6 +26,8 @@ void shared_FreeString(HSTRING hString);
 // This is actually from CSBase, but both sides need to implement it.
 //
 
+void shared_CleanupStream(godot::StreamPeerBuffer* pStream);
+
 bool shared_SetStreamValue(godot::StreamPeerBuffer* pStream, godot::Variant pValue);
 
 // Start a data message for writing.  A data message is used to write an HMESSAGEWRITE into another

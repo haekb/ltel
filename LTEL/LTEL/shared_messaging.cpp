@@ -3,15 +3,36 @@
 // For ez casting
 #define GD_STREAM_CAST(x) (godot::StreamPeerBuffer*) x
 
+std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
+
+
+void shared_CleanupStream(godot::StreamPeerBuffer* pStream)
+{
+	std::vector<godot::StreamPeerBuffer*> vTemp;
+
+	for (auto pBuffer : g_pStreamInUse)
+	{
+		if (pStream != pBuffer)
+		{
+			vTemp.push_back(pStream);
+		}
+	}
+
+	g_pStreamInUse.clear();
+	g_pStreamInUse = vTemp;
+}
+
 bool shared_SetStreamValue(godot::StreamPeerBuffer* pStream, godot::Variant pValue)
 {
-	pStream->put_var(pValue, true);
+	pStream->put_var(pValue, false);
 	return true;
 }
 
 HMESSAGEWRITE	shared_StartHMessageWrite()
 {
 	godot::StreamPeerBuffer* pStream = godot::StreamPeerBuffer::_new();
+
+	g_pStreamInUse.push_back(pStream);
 
 	return (HMESSAGEWRITE)pStream;
 }
@@ -49,8 +70,13 @@ DRESULT shared_WriteToMessageString(HMESSAGEWRITE hMessage, char* pStr)
 
 DRESULT shared_WriteToMessageVector(HMESSAGEWRITE hMessage, DVector* pVal)
 {
-	godot::Vector3 pVector = godot::Vector3(pVal->x, pVal->y, pVal->z);
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), pVector);
+	auto pStream = GD_STREAM_CAST(hMessage);
+
+	pStream->put_float(pVal->x);
+	pStream->put_float(pVal->y);
+	pStream->put_float(pVal->z);
+
+	bool bVal = true;
 	return bVal ? DE_OK : DE_ERROR;
 }
 
@@ -66,8 +92,14 @@ DRESULT shared_WriteToMessageCompPosition(HMESSAGEWRITE hMessage, DVector* pVal)
 
 DRESULT shared_WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal)
 {
-	godot::Quat pQuat = godot::Quat(pVal->m_Vec.x, pVal->m_Vec.y, pVal->m_Vec.z, pVal->m_Spin);
-	auto bVal = shared_SetStreamValue(GD_STREAM_CAST(hMessage), pQuat);
+	auto pStream = GD_STREAM_CAST(hMessage);
+
+	pStream->put_float(pVal->m_Vec.x);
+	pStream->put_float(pVal->m_Vec.y);
+	pStream->put_float(pVal->m_Vec.z);
+	pStream->put_float(pVal->m_Spin);
+
+	bool bVal = true;
 	return bVal ? DE_OK : DE_ERROR;
 }
 
@@ -114,6 +146,7 @@ DRESULT shared_WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messag
 
 DRESULT shared_WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 {
+	return DE_OK;
 	GameObject* pObject = (GameObject*)hObj;
 	auto pStream = GD_STREAM_CAST(hMessage);
 
@@ -192,10 +225,9 @@ char* shared_ReadFromMessageString(HMESSAGEREAD hMessage)
 
 void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
-	godot::Vector3 vVal = (GD_STREAM_CAST(hMessage))->get_var();
-	pVal->x = vVal.x;
-	pVal->y = vVal.y;
-	pVal->z = vVal.z;
+	auto pStream = (GD_STREAM_CAST(hMessage));
+	DVector dVec = DVector(pStream->get_float(), pStream->get_float(), pStream->get_float());
+	*pVal = dVec;
 }
 
 void shared_ReadFromMessageCompVector(HMESSAGEREAD hMessage, DVector* pVal)
@@ -210,17 +242,15 @@ void shared_ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal)
 
 void shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
 {
-	godot::Quat qVal = (GD_STREAM_CAST(hMessage))->get_var();
-	pVal->m_Vec.x = qVal.x;
-	pVal->m_Vec.y = qVal.y;
-	pVal->m_Vec.z = qVal.z;
-	pVal->m_Spin = qVal.w;
+	auto pStream = (GD_STREAM_CAST(hMessage));
 
+	DRotation dRot = DRotation(pStream->get_float(), pStream->get_float(), pStream->get_float(), pStream->get_float());
+	*pVal = dRot;
 }
 
 HOBJECT shared_ReadFromMessageObject(HMESSAGEREAD hMessage)
 {
-	return HOBJECT();
+	return nullptr;
 }
 
 HSTRING shared_ReadFromMessageHString(HMESSAGEREAD hMessage)
@@ -262,11 +292,13 @@ HMESSAGEREAD shared_ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 
 void shared_EndHMessageRead(HMESSAGEREAD hMessage)
 {
+	shared_CleanupStream(GD_STREAM_CAST(hMessage));
 	(GD_STREAM_CAST(hMessage))->free();
 }
 
 void shared_EndHMessageWrite(HMESSAGEWRITE hMessage)
 {
+	shared_CleanupStream(GD_STREAM_CAST(hMessage));
 	(GD_STREAM_CAST(hMessage))->free();
 }
 

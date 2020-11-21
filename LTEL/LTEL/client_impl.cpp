@@ -546,6 +546,12 @@ void impl_GetAxisOffsets(DFLOAT* offsets)
 	//m_bGetAxisOffsetCalledThisFrame = true;
 }
 
+DDWORD impl_GetPointContainers(DVector* pPoint, HLOCALOBJ* pList, DDWORD maxListSize)
+{
+	*pList = nullptr;
+	return 0;
+}
+
 //
 // Setup our struct!
 //
@@ -561,6 +567,9 @@ void LTELClient::InitFunctionPointers()
 	SetModelHook = impl_SetModelHook;
 
 	RegisterConsoleProgram = impl_RegisterConsoleProgram;
+
+	// Container functionality
+	GetPointContainers = impl_GetPointContainers;
 
 	// System/IO functionality
 	ReadConfigFile = impl_ReadConfigFile;

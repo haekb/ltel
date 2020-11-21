@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_map>
 
+
 class GameObject
 {
 public:
@@ -51,14 +52,14 @@ public:
 	void* GetExtraData() { return m_pExtraData; }
 
 	// Data set!
-	void SetNode(godot::Spatial* pNode) { m_pData.pNode = pNode; }
-	void SetCamera(godot::Camera* pCam) { m_pData.pCamera = pCam; }
-	void SetPolyGrid(godot::MeshInstance* pMesh) { m_pData.pPolyGrid = pMesh; }
+	void SetNode(godot::Spatial* pNode) { m_pNode = pNode; }
+	void SetCamera(godot::Camera* pCam) { m_pCamera = pCam; }
+	void SetPolyGrid(godot::MeshInstance* pMesh) { m_pPolyGrid = pMesh; }
 
 	// Data get!
 	godot::Spatial* GetNode();
-	godot::Camera* GetCamera() { return m_pData.pCamera; }
-	godot::MeshInstance* GetPolyGrid() { return m_pData.pPolyGrid; }
+	godot::Camera* GetCamera() { return m_pCamera; }
+	godot::MeshInstance* GetPolyGrid() { return m_pPolyGrid; }
 
 	//std::unordered_map<std::string, GenericProp*> m_mProps;
 
@@ -88,11 +89,10 @@ protected:
 	void* m_pServerObject;
 
 	// Camera:
-	union {
-		godot::Spatial* pNode; // Normies only
-		godot::Camera* pCamera;
-		godot::MeshInstance* pPolyGrid;
-
-	} m_pData;
+	//union {
+	godot::Spatial* m_pNode; // Normies only
+	godot::Camera* m_pCamera;
+	godot::MeshInstance* m_pPolyGrid;
+	//} m_pData;
 };
 

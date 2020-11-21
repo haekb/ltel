@@ -183,6 +183,7 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 
 DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 {
+	return DE_OK;
 	LTELSurface* pDest = (LTELSurface*)hDest;
 
 	godot::Vector2 vPos;
@@ -601,7 +602,7 @@ DRESULT impl_RenderObjects(HLOCALOBJ hCamera, HLOCALOBJ* pObjects, int nObjects)
 		//pDetailImage->save_png("detail.png");
 
 		// Clear the data
-		memset(pData, 0, sizeof(pDepthImage->get_data().size()));
+		memset(pData, 0, pDepthImage->get_data().size());
 	}
 
 	// Clean up our list of pointers!

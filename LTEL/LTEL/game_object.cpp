@@ -1,4 +1,5 @@
 #include "game_object.h"
+#include "helpers.h"
 
 #include <Godot.hpp>
 #include <Quat.hpp>
@@ -25,13 +26,52 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 
 	m_nState = 0;
 
-	m_pData.pNode = nullptr;
+	m_pNode = nullptr;
+	m_pCamera = nullptr;
+	m_pPolyGrid = nullptr;
+
 	m_pExtraData = nullptr;
 	m_pServerObject = nullptr; // Needed??
 }
 
 GameObject::~GameObject()
 {
+	// Camera is a global object, we do not delete it!
+	if (m_nObjectType == OT_CAMERA)
+	{
+		return;
+	}
+
+	
+	if (m_pPolyGrid)
+	{
+		m_pPolyGrid->free();
+		m_pPolyGrid = nullptr;
+
+		// Clear any cached results
+		m_pNode = nullptr;
+
+		LTELPolyGrid* pExtraData = (LTELPolyGrid*)GetExtraData();
+
+		if (pExtraData->pColorTable)
+		{
+			free(pExtraData->pColorTable);
+			pExtraData->pColorTable = nullptr;
+		}
+
+		if (pExtraData->pData)
+		{
+			free(pExtraData->pData);
+		}
+		pExtraData->pData = nullptr;
+	}
+
+	if (m_pNode)
+	{
+		m_pNode->free();
+		m_pNode = nullptr;
+	}
+
 }
 
 void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
@@ -114,23 +154,7 @@ void GameObject::SetFlags(int nFlag)
 {
 	m_nFlags = nFlag;
 
-	godot::Spatial* pNode = nullptr;
-
-	switch (m_nObjectType)
-	{
-	case OT_NORMAL:
-	case OT_MODEL:
-		pNode = GetNode();
-		break;
-	case OT_CAMERA:
-		pNode = godot::Object::cast_to<godot::Spatial>(GetCamera());
-		break;
-	case OT_POLYGRID:
-		pNode = godot::Object::cast_to<godot::Spatial>(GetPolyGrid());
-		break;
-	default:
-		return;
-	}
+	godot::Spatial* pNode = GetNode();
 
 	if (!pNode)
 	{
@@ -149,22 +173,45 @@ void GameObject::SetFlags(int nFlag)
 
 godot::Spatial* GameObject::GetNode()
 {
-	switch (m_nObjectType)
+	godot::Spatial* pNode = nullptr;
+
+	// Either it's a spatial, or this is a cached result.
+	if (m_pNode)
 	{
-	case OT_MODEL:
-	case OT_NORMAL:
-		return m_pData.pNode;
-	case OT_POLYGRID:
-		return godot::Object::cast_to<godot::Spatial>(m_pData.pPolyGrid);
-	case OT_CAMERA:
-		return godot::Object::cast_to<godot::Spatial>(m_pData.pCamera);
+		return m_pNode;
 	}
 
-	return nullptr;
+	switch (m_nObjectType)
+	{
+	case OT_POLYGRID:
+		pNode = godot::Object::cast_to<godot::Spatial>(m_pPolyGrid);
+		break;
+	case OT_CAMERA:
+		pNode = godot::Object::cast_to<godot::Spatial>(m_pCamera);
+		break;
+	case OT_MODEL:
+	case OT_NORMAL:
+	default:
+		pNode = m_pNode;
+		break;
+	}
+
+	m_pNode = pNode;
+
+	return pNode;
 }
 
 void GameObject::Teleport(DVector vNewPos)
 {
 	m_vPos = vNewPos;
-	// TODO: actually move the godot object
+
+	auto pNode = GetNode();
+
+	if (!pNode)
+	{
+		return;
+	}
+
+	auto vGDPos = LT2GodotVec3(vNewPos);
+	pNode->translate(vGDPos);
 }

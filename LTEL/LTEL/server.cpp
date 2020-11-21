@@ -15,6 +15,8 @@ ServerDE* g_pServerDE = nullptr;
 // I'm not sure where else to throw this, but if we don't have this some macro fails, and it sucks.
 __ClassDefiner* __g_ClassDefinerHead = nullptr;
 
+extern std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
+
 LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 {
 	g_pLTELServer = this;
@@ -230,6 +232,8 @@ DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 	auto pClientShell = (CClientShellDE*)m_pClientList[0]->GetClientShell();
 
 	pClientShell->OnMessage(pMessageId, hMessage);
+
+	shared_CleanupStream((godot::StreamPeerBuffer*)hMessage);
 
 	// Ok clean it up!
 	pStream->free();

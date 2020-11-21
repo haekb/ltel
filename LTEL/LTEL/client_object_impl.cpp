@@ -32,7 +32,7 @@ std::vector<GameObject*> g_pPolygridsToUpdate;
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
 	GameObject* pObject = new GameObject(nullptr, nullptr);
-	pObject->SetFromObjectCreateStruct(*pStruct);
+	
 	
 	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
 
@@ -157,7 +157,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		return nullptr;
 	}
 
-	pObject->SetFlags(pStruct->m_Flags);
+	pObject->SetFromObjectCreateStruct(*pStruct);
 
 	return (HLOCALOBJ)pObject;
 }
@@ -176,14 +176,6 @@ DRESULT impl_DeleteObject(HLOCALOBJ hObj)
 	if (!pNode)
 	{
 		return DE_ERROR;
-	}
-
-	pNode->queue_free();
-
-	if (pObject->IsType(OT_POLYGRID))
-	{
-		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->GetExtraData();
-		free(pExtraData->pColorTable);
 	}
 
 	delete pObject;
@@ -572,7 +564,7 @@ DRESULT impl_GetPolyGridInfo(HLOCALOBJ hObj, char** pBytes, DDWORD* pWidth, DDWO
 	// This allows the game code to modify it
 	auto pImage = pExtraData->pHeightmap->get_data();
 	auto pData = pImage->get_data();
-	memcpy(pExtraData->pData, pData.read().ptr(), sizeof(pData.size()));
+	memcpy(pExtraData->pData, pData.read().ptr(), pData.size());
 
 	// Heightmap info - basic heightmap image that can be passed into Depth pass of a SpatialShader!
 	*pBytes = pExtraData->pData;
@@ -679,6 +671,17 @@ void impl_SetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
 	pObject->GetNode()->set_rotation(qRot.get_euler());
 }
 
+void impl_SetObjectPosAndRotation(HLOCALOBJ hObj, DVector* pPos, DRotation* pRotation)
+{
+	impl_SetObjectPos(hObj, pPos);
+	impl_SetObjectRotation(hObj, pRotation);
+}
+
+DDWORD impl_GetModelPlaybackState(HLOCALOBJ hObj)
+{
+	return 0;
+}
+
 // This must be last!
 void LTELClient::InitObjectImpl()
 {
@@ -692,6 +695,7 @@ void LTELClient::InitObjectImpl()
 	SetObjectScale = impl_SetObjectScale;
 	GetObjectRotation = impl_GetObjectRotation;
 	SetObjectRotation = impl_SetObjectRotation;
+	SetObjectPosAndRotation = impl_SetObjectPosAndRotation;
 	EulerRotateX = impl_EulerRotateX;
 
 	SetObjectFlags = impl_SetObjectFlags;
@@ -709,6 +713,7 @@ void LTELClient::InitObjectImpl()
 	GetModelAnimation = impl_GetModelAnimation;
 	SetModelAnimation = impl_SetModelAnimation;
 	GetAnimIndex = impl_GetAnimIndex;
+	GetModelPlaybackState = impl_GetModelPlaybackState;
 
 	// Polygrid
 	SetupPolyGrid = impl_SetupPolyGrid;

@@ -478,6 +478,21 @@ char* simpl_GetVarValueString(HCONVAR hVar)
 }
 
 
+DRESULT simpl_SetObjectRotation(HOBJECT hObj, DRotation* pRotation)
+{
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	godot::Quat qRot = LT2GodotQuat(pRotation);
+
+	GameObject* pObject = (GameObject*)hObj;
+
+	pObject->GetNode()->set_rotation(qRot.get_euler());
+	return DE_OK;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -498,6 +513,8 @@ void LTELServer::InitFunctionPointers()
 	SetObjectFlags = simpl_SetObjectFlags;
 	GetObjectPos = simpl_GetObjectPos;
 	SetObjectPos = simpl_SetObjectPos;
+	GetObjectRotation = nullptr;
+	SetObjectRotation = simpl_SetObjectRotation;
 
 	GetPropGeneric = simpl_GetPropGeneric;
 	GetPropString = simpl_GetPropString;

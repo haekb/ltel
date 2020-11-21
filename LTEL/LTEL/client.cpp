@@ -19,6 +19,8 @@
 
 LTELClient* g_pLTELClient = nullptr;
 
+extern std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
+
 LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 {
 	g_pLTELClient = this;
@@ -177,6 +179,7 @@ godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 
 bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale)
 {
+	return DE_OK;
 	bool bCanBlit = false;
 
 	if (!pDest || !pSrc)
@@ -194,7 +197,7 @@ bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRe
 	auto vPos = godot::Vector2(pDestRect->left, pDestRect->top);
 	auto vSize = godot::Vector2(pDestRect->right - pDestRect->left, pDestRect->bottom - pDestRect->top);
 
-	godot::Node* pNode = godot::Object::cast_to<godot::Node>(pControl);//GDCAST(godot::Node, pControl);
+	godot::Node* pNode = GDCAST(godot::Node, pControl);
 
 	// Screen!
 	if (!pDest->bIsScreen)
@@ -376,6 +379,8 @@ DRESULT LTELClient::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 
 
 	m_pLTELServer->ReceiveMessageFromClient(m_pClientInfo, (godot::StreamPeerBuffer*)hMessage, flags);
+
+	shared_CleanupStream((godot::StreamPeerBuffer*)hMessage);
 
 	// Clean up...
 	auto pStream = (godot::StreamPeerBuffer*)hMessage;
