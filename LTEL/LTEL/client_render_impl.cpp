@@ -268,6 +268,8 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 	// Incase a few surfaces sneaked in, we'll hold a list of ones that AREN'T queued for deletion
 	std::vector<LTELSurface*> pTemp;
 
+	int nCount = 0;
+
 	// Loop through and free!
 	for (auto pSurface : g_pSurfacesQueuedForDeletion)
 	{
@@ -281,7 +283,8 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 		{
 			if (!pSurface->pLabel->is_inside_tree())
 			{
-				pSurface->pLabel->free();
+				pSurface->pLabel->queue_free();
+				nCount++;
 			}
 			else
 			{
@@ -293,7 +296,8 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 		{
 			if (!pSurface->pTextureRect->is_inside_tree())
 			{
-				pSurface->pTextureRect->free();
+				pSurface->pTextureRect->queue_free();
+				nCount++;
 			}
 			else
 			{
@@ -306,6 +310,10 @@ DRESULT impl_ClearScreen(DRect* pClearRect, DDWORD flags)
 		pSurface = nullptr;
 	}
 
+	if (nCount > 0)
+	{
+		godot::Godot::print("[ClearScreen] Queued {0} items for deletion", nCount);
+	}
 
 	g_pSurfacesQueuedForDeletion.clear();
 	g_pSurfacesQueuedForDeletion = pTemp;

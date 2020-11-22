@@ -284,14 +284,14 @@ DBOOL impl_ResumeMusic()
 
 DRESULT impl_PlaySound(PlaySoundInfo* pPlaySoundInfo)
 {
-	void* pData = malloc(4);
-	pPlaySoundInfo->m_hSound = (HSOUNDDE)pData;
+	//void* pData = malloc(4);
+	pPlaySoundInfo->m_hSound = nullptr;// (HSOUNDDE)pData;
 	return DE_OK;
 }
 
 void impl_KillSound(HSOUNDDE pSoundHandle)
 {
-	free(pSoundHandle);
+	//free(pSoundHandle);
 	return;
 }
 
@@ -380,6 +380,7 @@ int	impl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** ar
 		{
 			char szArg[nMaxBuffer];
 			strcpy_s(szArg, nMaxBuffer, sCurrent.c_str());
+			szArg[nMaxBuffer-1] = '\0';
 
 			argPointers[*nArgs] = szArg;
 			++(*nArgs);
@@ -393,12 +394,13 @@ int	impl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** ar
 			bIgnoreSpace = !bIgnoreSpace;
 			continue;
 		}
-		
+
 		// Seperator between key/value
 		if (!bIgnoreSpace && szCurrent == ' ')
 		{
 			char szArg[nMaxBuffer];
 			strcpy_s(szArg, nMaxBuffer, sCurrent.c_str());
+			szArg[nMaxBuffer-1] = '\0';
 
 			argPointers[*nArgs] = szArg;
 			++(*nArgs);
@@ -412,6 +414,7 @@ int	impl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** ar
 		{
 			char szArg[nMaxBuffer];
 			strcpy_s(szArg, nMaxBuffer, sCurrent.c_str());
+			szArg[nMaxBuffer-1] = '\0';
 
 			argPointers[*nArgs] = szArg;
 			++(*nArgs);
@@ -509,20 +512,6 @@ void impl_GetAxisOffsets(DFLOAT* offsets)
 	static int m_iPreviousMouseX = 0;
 	static int m_iPreviousMouseY = 0;
 	static float m_fMouseSensitivity = 1.0025f;
-
-#if 0
-	SDL_PumpEvents();
-
-	// Firstly, we need a point of reference.
-	// This conditional is here, in case we need to reset the mouse.
-	if (m_bGetBaseMouse)
-	{
-		SDL_GetMouseState(&m_iCurrentMouseX, &m_iCurrentMouseY);
-		m_bGetBaseMouse = false;
-	}
-
-	SDL_GetRelativeMouseState(&deltaX, &deltaY);
-#endif
 
 	m_iCurrentMouseX += deltaX;
 	m_iCurrentMouseY += deltaY;

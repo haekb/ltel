@@ -15,6 +15,11 @@
 #include "LT1//AppHeaders/cpp_clientshell_de.h"
 //#include "pch.h"
 
+#ifdef _DEBUG
+//#include "debug_help.h"
+//extern std::vector<ALLOC_INFO*> g_vAllocList;
+#endif
+
 using namespace godot;
 
 typedef int f_GetClientShellVersion();
@@ -238,6 +243,8 @@ public:
 
     bool initialize_cshell(godot::String sGameDataDir)
     {
+
+
 #ifdef WAIT_FOR_DEBUGGER
         while (!::IsDebuggerPresent())
         {

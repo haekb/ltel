@@ -9,6 +9,10 @@ var is_init = false
 func _ready():
 	data.set_name("LTELBinder")
 	add_child(data)
+	is_init = data.init_cshell("D:/GOG Games/Shogo - Mobile Armor Division - dev/Shogo2/")
+	return
+	
+
 	
 	# Load it up!
 	if !self.config.load_config():

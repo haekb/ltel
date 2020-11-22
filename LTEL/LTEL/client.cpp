@@ -166,6 +166,7 @@ godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadDTX(std::string sPath)
 {
+	return nullptr;
 	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadDTX");
 	godot::Ref<godot::ImageTexture> pTexture = pNode->call("build", sPath.c_str(), godot::Array());
 	return pTexture;
