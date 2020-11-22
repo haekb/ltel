@@ -5,6 +5,9 @@
 
 std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
 
+// Guarenteed to be magic by our resident wizards
+#define MAGIC_NUMBER 4528
+
 
 void shared_CleanupStream(godot::StreamPeerBuffer* pStream)
 {
@@ -128,9 +131,20 @@ DRESULT shared_WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE
 		return DE_OK;
 	}
 
-	// Put the size in first
-	pDestStream->put_32(pSrcStream->get_size());
-	return pDestStream->put_data(pSrcStream->get_data(pSrcStream->get_size())) == godot::Error::OK ? DE_OK : DE_ERROR;
+	auto pData = pSrcStream->get_data_array();
+	auto nSize = pData.size();
+
+	// Put the size before our data blob,
+	// so we can later extract the blob!
+	pDestStream->put_32(nSize);
+	auto nOk = pDestStream->put_data(pData);
+
+#if _DEBUG
+	// For later testing...
+	pDestStream->put_64(MAGIC_NUMBER);
+#endif
+
+	return nOk == godot::Error::OK ? DE_OK : DE_ERROR;
 }
 
 DRESULT shared_WriteToMessageHMessageRead(HMESSAGEWRITE hMessage, HMESSAGEREAD hDataMessage)
@@ -301,10 +315,35 @@ DRESULT shared_ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hOb
 HMESSAGEREAD shared_ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 {
 	auto pStream = GD_STREAM_CAST(hMessage);
-	int nSize = pStream->get_32();
 
-	auto pNewStream = godot::StreamPeerBuffer::_new();
-	pNewStream->put_data(pStream->get_data(nSize));
+
+	// Start our new stream!
+	auto pNewStream = GD_STREAM_CAST(shared_StartHMessageWrite());
+
+	// Get the size of the data blob
+	int nSize = pStream->get_32();
+	// Get the data blob, this function returns an array of two values,
+	// Error code, and the actual data...
+	auto pArr = pStream->get_data(nSize);
+
+#if _DEBUG
+	// If we don't get our magic value, then we did not actually get the right amount of data
+	auto nMagicNumber = pStream->get_64();
+
+	if (nMagicNumber != MAGIC_NUMBER)
+	{
+		godot::Godot::print("[shared_ReadFromMessageHMessageRead] ERROR! MAGIC NUMBER WAS NOT FOUND!!");
+	}
+#endif
+
+	// Retrieve the error code, and the data
+	int ErrorCode = pArr.pop_front();
+	godot::PoolByteArray pData = pArr.pop_back();
+	
+	// Insert the data, and reset the stream position
+	pNewStream->put_data(pData);
+	pNewStream->seek(0);
+
 	shared_CheckAndReset(hMessage);
 	return (HMESSAGEREAD)pNewStream;
 }
