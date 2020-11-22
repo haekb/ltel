@@ -43,8 +43,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		break;
 	case OT_NORMAL:
 	{
-		delete pObject;
-		return nullptr;
 		auto pNode = godot::Spatial::_new();
 
 		// Add it into the world!
@@ -61,8 +59,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		break;
 	case OT_POLYGRID:
 	{
-		delete pObject;
-		return nullptr;
 		// Grab our in-scene prefab
 		auto pMeshInstance = godot::Object::cast_to<godot::MeshInstance>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Prefabs/PolyGrid"));
 

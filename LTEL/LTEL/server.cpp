@@ -49,6 +49,7 @@ void LTELServer::SetGameInfo(void* pData, int pLen)
 	if (m_pGameInfo)
 	{
 		free(m_pGameInfo);
+		m_pGameInfo = nullptr;
 	}
 
 	m_pGameInfo = malloc(pLen);
