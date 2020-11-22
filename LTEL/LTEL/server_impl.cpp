@@ -193,38 +193,131 @@ LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
 
 LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStruct)
 {
+#if 0
+	g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
+	g_pLTELServer->m_pCurrentObject = nullptr;
+	return nullptr;
+#endif
 	ClassDef* pClass = (ClassDef*)hClass;
 
 	if (!pClass)
 	{
 		return nullptr;
 	}
+	LPBASECLASS pBaseClass = nullptr;
 
-	LPBASECLASS pBaseClass = new BaseClass(pStruct->m_ObjectType);
-	GameObject* pObject = new GameObject(pClass, pBaseClass);
+
+
+	
+	pBaseClass = (BaseClass*)malloc(pClass->m_ClassObjectSize);//new BaseClass(pStruct->m_ObjectType);
+	memset(pBaseClass, 0, pClass->m_ClassObjectSize);
+	pBaseClass->m_pFirstAggregate = nullptr;
+	pBaseClass->m_hObject = nullptr;
+
 
 	pClass->m_ConstructFn(pBaseClass);
+
+#if 0
+	std::vector <void*> pVoid;
+
+	while (true)
+	{
+		void* pData = malloc(1024);
+		pVoid.push_back(pData);
+		//
+
+		//break;
+		Sleep(10);
+	}
+
+	for (auto pData : pVoid)
+	{
+		free(pData);
+		pData = nullptr;
+	}
+
+	pVoid.clear();
+#endif
+#if 0
+
+	auto pClassDef = pClass;
+	while (pClassDef)
+	{
+		if (pClassDef->m_EngineMessageFn)
+		{
+			break;
+		}
+		pClassDef = pClassDef->m_ParentClass;
+	}
+	
+	auto nResult = pClassDef->m_EngineMessageFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
+
+	/*
+	// Call the aggregates.
+	auto pAggregate = pBaseClass->m_pFirstAggregate;
+	while (pAggregate)
+	{
+		pAggregate->m_EngineMessageFn(pBaseClass, pAggregate, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
+		pAggregate = pAggregate->m_pNextAggregate;
+	}
+	*/
+#else
+	
+	
+
+
 	pClass->m_EngineMessageFn = pBaseClass->_EngineMsgFn;
 	pClass->m_ObjectMessageFn = pBaseClass->_ObjectMsgFn;
 
-	auto nResult = pClass->m_EngineMessageFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
 
-	pObject->SetFromObjectCreateStruct(*pStruct);
 
-	g_pLTELServer->m_pCurrentObject = pObject;
 
-	// 1 is ok?
+	//auto nResult = pBaseClass->EngineMessageFn(MID_PRECREATE, pStruct, PRECREATE_NORMAL); //
+	auto nResult = pBaseClass->_EngineMsgFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
+
+
+#endif
+
 	if (nResult == 1)
-	{
-		auto pClient = g_pLTELServer->m_pClientList.end();
+	{ 
 
-		for (auto pClient : g_pLTELServer->m_pClientList)
-		{
-			pClient->GetClient()->CreateObject(pStruct);
-		}
+		GameObject* pObject = new GameObject(pClass, pBaseClass);
+		//pBaseClass->m_hObject = (HOBJECT)pObject;
+
+		pObject->SetFromObjectCreateStruct(*pStruct);
+
+		g_pLTELServer->m_pCurrentObject = pObject;
+
+		g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
+
 
 		// We can safely add this to our object list!
 		g_pLTELServer->m_pObjectList.push_back(pObject);
+
+#if 0
+		std::vector <void*> pVoid;
+
+		while (true)
+		{
+			void* pData = malloc(1024);
+			pVoid.push_back(pData);
+			//
+
+			//break;
+			Sleep(10);
+		}
+
+		for (auto pData : pVoid)
+		{
+			free(pData);
+			pData = nullptr;
+		}
+
+		pVoid.clear();
+#endif
+
+		//auto nResult = pBaseClass->EngineMessageFn(MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
+		//pBaseClass->_EngineMsgFn(pBaseClass, MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
 
 
 
@@ -233,7 +326,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 
 	// Cleanup!
 	delete pBaseClass;
-	delete pObject;
+	//delete pObject;
 	g_pLTELServer->m_pCurrentObject = nullptr;
 
 	return nullptr;
