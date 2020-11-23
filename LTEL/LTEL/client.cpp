@@ -17,6 +17,9 @@
 #include "common.h"
 #include "game_object.h"
 
+#include "common_physics.h"
+#include "client_physics.h"
+
 LTELClient* g_pLTELClient = nullptr;
 
 extern std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
@@ -44,6 +47,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	InitStringImpl();
 
 	m_pCommonLT = new LTELCommon();
+	m_pPhysicsLT = new LTELClientPhysics();
 }
 
 LTELClient::~LTELClient()

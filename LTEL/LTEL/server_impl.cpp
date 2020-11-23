@@ -244,7 +244,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 	{ 
 
 		GameObject* pObject = new GameObject(pClass, pBaseClass);
-		//pBaseClass->m_hObject = (HOBJECT)pObject;
+		pBaseClass->m_hObject = (HOBJECT)pObject;
 
 		pObject->SetFromObjectCreateStruct(*pStruct);
 
@@ -554,6 +554,38 @@ void simpl_SetGameConVar(char* pName, char* pVal)
 	return;
 }
 
+DBOOL simpl_CastRay(ClientIntersectQuery* pQuery, ClientIntersectInfo* pInfo)
+{
+	// I'll need to implement geometry before I can cast to it!
+	pInfo->m_hObject = nullptr;
+	pInfo->m_hPoly = INVALID_HPOLY;
+	pInfo->m_Plane = DPlane(0, 0, 0, 0);
+	pInfo->m_Point = DVector(0, 0, 0);
+	pInfo->m_SurfaceFlags = 0;
+	return FALSE;
+}
+
+DDWORD simpl_GetObjectContainers(HOBJECT hObj, HOBJECT* pContainerList, DDWORD* pFlagList, DDWORD maxListSize)
+{
+	*pContainerList = nullptr;
+	*pFlagList = 0;
+	return 0;
+}
+
+DBOOL simpl_GetModelFilenames(HOBJECT hObj, char* pFilename, int fileBufLen, char* pSkinName, int skinBufLen)
+{
+	if (!hObj)
+	{
+		return FALSE;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	strcpy_s(pFilename, fileBufLen, pObj->GetFilename().c_str());
+	strcpy_s(pSkinName, skinBufLen, pObj->GetFilename().c_str());
+	return TRUE;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -566,6 +598,7 @@ void LTELServer::InitFunctionPointers()
 	FindNamedObjects = simpl_FindNamedObjects;
 	TeleportObject = simpl_TeleportObject;
 	SetNextUpdate = simpl_SetNextUpdate;
+	GetModelFilenames = simpl_GetModelFilenames;
 
 	// Get/Sets
 	GetObjectState = simpl_GetObjectState;
@@ -587,6 +620,12 @@ void LTELServer::InitFunctionPointers()
 	GetPropLongInt = simpl_GetPropLongInt;
 	GetPropRotation = simpl_GetPropRotation;
 	GetPropRotationEuler = simpl_GetPropRotationEuler;
+
+	// Container functionality
+	GetObjectContainers = simpl_GetObjectContainers;
+
+	// Raycasting functionality
+	CastRay = simpl_CastRay;
 
 	// System/IO functionality
 	BPrint = simpl_BPrint;

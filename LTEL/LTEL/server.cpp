@@ -6,6 +6,8 @@
 #include <File.hpp>
 
 #include "common.h"
+#include "common_physics.h"
+#include "client_physics.h"
 
 LTELServer* g_pLTELServer = nullptr;
 
@@ -37,6 +39,7 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	InitFunctionPointers();
 
 	m_pCommonLT = new LTELCommon();
+	m_pPhysicsLT = new LTELCommonPhysics();
 }
 
 LTELServer::~LTELServer()

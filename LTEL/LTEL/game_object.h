@@ -57,6 +57,10 @@ public:
 	void SetExtraData(void* pData) { m_pExtraData = pData; }
 	void* GetExtraData() { return m_pExtraData; }
 
+	std::string GetFilename() { return m_sFilename; }
+	std::string GetSkinname() { return m_sSkinname; }
+	std::string GetName() { return m_sName; }
+
 	// Data set!
 	void SetNode(godot::Spatial* pNode) { m_pNode = pNode; }
 	void SetCamera(godot::Camera* pCam) { m_pCamera = pCam; }

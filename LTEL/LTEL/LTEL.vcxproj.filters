@@ -28,6 +28,15 @@
     <Filter Include="Lithtech\1.0\Impl\classes">
       <UniqueIdentifier>{19927e4f-b13e-43e6-a57b-e5d611fb7a1a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Lithtech\1.0\Impl\client">
+      <UniqueIdentifier>{136d75df-2953-47c4-8360-3e744a59e049}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lithtech\1.0\Impl\server">
+      <UniqueIdentifier>{c4b9f933-00b0-43eb-912c-becdc70793f4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Lithtech\1.0\Impl\shared">
+      <UniqueIdentifier>{a748deff-3dde-475b-b6e3-18076974ff22}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="framework.h">
@@ -120,26 +129,32 @@
     <ClInclude Include="LT1\AppHeaders\specialeffect_de.h">
       <Filter>Lithtech\1.0\AppHeaders</Filter>
     </ClInclude>
-    <ClInclude Include="client.h">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClInclude>
-    <ClInclude Include="helpers.h">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClInclude>
-    <ClInclude Include="server.h">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClInclude>
-    <ClInclude Include="shared.h">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClInclude>
     <ClInclude Include="client_info.h">
       <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClInclude>
     <ClInclude Include="game_object.h">
       <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClInclude>
+    <ClInclude Include="client.h">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClInclude>
+    <ClInclude Include="server.h">
+      <Filter>Lithtech\1.0\Impl\server</Filter>
+    </ClInclude>
     <ClInclude Include="common.h">
-      <Filter>Lithtech\1.0\Impl</Filter>
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="shared.h">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers.h">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="common_physics.h">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClInclude>
+    <ClInclude Include="client_physics.h">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -152,36 +167,6 @@
     <ClCompile Include="godot_init.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="client.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="client_impl.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="client_render_impl.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="helpers.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="client_object_impl.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="client_string_impl.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="server.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="server_impl.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="shared.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
-    <ClCompile Include="shared_messaging.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
-    </ClCompile>
     <ClCompile Include="client_info.cpp">
       <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClCompile>
@@ -191,8 +176,44 @@
     <ClCompile Include="LT1\AppHeaders\cpp_engineobjects_de.cpp">
       <Filter>Lithtech\1.0\AppHeaders</Filter>
     </ClCompile>
+    <ClCompile Include="client.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client_object_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client_render_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client_string_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="server.cpp">
+      <Filter>Lithtech\1.0\Impl\server</Filter>
+    </ClCompile>
+    <ClCompile Include="server_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\server</Filter>
+    </ClCompile>
     <ClCompile Include="common.cpp">
-      <Filter>Lithtech\1.0\Impl</Filter>
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="common_physics.cpp">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="shared.cpp">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="shared_messaging.cpp">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="helpers.cpp">
+      <Filter>Lithtech\1.0\Impl\shared</Filter>
+    </ClCompile>
+    <ClCompile Include="client_physics.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

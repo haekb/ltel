@@ -169,7 +169,9 @@
   <ItemGroup>
     <ClInclude Include="client.h" />
     <ClInclude Include="client_info.h" />
+    <ClInclude Include="client_physics.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="common_physics.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="game_object.h" />
     <ClInclude Include="helpers.h" />
@@ -210,9 +212,11 @@
     <ClCompile Include="client_impl.cpp" />
     <ClCompile Include="client_info.cpp" />
     <ClCompile Include="client_object_impl.cpp" />
+    <ClCompile Include="client_physics.cpp" />
     <ClCompile Include="client_render_impl.cpp" />
     <ClCompile Include="client_string_impl.cpp" />
     <ClCompile Include="common.cpp" />
+    <ClCompile Include="common_physics.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="game_object.cpp" />
     <ClCompile Include="godot_init.cpp" />
