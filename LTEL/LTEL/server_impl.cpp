@@ -166,6 +166,11 @@ DDWORD simpl_GetClientRefInfoFlags(HCLIENTREF hClient)
 	int nIndex = (int)hClient - 1;
 	ClientInfo* pClient = *(g_pLTELServer->m_pClientList.begin() + nIndex);
 
+	if (!pClient)
+	{
+		return 0;
+	}
+
 	return pClient->GetFlags();
 }
 
@@ -174,12 +179,25 @@ DBOOL simpl_GetClientRefName(HCLIENTREF hClient, char* pName, int maxLen)
 	int nIndex = (int)hClient - 1;
 	ClientInfo* pClient = *(g_pLTELServer->m_pClientList.begin() + nIndex);
 
+	if (!pClient)
+	{
+		return false;
+	}
+
 	return simpl_GetClientName((HCLIENT)pClient, pName, maxLen);
 }
 
 HOBJECT simpl_GetClientRefObject(HCLIENTREF hClient)
 {
-	return nullptr;
+	int nIndex = (int)hClient - 1;
+	ClientInfo* pClient = *(g_pLTELServer->m_pClientList.begin() + nIndex);
+
+	if (!pClient)
+	{
+		return nullptr;
+	}
+
+	return (HOBJECT)pClient->GetObj();
 }
 
 LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
@@ -189,7 +207,9 @@ LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
 		return nullptr;
 	}
 
-	return nullptr;
+	GameObject* pObj = (GameObject*)hObject;
+
+	return pObj->GetBaseClass();
 }
 
 LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStruct)
@@ -211,7 +231,6 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 	memset(pBaseClass, 0, pClass->m_ClassObjectSize);
 	pBaseClass->m_pFirstAggregate = nullptr;
 	pBaseClass->m_hObject = nullptr;
-
 
 	pClass->m_ConstructFn(pBaseClass);
 
@@ -525,11 +544,8 @@ DRESULT simpl_SetObjectRotation(HOBJECT hObj, DRotation* pRotation)
 		return DE_ERROR;
 	}
 
-	godot::Quat qRot = LT2GodotQuat(pRotation);
-
 	GameObject* pObject = (GameObject*)hObj;
-
-	pObject->GetNode()->set_rotation(qRot.get_euler());
+	pObject->SetRotation(*pRotation);
 	return DE_OK;
 }
 
