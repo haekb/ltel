@@ -12,6 +12,7 @@ config_version=4
 
 config/name="GodotProj"
 run/main_scene="res://Default.tscn"
+boot_splash/image="res://shogo/SPLASH.png"
 config/icon="res://icon.png"
 
 [display]

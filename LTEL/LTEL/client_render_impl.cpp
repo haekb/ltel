@@ -428,7 +428,6 @@ DRESULT impl_FlipScreen(DDWORD flags)
 
 DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 {
-
 	if (!hSurface)
 	{
 		return DE_OK;
