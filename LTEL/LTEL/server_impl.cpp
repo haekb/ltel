@@ -78,9 +78,10 @@ void simpl_CPrint(char* pMsg, ...)
 
 DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 {
+	g_pLTELServer->m_pServerShell->OnAddClient((HCLIENT)g_pLTELServer->m_pClientList[0]);
+
 	g_pLTELServer->StartWorld(pszWorldFileName);
 
-	g_pLTELServer->m_pServerShell->OnAddClient((HCLIENT)g_pLTELServer->m_pClientList[0]);
 	godot::Godot::print("Adding client!");
 
 	return DE_OK;
@@ -193,23 +194,20 @@ LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
 
 LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStruct)
 {
-#if 0
-	g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
-	g_pLTELServer->m_pCurrentObject = nullptr;
-	return nullptr;
-#endif
 	ClassDef* pClass = (ClassDef*)hClass;
 
 	if (!pClass)
 	{
 		return nullptr;
 	}
-	LPBASECLASS pBaseClass = nullptr;
 
+	LPBASECLASS pBaseClass = (BaseClass*)malloc(pClass->m_ClassObjectSize);
 
+	if (!pBaseClass)
+	{
+		return nullptr;
+	}
 
-	
-	pBaseClass = (BaseClass*)malloc(pClass->m_ClassObjectSize);//new BaseClass(pStruct->m_ObjectType);
 	memset(pBaseClass, 0, pClass->m_ClassObjectSize);
 	pBaseClass->m_pFirstAggregate = nullptr;
 	pBaseClass->m_hObject = nullptr;
@@ -217,66 +215,11 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 
 	pClass->m_ConstructFn(pBaseClass);
 
-#if 0
-	std::vector <void*> pVoid;
-
-	while (true)
-	{
-		void* pData = malloc(1024);
-		pVoid.push_back(pData);
-		//
-
-		//break;
-		Sleep(10);
-	}
-
-	for (auto pData : pVoid)
-	{
-		free(pData);
-		pData = nullptr;
-	}
-
-	pVoid.clear();
-#endif
-#if 0
-
-	auto pClassDef = pClass;
-	while (pClassDef)
-	{
-		if (pClassDef->m_EngineMessageFn)
-		{
-			break;
-		}
-		pClassDef = pClassDef->m_ParentClass;
-	}
-	
-	auto nResult = pClassDef->m_EngineMessageFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
-
-	/*
-	// Call the aggregates.
-	auto pAggregate = pBaseClass->m_pFirstAggregate;
-	while (pAggregate)
-	{
-		pAggregate->m_EngineMessageFn(pBaseClass, pAggregate, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
-		pAggregate = pAggregate->m_pNextAggregate;
-	}
-	*/
-#else
-	
-	
-
-
+	// Bind the function for later use
 	pClass->m_EngineMessageFn = pBaseClass->_EngineMsgFn;
 	pClass->m_ObjectMessageFn = pBaseClass->_ObjectMsgFn;
 
-
-
-
-	//auto nResult = pBaseClass->EngineMessageFn(MID_PRECREATE, pStruct, PRECREATE_NORMAL); //
 	auto nResult = pBaseClass->_EngineMsgFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
-
-
-#endif
 
 	if (nResult == 1)
 	{ 
@@ -295,6 +238,9 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		g_pLTELServer->m_pObjectList.push_back(pObject);
 
 #if 0
+		//
+		// This code is a trap to catch heap corruption
+		//
 		std::vector <void*> pVoid;
 
 		while (true)
@@ -307,6 +253,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 			Sleep(10);
 		}
 
+		// Actually not needed but nice to dream
 		for (auto pData : pVoid)
 		{
 			free(pData);
@@ -316,16 +263,16 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		pVoid.clear();
 #endif
 
+		// FIXME: We need to run initial update, as shown by this disassemble:
+		// maybeOnEngineMessage((double)fStack0000002c,pBaseClass,1,pOCS);
 		//auto nResult = pBaseClass->EngineMessageFn(MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
 		//pBaseClass->_EngineMsgFn(pBaseClass, MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
-
-
 
 		return pBaseClass;
 	}
 
 	// Cleanup!
-	delete pBaseClass;
+	free(pBaseClass);
 	//delete pObject;
 	g_pLTELServer->m_pCurrentObject = nullptr;
 
@@ -586,6 +533,11 @@ DRESULT simpl_SetObjectRotation(HOBJECT hObj, DRotation* pRotation)
 	return DE_OK;
 }
 
+void simpl_SetGameConVar(char* pName, char* pVal)
+{
+	return;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -626,6 +578,7 @@ void LTELServer::InitFunctionPointers()
 	GetTime = simpl_GetTime;
 	GetFrameTime = simpl_GetFrameTime;
 	GetGameConVar = simpl_GetGameConVar;
+	SetGameConVar = simpl_SetGameConVar;
 	GetVarValueFloat = simpl_GetVarValueFloat;
 	GetVarValueString = simpl_GetVarValueString;
 	

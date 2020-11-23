@@ -59,6 +59,7 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	typedef void f_GetServerShellFunctions(CreateServerShellFn* pCreate, DeleteServerShellFn* pDelete);
 	typedef ClassDef** f_ObjectDLLSetup(int* nDefs, ServerDE* pServer, int* version);
 
+
 	// CWD is the project folder...
 	HINSTANCE hObjectLTO = LoadLibraryA("./bin/Object.lto");
 
@@ -166,7 +167,6 @@ godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadDTX(std::string sPath)
 {
-	return nullptr;
 	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadDTX");
 	godot::Ref<godot::ImageTexture> pTexture = pNode->call("build", sPath.c_str(), godot::Array());
 	return pTexture;
@@ -181,7 +181,6 @@ godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 
 bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale)
 {
-	return DE_OK;
 	bool bCanBlit = false;
 
 	if (!pDest || !pSrc)

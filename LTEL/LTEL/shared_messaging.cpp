@@ -11,6 +11,7 @@ std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
 
 void shared_CleanupStream(godot::StreamPeerBuffer* pStream)
 {
+
 	std::vector<godot::StreamPeerBuffer*> vTemp;
 
 	for (auto pBuffer : g_pStreamInUse)
@@ -315,7 +316,6 @@ DRESULT shared_ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hOb
 HMESSAGEREAD shared_ReadFromMessageHMessageRead(HMESSAGEREAD hMessage)
 {
 	auto pStream = GD_STREAM_CAST(hMessage);
-
 
 	// Start our new stream!
 	auto pNewStream = GD_STREAM_CAST(shared_StartHMessageWrite());

@@ -171,6 +171,7 @@
 					m_pInternal = 0;
 				}
 
+
 				// Appeal to the C GODS
 				PropDef_t(const char* pName, int type, DVector valVec,
 					float valFloat, const char* valString, int propFlags)

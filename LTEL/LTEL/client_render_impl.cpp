@@ -183,7 +183,6 @@ void impl_GetSurfaceDims(HSURFACE hSurf, DDWORD* pWidth, DDWORD* pHeight)
 
 DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 {
-	return DE_OK;
 	LTELSurface* pDest = (LTELSurface*)hDest;
 
 	godot::Vector2 vPos;
