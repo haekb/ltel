@@ -40,8 +40,14 @@ public:
 	void SetUserFlags(int nFlag) { m_nUserFlags = nFlag; }
 	uint32_t GetUserFlags() { return m_nUserFlags; }
 
-	void SetPosition(DVector vPos) { m_vPos = vPos; }
-	DVector GetPosition() { return m_vPos; }
+	void SetPosition(DVector vPos);
+	DVector GetPosition();
+
+	void SetScale(DVector vScale);
+	DVector GetScale();
+
+	void SetRotation(DRotation qRot);
+	DRotation GetRotation();
 
 	void SetNextUpdate(float fVal) { m_fNextUpdate = fVal; }
 	float GetNextUpdate() { return m_fNextUpdate; }
@@ -60,6 +66,7 @@ public:
 	godot::Spatial* GetNode();
 	godot::Camera* GetCamera() { return m_pCamera; }
 	godot::MeshInstance* GetPolyGrid() { return m_pPolyGrid; }
+
 
 	//std::unordered_map<std::string, GenericProp*> m_mProps;
 

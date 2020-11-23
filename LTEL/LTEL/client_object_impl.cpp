@@ -47,13 +47,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		// Add it into the world!
 		p3DNode->add_child(pNode);
-
-		pNode->set_translation(godot::Vector3(pStruct->m_Pos.x, pStruct->m_Pos.y, pStruct->m_Pos.z));
-		godot::Quat vQuat = LT2GodotQuat(&pStruct->m_Rotation);
-		auto vEuler = vQuat.get_euler();
-		pNode->set_rotation(vEuler);
-		pNode->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
-
 		pObject->SetNode(pNode);
 	}
 		break;
@@ -66,16 +59,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pMeshInstance = godot::Object::cast_to<godot::MeshInstance>(pMeshInstance->duplicate());
 
 		p3DNode->add_child(pMeshInstance);
-
-		pMeshInstance->set_translation(godot::Vector3(pStruct->m_Pos.x, pStruct->m_Pos.y, pStruct->m_Pos.z));
-		godot::Quat vQuat = LT2GodotQuat(&pStruct->m_Rotation);
-		auto vEuler = vQuat.get_euler();
-
-		// Polygrid is 90 degrees off...I think?
-		vEuler.x += 90;
-
-		pMeshInstance->set_rotation_degrees(vEuler);
-		pMeshInstance->set_scale(godot::Vector3(pStruct->m_Scale.x, pStruct->m_Scale.y, pStruct->m_Scale.z));
 
 		pObject->SetPolyGrid(pMeshInstance);
 	}
@@ -95,15 +78,11 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		godot::Spatial* pModel = GDCAST(godot::Spatial, pScene->instance());
 
-
-
 		if (!pModel)
 		{
 			delete pObject;
 			return nullptr;
 		}
-
-		
 
 		auto pTexture = g_pLTELClient->LoadDTX(sDTX.c_str());
 
@@ -126,9 +105,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		auto pMat = godot::SpatialMaterial::_new();
 		pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
 		pPiece->set_surface_material(0, pMat);
-
-		pModel->set_translation(LT2GodotVec3(pStruct->m_Pos));
-		pModel->set_rotation(LT2GodotQuat(&pStruct->m_Rotation).get_euler());
 
 		godot::AnimationPlayer* pAnimationPlayer = GDCAST(godot::AnimationPlayer, pModel->get_child(1));
 
@@ -183,108 +159,16 @@ DRESULT impl_DeleteObject(HLOCALOBJ hObj)
 	return DE_OK;
 }
 
-void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
-{
-	auto pObj = HObject2GameObject(hObj);
-
-	if (!pObj)
-	{
-		return;
-	}
-
-	godot::Spatial* pNode = pObj->GetNode();
-
-	if (!pNode)
-	{
-		return;
-	}
-
-	auto vPos = pNode->get_translation();
-
-	pPos->x = vPos.x;
-	pPos->y = vPos.y;
-	pPos->z = vPos.z;
-}
-
-void impl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
-{
-	auto pObj = HObject2GameObject(hObj);
-
-	if (!pObj)
-	{
-		return;
-	}
-
-	godot::Spatial* pNode = pObj->GetNode();
-
-	if (!pNode)
-	{
-		return;
-	}
-
-	pNode->set_translation(godot::Vector3(pPos->x, pPos->y, pPos->z));
-}
-
-DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
-{
-	auto pObj = HObject2GameObject(hObj);
-
-	if (!pObj)
-	{
-		return DE_ERROR;
-	}
-
-	godot::Spatial* pNode = pObj->GetNode();
-
-	if (!pNode)
-	{
-		return DE_ERROR;
-	}
-
-	pNode->set_scale(godot::Vector3(pScale->x, pScale->y, pScale->z));
-	return DE_OK;
-}
-
-void impl_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
-{
-	auto pObj = HObject2GameObject(hObj);
-
-	if (!pObj)
-	{
-		return;
-	}
-
-	godot::Spatial* pNode = pObj->GetNode();
-
-	if (!pNode)
-	{
-		return;
-	}
-
-	auto vRot = pNode->get_rotation();
-	godot::Quat vQuat;
-	vQuat.set_euler(vRot);
-
-	pRotation->m_Vec.x = vQuat.x;
-	pRotation->m_Vec.y = vQuat.y;
-	pRotation->m_Vec.z = vQuat.z;
-	pRotation->m_Spin = vQuat.w;//1.0f;
-}
-
 void impl_EulerRotateX(DRotation* pRotation, float amount)
 {
 	godot::Quat vQuat = godot::Quat(pRotation->m_Vec.x, pRotation->m_Vec.y, pRotation->m_Vec.z, pRotation->m_Spin);
 	auto vEuler = vQuat.get_euler();
 
-	vQuat.set_axis_angle(godot::Vector3(0.0f, 1.0f, 0.0f), amount);
-
-	//vEuler = godot::Vector3(1.0f, 1.0f, 1.0f).rotated(godot::Vector3(0.0f, 1.0f, 0.0f), amount);
-
-	//vQuat.set_euler(vEuler);
-	pRotation->m_Vec.x += vQuat.x;
-	pRotation->m_Vec.y += vQuat.y;
-	pRotation->m_Vec.z += vQuat.z;
-	pRotation->m_Spin += vQuat.w;//1.0f;
+	vQuat.set_axis_angle(godot::Vector3(1.0f, 0.0f, 0.0f), amount);
+	pRotation->m_Vec.x = vQuat.x;
+	pRotation->m_Vec.y = vQuat.y;
+	pRotation->m_Vec.z = vQuat.z;
+	pRotation->m_Spin = vQuat.w;//1.0f;
 }
 
 DDWORD impl_GetObjectFlags(HLOCALOBJ hObj)
@@ -659,6 +543,65 @@ DRESULT impl_GetAttachments(HLOCALOBJ hObj, HLOCALOBJ* inList, DDWORD inListSize
 	return DE_OK;
 }
 
+//
+// Object Get/Sets
+//
+
+void impl_GetObjectPos(HLOCALOBJ hObj, DVector* pPos)
+{
+	auto pObj = HObject2GameObject(hObj);
+
+	if (!pObj)
+	{
+		*pPos = DVector(0, 0, 0);
+		return;
+	}
+
+	auto vPos = pObj->GetPosition();
+
+	pPos->x = vPos.x;
+	pPos->y = vPos.y;
+	pPos->z = vPos.z;
+}
+
+void impl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
+{
+	auto pObj = HObject2GameObject(hObj);
+
+	if (!pObj)
+	{
+		return;
+	}
+
+	pObj->SetPosition(*pPos);
+}
+
+DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
+{
+	auto pObj = HObject2GameObject(hObj);
+
+	if (!pObj)
+	{
+		return DE_ERROR;
+	}
+
+	pObj->SetScale(*pScale);
+	return DE_OK;
+}
+
+void impl_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
+{
+	auto pObj = HObject2GameObject(hObj);
+
+	if (!pObj)
+	{
+		*pRotation = DRotation(0, 0, 0, 0);
+		return;
+	}
+
+	*pRotation = pObj->GetRotation();
+}
+
 void impl_SetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
 {
 	if (!hObj)
@@ -666,11 +609,9 @@ void impl_SetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
 		return;
 	}
 
-	godot::Quat qRot = LT2GodotQuat(pRotation);
+	GameObject* pObj = (GameObject*)hObj;
 
-	GameObject* pObject = (GameObject*)hObj;
-
-	pObject->GetNode()->set_rotation(qRot.get_euler());
+	pObj->SetRotation(*pRotation);
 }
 
 void impl_SetObjectPosAndRotation(HLOCALOBJ hObj, DVector* pPos, DRotation* pRotation)
@@ -678,6 +619,10 @@ void impl_SetObjectPosAndRotation(HLOCALOBJ hObj, DVector* pPos, DRotation* pRot
 	impl_SetObjectPos(hObj, pPos);
 	impl_SetObjectRotation(hObj, pRotation);
 }
+
+//
+// End Object Get/Sets
+//
 
 DDWORD impl_GetModelPlaybackState(HLOCALOBJ hObj)
 {

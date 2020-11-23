@@ -13,9 +13,9 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_nObjectType = OT_NORMAL;
 	m_nFlags = 0;
 	m_nUserFlags = 0;
-	m_vPos = DVector();
-	m_vScale = DVector();
-	m_vRotation = DRotation();
+	m_vPos = DVector(0,0,0);
+	m_vScale = DVector(1,1,1);
+	m_vRotation = DRotation(0,0,0,1);
 	m_nContainerCode = 0;
 	m_pUserData = nullptr;
 	m_sFilename = "";
@@ -78,9 +78,9 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 {
 	m_nObjectType = pStruct.m_ObjectType;
 	SetFlags(pStruct.m_Flags);
-	m_vPos = pStruct.m_Pos;
-	m_vScale = pStruct.m_Scale;
-	m_vRotation = pStruct.m_Rotation;
+	SetPosition(pStruct.m_Pos);
+	SetScale(pStruct.m_Scale);
+	SetRotation(pStruct.m_Rotation);
 	m_nContainerCode = pStruct.m_ContainerCode;
 	m_pUserData = (void*)pStruct.m_UserData;
 	m_sFilename = pStruct.m_Filename;
@@ -169,6 +169,102 @@ void GameObject::SetFlags(int nFlag)
 	{
 		pNode->set_visible(false);
 	}
+}
+
+void GameObject::SetPosition(DVector vPos)
+{
+	m_vPos = vPos;
+
+	auto pNode = GetNode();
+
+	if (pNode)
+	{
+		pNode->set_translation(LT2GodotVec3(vPos));
+	}
+}
+
+DVector GameObject::GetPosition()
+{
+	auto pNode = GetNode();
+
+	if (pNode)
+	{
+		auto vPos = pNode->get_translation();
+		return DVector(vPos.x, vPos.y, vPos.z);
+	}
+
+	auto vPos = m_vPos;
+
+	return vPos;
+}
+
+void GameObject::SetScale(DVector vScale)
+{
+	m_vScale = vScale;
+
+	auto pNode = GetNode();
+
+	if (pNode)
+	{
+		pNode->set_scale(LT2GodotVec3(vScale));
+	}
+}
+
+DVector GameObject::GetScale()
+{
+	auto pNode = GetNode();
+
+	if (pNode)
+	{
+		auto vScale = pNode->get_scale();
+		return DVector(vScale.x, vScale.y, vScale.z);
+	}
+
+	auto vScale = m_vScale;
+
+	return vScale;
+}
+
+void GameObject::SetRotation(DRotation qRot)
+{
+#if 0
+	// HACK: Get the main menu polygrid positioned correctly
+	if (IsType(OT_POLYGRID))
+	{
+		auto vEuler = godot::Vector3(90, 0, 0);
+
+		auto vQuat = godot::Quat();
+		vQuat.set_euler(vEuler);
+
+		qRot = DRotation(vQuat.x, vQuat.y, vQuat.z, vQuat.w);
+	}
+#endif
+	m_vRotation = qRot;
+
+	auto pNode = GetNode();
+
+	if (pNode)
+	{
+		auto godotQuat = LT2GodotQuat(&qRot);
+		pNode->set_rotation_degrees(godotQuat.get_euler());
+	}
+}
+
+DRotation GameObject::GetRotation()
+{
+	auto pNode = GetNode();
+
+	if (pNode)
+	{
+		auto vRot = pNode->get_rotation();
+		auto qRot = godot::Quat();
+		qRot.set_euler(vRot);
+		return DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+	}
+
+	auto qRot = m_vRotation;
+
+	return qRot;
 }
 
 godot::Spatial* GameObject::GetNode()
