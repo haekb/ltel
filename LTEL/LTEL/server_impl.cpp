@@ -2,6 +2,8 @@
 #include "shared.h"
 #include "LT1/AppHeaders/cpp_engineobjects_de.h"
 
+#include <File.hpp>
+
 extern LTELServer* g_pLTELServer;
 
 void simpl_RunGameConString(char* pString)
@@ -38,11 +40,52 @@ DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 
 ObjectList* simpl_CreateObjectList()
 {
-	return new ObjectList();
+	auto pObjectList = new ObjectList();
+
+	// Previous in the loop, technically the next pointer in the list,
+	// since we loop backwards
+	ObjectLink* pPreviousObjectLink = nullptr;
+	for (auto it = g_pLTELServer->m_pObjectList.crbegin(); it !=g_pLTELServer->m_pObjectList.crend(); it++)
+	{
+		// Retrieve our object, and create a new object link
+		auto pObject = *it;
+		auto pObjectLink = new ObjectLink();
+
+		// Assign the object, and the next pointer in line (at the start it will be null!)
+		pObjectLink->m_hObject = (HOBJECT)pObject;
+		pObjectLink->m_pNext = pPreviousObjectLink;
+
+		// Increment our counter
+		pObjectList->m_nInList++;
+
+		// Assign our current pointer as the previous (next in the list)
+		pPreviousObjectLink = pObjectLink;
+	}
+
+	// And now we're at the beginning of the list, so assign the last used pointer as our first link!
+	pObjectList->m_pFirstLink = pPreviousObjectLink;
+
+	return pObjectList;
 }
 
 void simpl_RelinquishList(ObjectList* pList)
 {
+	auto pObjectLink = pList->m_pFirstLink;
+	while (pObjectLink)
+	{
+		// Get a copy of the pointer so we can delete it after we iterate
+		auto pCurrentLink = pObjectLink;
+
+		// Iterate...
+		pObjectLink = pObjectLink->m_pNext;
+
+		// Delete!
+		pCurrentLink->m_hObject = nullptr;
+		delete pCurrentLink;
+	}
+
+	// Clean up the rest
+	pList->m_pFirstLink = nullptr;
 	delete pList;
 }
 
@@ -593,6 +636,51 @@ DDWORD simpl_GetPointContainers(DVector* pPoint, HLOCALOBJ* pList, DDWORD maxLis
 	return 0;
 }
 
+DRESULT simpl_SaveObjects(char* pszSaveFileName, ObjectList* pList, DDWORD dwParam, DDWORD flags)
+{
+	auto pObjectLink = pList->m_pFirstLink;
+
+	auto pFile = godot::File::_new();
+	pFile->open(pszSaveFileName, godot::File::WRITE);
+
+	while (pObjectLink)
+	{
+		GameObject* pGameObject = (GameObject*)pObjectLink->m_hObject;
+
+		auto pMessage = shared_StartHMessageWrite();
+
+		pGameObject->GetClassDef()->m_EngineMessageFn(pGameObject->GetBaseClass(), MID_SAVEOBJECT, pMessage, dwParam);
+
+		godot::StreamPeerBuffer* pStream = (godot::StreamPeerBuffer * )pMessage;
+
+		// Store a reference to the class name the size of the data, and the data.
+		pFile->store_pascal_string(pGameObject->GetClassDef()->m_ClassName);
+		pFile->store_32(pStream->get_data_array().size());
+		pFile->store_buffer(pStream->get_data_array());
+
+#if 0
+		// Loading example:
+		pFile->seek(0);
+
+		godot::StreamPeerBuffer* pLoadStream = godot::StreamPeerBuffer::_new();
+
+		auto szClass = pFile->get_pascal_string();
+		auto nStreamSize = pFile->get_32();
+		pLoadStream->set_data_array(pFile->get_buffer(nStreamSize));
+		pLoadStream->free();
+#endif
+
+		shared_EndHMessageWrite(pMessage);
+
+		// Iterate...
+		pObjectLink = pObjectLink->m_pNext;
+	}
+
+	pFile->close();
+
+	return DE_OK;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -673,7 +761,7 @@ void LTELServer::InitFunctionPointers()
 	LoadWorld = simpl_LoadWorld;
 	RunWorld = simpl_RunWorld;
 	GetClass = simpl_GetClass;
-
+	SaveObjects = simpl_SaveObjects;
 
 
 }
