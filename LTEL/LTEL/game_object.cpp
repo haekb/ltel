@@ -256,7 +256,7 @@ DRotation GameObject::GetRotation()
 
 	if (pNode)
 	{
-		auto vRot = pNode->get_rotation();
+		auto vRot = pNode->get_rotation_degrees();
 		auto qRot = godot::Quat();
 		qRot.set_euler(vRot);
 		return DRotation(qRot.x, qRot.y, qRot.z, qRot.w);

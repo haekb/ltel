@@ -625,7 +625,7 @@ DBOOL simpl_GetModelFilenames(HOBJECT hObj, char* pFilename, int fileBufLen, cha
 	GameObject* pObj = (GameObject*)hObj;
 
 	strcpy_s(pFilename, fileBufLen, pObj->GetFilename().c_str());
-	strcpy_s(pSkinName, skinBufLen, pObj->GetFilename().c_str());
+	strcpy_s(pSkinName, skinBufLen, pObj->GetSkinname().c_str());
 	return TRUE;
 }
 
@@ -642,6 +642,9 @@ DRESULT simpl_SaveObjects(char* pszSaveFileName, ObjectList* pList, DDWORD dwPar
 
 	auto pFile = godot::File::_new();
 	pFile->open(pszSaveFileName, godot::File::WRITE);
+
+	// Store a "version"
+	pFile->store_32(1);
 
 	while (pObjectLink)
 	{
@@ -675,6 +678,8 @@ DRESULT simpl_SaveObjects(char* pszSaveFileName, ObjectList* pList, DDWORD dwPar
 		// Iterate...
 		pObjectLink = pObjectLink->m_pNext;
 	}
+
+	pFile->store_pascal_string("Fin");
 
 	pFile->close();
 
