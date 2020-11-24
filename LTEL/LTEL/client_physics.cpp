@@ -1,10 +1,11 @@
 #include "client_physics.h"
 
+
 LTELClientPhysics::LTELClientPhysics()
 {
-	// Needed for the crappy inheritance we inherited
-	m_pCommonPhysics = new LTELCommonPhysics();
 	m_ClientServerType = ClientType;
+
+	m_pCommonPhysics = new LTELCommonPhysics();
 }
 
 LTELClientPhysics::~LTELClientPhysics()
@@ -12,6 +13,7 @@ LTELClientPhysics::~LTELClientPhysics()
 	delete m_pCommonPhysics;
 	m_pCommonPhysics = nullptr;
 }
+
 
 //
 // Client specific info
@@ -45,6 +47,8 @@ DRESULT LTELClientPhysics::RotatePushObjects(HOBJECT hToMove, DRotation& newRot,
 //
 // These should simply pass to CommonPhysics
 //
+
+
 
 DRESULT LTELClientPhysics::GetFrictionCoefficient(HOBJECT hObj, float& coeff)
 {

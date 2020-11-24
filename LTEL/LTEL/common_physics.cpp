@@ -1,5 +1,6 @@
 #include "common_physics.h"
 
+
 LTELCommonPhysics::LTELCommonPhysics()
 {
 	m_ClientServerType = ServerType;
@@ -8,6 +9,7 @@ LTELCommonPhysics::LTELCommonPhysics()
 LTELCommonPhysics::~LTELCommonPhysics()
 {
 }
+
 
 DRESULT LTELCommonPhysics::GetFrictionCoefficient(HOBJECT hObj, float& coeff)
 {
@@ -90,6 +92,96 @@ DRESULT LTELCommonPhysics::GetGlobalForce(DVector& vec)
 }
 
 DRESULT LTELCommonPhysics::SetGlobalForce(DVector& vec)
+{
+	return DE_ERROR;
+}
+
+
+//
+// Plz ignore
+//
+
+DRESULT PhysicsLT::GetFrictionCoefficient(HOBJECT hObj, float& coeff)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetFrictionCoefficient(HOBJECT hObj, float coeff)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetForceIgnoreLimit(HOBJECT hObj, float& limit)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetForceIgnoreLimit(HOBJECT hObj, float limit)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetVelocity(HOBJECT hObj, DVector* pVel)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetVelocity(HOBJECT hObj, DVector* pVel)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetAcceleration(HOBJECT hObj, DVector* pAccel)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetAcceleration(HOBJECT hObj, DVector* pAccel)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetObjectMass(HOBJECT hObj, float& mass)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetObjectMass(HOBJECT hObj, float mass)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetObjectDims(HOBJECT hObj, DVector* pNewDims)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetObjectDims(HOBJECT hObj, DVector* pNewDims, DDWORD flags)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetWorldObject(HOBJECT* hObj)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::GetGlobalForce(DVector& vec)
+{
+	return DE_ERROR;
+}
+
+DRESULT PhysicsLT::SetGlobalForce(DVector& vec)
 {
 	return DE_ERROR;
 }

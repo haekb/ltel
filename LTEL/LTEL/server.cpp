@@ -19,6 +19,8 @@ __ClassDefiner* __g_ClassDefinerHead = nullptr;
 
 extern std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
 
+//static LTELCommonPhysics g_CommonPhysics;
+
 LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 {
 	g_pLTELServer = this;
@@ -39,12 +41,21 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	InitFunctionPointers();
 
 	m_pCommonLT = new LTELCommon();
+
 	m_pPhysicsLT = new LTELCommonPhysics();
+
+	// This is dumb
+	//m_pPhysicsLT = &g_CommonPhysics;
+	//((LTELCommonPhysics*)m_pPhysicsLT)->Init();
 }
 
 LTELServer::~LTELServer()
 {
-	
+	//((LTELCommonPhysics*)m_pPhysicsLT)->Term();
+
+	delete m_pCommonLT;
+
+	delete m_pPhysicsLT;
 }
 
 void LTELServer::SetGameInfo(void* pData, int pLen)

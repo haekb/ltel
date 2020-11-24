@@ -48,11 +48,15 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 
 	m_pCommonLT = new LTELCommon();
 	m_pPhysicsLT = new LTELClientPhysics();
+
 }
 
 LTELClient::~LTELClient()
 {
+	delete m_pCommonLT;
+	delete m_pPhysicsLT;
 }
+
 
 //
 // Called when the client creates a server (either by starting singleplayer or multiplayer)

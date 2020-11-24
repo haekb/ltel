@@ -5,7 +5,8 @@ class LTELClientPhysics :
 {
 public:
 	LTELClientPhysics();
-	virtual ~LTELClientPhysics();
+	~LTELClientPhysics();
+
 
 	// These will just point to common physics until I can figure out a better way to redirect
 public:

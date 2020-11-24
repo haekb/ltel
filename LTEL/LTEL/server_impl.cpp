@@ -586,6 +586,13 @@ DBOOL simpl_GetModelFilenames(HOBJECT hObj, char* pFilename, int fileBufLen, cha
 	return TRUE;
 }
 
+DDWORD simpl_GetPointContainers(DVector* pPoint, HLOCALOBJ* pList, DDWORD maxListSize)
+{
+	*pPoint = DVector(0, 0, 0);
+	*pList = nullptr;
+	return 0;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Object functionality
@@ -623,6 +630,7 @@ void LTELServer::InitFunctionPointers()
 
 	// Container functionality
 	GetObjectContainers = simpl_GetObjectContainers;
+	GetPointContainers = simpl_GetPointContainers;
 
 	// Raycasting functionality
 	CastRay = simpl_CastRay;
