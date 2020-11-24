@@ -511,7 +511,7 @@ void impl_GetAxisOffsets(DFLOAT* offsets)
 	static int m_iCurrentMouseY = 0;
 	static int m_iPreviousMouseX = 0;
 	static int m_iPreviousMouseY = 0;
-	static float m_fMouseSensitivity = 1.0025f;
+	static float m_fMouseSensitivity = 0.10f;
 
 	m_iCurrentMouseX += deltaX;
 	m_iCurrentMouseY += deltaY;

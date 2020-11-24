@@ -441,7 +441,7 @@ public:
     void on_mouse_motion(Vector2 vRelative)
     {
         //Godot::print("[on_mouse_motion] {0}", vRelative);
-        g_pClient->m_vRelativeMouse = vRelative;
+        g_pClient->m_vRelativeMouse = -vRelative;
     }
 
     void test_void_method() {
