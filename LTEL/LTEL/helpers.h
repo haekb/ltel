@@ -10,6 +10,7 @@
 #include <Quat.hpp>
 #include <Texture.hpp>
 #include <ImageTexture.hpp>
+#include <AnimationPlayer.hpp>
 
 
 #include <Label.hpp>
@@ -93,6 +94,22 @@ struct LTELPolyGrid {
 	int nWidth;
 	int nHeight;
 	PGColor* pColorTable;
+};
+
+struct LTELModel {
+	LTELModel() {
+		// Animation
+		pAnimationPlayer = nullptr;
+		bLoop = false;
+		nCurrentAnimIndex = -1;
+	}
+
+	// Animation
+	bool bLoop;
+	int nCurrentAnimIndex;
+
+	godot::AnimationPlayer* pAnimationPlayer;
+	std::vector<std::string> vAnimationList;
 };
 
 // helpers

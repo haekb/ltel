@@ -28,6 +28,8 @@ extern LTELClient* g_pLTELClient;
 
 std::vector<GameObject*> g_pPolygridsToUpdate;
 
+#define INVALID_ANI				((HMODELANIM)-1)
+
 
 HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
@@ -86,6 +88,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		auto pTexture = g_pLTELClient->LoadDTX(sDTX.c_str());
 
+		// TODO: Don't fail, replace with white texture
 		if (pTexture.is_null())
 		{
 			delete pObject;
@@ -94,6 +97,10 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		p3DNode->add_child(pModel, false);
 		pObject->SetNode(pModel);
+
+		// Init extra data
+		LTELModel* pExtaData = new LTELModel();
+		pObject->SetExtraData(pExtaData);
 
 		auto pSkeleton = pModel->get_child(0);
 		pSkeleton->set_name("Skeleton");
@@ -110,17 +117,25 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		if (pAnimationPlayer)
 		{
-			// NPCs
-			if (!pAnimationPlayer->get_animation("IK1").is_null())
+			// Handy for later!
+			pExtaData->pAnimationPlayer = pAnimationPlayer;
+
+			// Setup animation list - This should maybe be handled by LTELModel
+			auto sAnimList = pAnimationPlayer->get_animation_list();
+
+			for (int i = 0; i < sAnimList.size(); i++)
 			{
-				pAnimationPlayer->get_animation("IK1")->set_loop(true);
-				pAnimationPlayer->play("IK1");
+				pExtaData->vAnimationList.push_back(sAnimList[i].alloc_c_string());
 			}
-			// Weapons
-			else if (!pAnimationPlayer->get_animation("Idle_1").is_null())
+			// End
+
+			// Kick things off by playing the first animation from the list
+			auto pList = pAnimationPlayer->get_animation_list();
+
+			if (!pAnimationPlayer->get_animation(pList[0]).is_null())
 			{
-				pAnimationPlayer->get_animation("Idle_1")->set_loop(true);
-				pAnimationPlayer->play("Idle_1");
+				pAnimationPlayer->get_animation(pList[0])->set_loop(false);
+				pAnimationPlayer->play(pList[0]);
 			}
 		}
 
@@ -503,10 +518,46 @@ void impl_SetObjectColor(HLOCALOBJ hObject, float r, float g, float b, float a)
 
 DBOOL impl_GetModelLooping(HLOCALOBJ hObj)
 {
-	return DTRUE;
+	if (!hObj)
+	{
+		return FALSE;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer)
+	{
+		return FALSE;
+	}
+
+	auto sAnim = pExtraData->vAnimationList.at(pExtraData->nCurrentAnimIndex);
+
+	// Loops are set per animation
+	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
+	return pAnim->has_loop();
 }
 void impl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
 {
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer || pExtraData->nCurrentAnimIndex == -1)
+	{
+		return;
+	}
+
+	auto sAnim = pExtraData->vAnimationList.at(pExtraData->nCurrentAnimIndex);
+
+	// Loops are set per animation
+	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
+	pAnim->set_loop(bLoop);
+
 	return;
 }
 
@@ -523,15 +574,75 @@ void impl_SetObjectClientFlags(HLOCALOBJ hObj, DDWORD flags)
 // Returns the animation the model is currently on.  (DDWORD)-1 if none.
 DDWORD impl_GetModelAnimation(HLOCALOBJ hObj)
 {
-	return -1;
+	if (!hObj)
+	{
+		return -1;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer)
+	{
+		return -1;
+	}
+
+	return pExtraData->nCurrentAnimIndex;
 }
 void impl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
 {
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer || iAnim == INVALID_ANI)
+	{
+		return;
+	}
+
+	auto sAnim = pExtraData->vAnimationList.at(iAnim);
+
+	// Loops are set per animation
+	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
+	pAnim->set_loop(pExtraData->bLoop);
+
+	pExtraData->pAnimationPlayer->play(sAnim.c_str());
+
+	pExtraData->nCurrentAnimIndex = iAnim;
+
 	return;
 }
 
 HMODELANIM impl_GetAnimIndex(HOBJECT hObj, char* pAnimName)
 {
+	if (!hObj)
+	{
+		return -1;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer)
+	{
+		return -1;
+	}
+
+	auto sAnimList = pExtraData->pAnimationPlayer->get_animation_list();
+
+	for (int i = 0; i < sAnimList.size(); i++)
+	{
+		if (sAnimList[i] == pAnimName)
+		{
+			return i;
+		}
+	}
+
+
 	return -1;
 }
 
@@ -626,7 +737,45 @@ void impl_SetObjectPosAndRotation(HLOCALOBJ hObj, DVector* pPos, DRotation* pRot
 
 DDWORD impl_GetModelPlaybackState(HLOCALOBJ hObj)
 {
-	return 0;
+	if (!hObj)
+	{
+		return 0;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer || pExtraData->nCurrentAnimIndex == -1)
+	{
+		return 0;
+	}
+
+	if (pExtraData->pAnimationPlayer->is_playing())
+	{
+		return 0;
+	}
+
+	return MS_PLAYDONE;
+}
+
+DRESULT impl_ResetModelAnimation(HLOCALOBJ hObj)
+{
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer || pExtraData->nCurrentAnimIndex == -1)
+	{
+		return DE_ERROR;
+	}
+
+	pExtraData->pAnimationPlayer->seek(0, true);
+
+	return DE_OK;
 }
 
 // This must be last!
@@ -661,6 +810,7 @@ void LTELClient::InitObjectImpl()
 	SetModelAnimation = impl_SetModelAnimation;
 	GetAnimIndex = impl_GetAnimIndex;
 	GetModelPlaybackState = impl_GetModelPlaybackState;
+	ResetModelAnimation = impl_ResetModelAnimation;
 
 	// Polygrid
 	SetupPolyGrid = impl_SetupPolyGrid;

@@ -43,7 +43,7 @@ GameObject::~GameObject()
 	}
 
 	
-	if (m_pPolyGrid)
+	if (IsType(OT_POLYGRID) && m_pPolyGrid)
 	{
 		m_pPolyGrid->free();
 		m_pPolyGrid = nullptr;
@@ -64,6 +64,13 @@ GameObject::~GameObject()
 			free(pExtraData->pData);
 		}
 		pExtraData->pData = nullptr;
+	}
+
+	if (IsType(OT_MODEL))
+	{
+		// Just handle the extra data
+		delete m_pExtraData;
+		m_pExtraData = nullptr;
 	}
 
 	if (m_pNode)

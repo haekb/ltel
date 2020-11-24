@@ -491,6 +491,15 @@ DBOOL impl_PlayList(char* szPlayList, char* szTransition, DBOOL bLoop, DDWORD dw
 
 DBOOL impl_IsCommandOn(int commandNum)
 {
+	// Fire
+	/*
+	if (commandNum == 8)
+	{
+		return TRUE;
+	}
+	*/
+	
+
 	return FALSE;
 }
 
