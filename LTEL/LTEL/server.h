@@ -56,6 +56,7 @@ public:
 
     void Update(DFLOAT timeElapsed);
 
+    void HandleMessageQueue();
     
 
     //

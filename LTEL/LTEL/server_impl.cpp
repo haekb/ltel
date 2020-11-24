@@ -686,8 +686,82 @@ DRESULT simpl_SaveObjects(char* pszSaveFileName, ObjectList* pList, DDWORD dwPar
 	return DE_OK;
 }
 
+void simpl_PingObjects(HOBJECT hObj)
+{
+
+}
+
+DBOOL simpl_IsCommandOn(HCLIENT hClient, int command)
+{
+	if (!hClient)
+	{
+		return false;
+	}
+
+	ClientInfo* pClient = (ClientInfo*)hClient;
+
+	if (!pClient->GetClient())
+	{
+		return false;
+	}
+
+	return pClient->GetClient()->IsCommandOn(command);
+}
+
+DDWORD simpl_GetModelAnimation(HLOCALOBJ hObj)
+{
+	return -1;
+}
+
+DDWORD simpl_GetModelPlaybackState(HLOCALOBJ hObj)
+{
+	return MS_PLAYDONE;
+}
+
+void simpl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
+{
+
+}
+
+DDWORD simpl_GetObjectUserFlags(HOBJECT hObj)
+{
+	if (!hObj)
+	{
+		return 0;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	return pObj->GetUserFlags();
+}
+
+DRESULT simpl_SetObjectUserFlags(HLOCALOBJ hObj, DDWORD flags)
+{
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	pObj->SetUserFlags(flags);
+
+	return DE_OK;
+}
+
+DRESULT simpl_SetClientViewPos(HCLIENT hClient, DVector* pPos)
+{
+	// For sound controller?
+	return DE_OK;
+}
+
 void LTELServer::InitFunctionPointers()
 {
+	// Animation functionality
+	GetModelAnimation = simpl_GetModelAnimation;
+	GetModelPlaybackState = simpl_GetModelPlaybackState;
+	SetModelLooping = simpl_SetModelLooping;
+
 	// Object functionality
 	CreateObject = simpl_CreateObject;
 	CreateObjectList = simpl_CreateObjectList;
@@ -705,6 +779,8 @@ void LTELServer::InitFunctionPointers()
 	SetObjectState = simpl_SetObjectState;
 	GetObjectFlags = simpl_GetObjectFlags;
 	SetObjectFlags = simpl_SetObjectFlags;
+	GetObjectUserFlags = simpl_GetObjectUserFlags;
+	SetObjectUserFlags = simpl_SetObjectUserFlags;
 	GetObjectPos = simpl_GetObjectPos;
 	SetObjectPos = simpl_SetObjectPos;
 	GetObjectRotation = nullptr;
@@ -760,6 +836,8 @@ void LTELServer::InitFunctionPointers()
 	SetClientUserData = simpl_SetClientUserData;
 	GetClientInfoFlags = simpl_GetClientInfoFlags;
 	SetClientInfoFlags = simpl_SetClientInfoFlags;
+	IsCommandOn = simpl_IsCommandOn;
+	SetClientViewPos = simpl_SetClientViewPos;
 
 	// Game State functionality
 	GetGameInfo = simpl_GetGameInfo;
@@ -767,6 +845,7 @@ void LTELServer::InitFunctionPointers()
 	RunWorld = simpl_RunWorld;
 	GetClass = simpl_GetClass;
 	SaveObjects = simpl_SaveObjects;
+	PingObjects = simpl_PingObjects;
 
 
 }

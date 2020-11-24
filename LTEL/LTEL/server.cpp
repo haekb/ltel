@@ -19,6 +19,8 @@ __ClassDefiner* __g_ClassDefinerHead = nullptr;
 
 extern std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
 
+
+std::vector<godot::StreamPeerBuffer*> g_pQueuedStreams;
 //static LTELCommonPhysics g_CommonPhysics;
 
 LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
@@ -184,6 +186,25 @@ void LTELServer::Update(DFLOAT timeElapsed)
 	}
 }
 
+void LTELServer::HandleMessageQueue()
+{
+	for (auto pStream : g_pQueuedStreams)
+	{
+		DBYTE pMessageId = pStream->get_8();
+
+		auto pClientShell = (CClientShellDE*)m_pClientList[0]->GetClientShell();
+
+		pClientShell->OnMessage(pMessageId, (HMESSAGEREAD)pStream);
+
+		shared_CleanupStream(pStream);
+
+		// Ok clean it up!
+		pStream->free();
+	}
+
+	g_pQueuedStreams.clear();
+}
+
 
 DRESULT LTELServer::GetGlobalForce(DVector* pVec)
 {
@@ -241,7 +262,13 @@ DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 
 	godot::StreamPeerBuffer* pStream = (godot::StreamPeerBuffer*)hMessage;
 
+	g_pQueuedStreams.push_back(pStream);
 	pStream->seek(0);
+
+	return DE_OK;
+
+	// Old immediate handling
+#if 0
 	DBYTE pMessageId = pStream->get_8();
 
 	auto pClientShell = (CClientShellDE*)m_pClientList[0]->GetClientShell();
@@ -254,6 +281,7 @@ DRESULT LTELServer::EndMessage2(HMESSAGEWRITE hMessage, DDWORD flags)
 	pStream->free();
 
 	return DE_OK;
+#endif
 }
 
 DRESULT LTELServer::SetObjectSFXMessage(HOBJECT hObject, LMessage& msg)
@@ -362,7 +390,10 @@ HOBJECT LTELServer::GetWorldObject()
 
 DRESULT LTELServer::GetWorldBox(DVector& min, DVector& max)
 {
-	return DE_ERROR;
+	min = DVector(-10000, -10000, -10000);
+	max = DVector(10000, 10000, 10000);
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)

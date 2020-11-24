@@ -393,7 +393,10 @@ public:
         // This is for GetFrameTime() impl
         g_pClient->m_fFrametime = fDelta;
 
-
+        if (g_pClient->m_pLTELServer)
+        {
+            g_pClient->m_pLTELServer->HandleMessageQueue();
+        }
 
         // Run our update functions
         try {
