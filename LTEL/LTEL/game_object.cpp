@@ -227,18 +227,6 @@ DVector GameObject::GetScale()
 
 void GameObject::SetRotation(DRotation qRot)
 {
-#if 0
-	// HACK: Get the main menu polygrid positioned correctly
-	if (IsType(OT_POLYGRID))
-	{
-		auto vEuler = godot::Vector3(90, 0, 0);
-
-		auto vQuat = godot::Quat();
-		vQuat.set_euler(vEuler);
-
-		qRot = DRotation(vQuat.x, vQuat.y, vQuat.z, vQuat.w);
-	}
-#endif
 	m_vRotation = qRot;
 
 	auto pNode = GetNode();
