@@ -58,6 +58,7 @@ public:
 
     void HandleMessageQueue();
     
+    DVector m_dvGlobalForce;
 
     //
     // ServerDE

@@ -40,6 +40,9 @@ public:
 	void SetUserFlags(int nFlag) { m_nUserFlags = nFlag; }
 	uint32_t GetUserFlags() { return m_nUserFlags; }
 
+	void SetClientFlags(int nFlag) { m_nClientFlags = nFlag; }
+	uint32_t GetClientFlags() { return m_nClientFlags; }
+
 	void SetPosition(DVector vPos);
 	DVector GetPosition();
 
@@ -74,11 +77,27 @@ public:
 
 	//std::unordered_map<std::string, GenericProp*> m_mProps;
 
+	float GetFrictionCoeff() { return m_fFrictionCoeff; }
+	float GetForceIgnoreLimit() { return m_fForceIgnoreLimit; }
+	float GetMass() { return m_fMass; }
+	DVector GetVelocity() { return m_vVelocity; }
+	DVector GetAccel() { return m_vAccel; }
+	DVector GetDims() { return m_vDims; }
+
+	void SetFrictionCoeff(float fVal) { m_fFrictionCoeff = fVal; }
+	void SetForceIgnoreLimit(float fVal) { m_fForceIgnoreLimit = fVal; }
+	void SetMass(float fVal) { m_fMass = fVal; }
+	void SetVelocity(DVector vVal) { m_vVelocity = vVal; }
+	void SetAccel(DVector vVal) { m_vAccel = vVal; }
+	void SetDims(DVector vVal) { m_vDims = vVal; }
+
+
 protected:
 	int m_nState;
 	uint16_t m_nObjectType;
 	uint32_t m_nFlags;
 	uint32_t m_nUserFlags;
+	uint32_t m_nClientFlags;
 	DVector m_vPos;
 	DVector m_vScale;
 	DRotation m_vRotation;
@@ -105,5 +124,14 @@ protected:
 	godot::Camera* m_pCamera;
 	godot::MeshInstance* m_pPolyGrid;
 	//} m_pData;
+
+	// Physics junk
+	float m_fFrictionCoeff;
+	float m_fForceIgnoreLimit;
+	DVector m_vVelocity;
+	DVector m_vAccel;
+	float m_fMass;
+	DVector m_vDims;
+
 };
 

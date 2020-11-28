@@ -1,5 +1,7 @@
 #include "client_physics.h"
+#include "client.h"
 
+extern LTELClient* g_pLTELClient;
 
 LTELClientPhysics::LTELClientPhysics()
 {
@@ -18,12 +20,57 @@ LTELClientPhysics::~LTELClientPhysics()
 //
 // Client specific info
 //
-
+#include "helpers.h"
+#include <RayCast.hpp>
 // Updates the object's movement using its velocity, acceleration, and the
 // time delta passed in (usually the frame time).  Fills in m_Offset with the
 // position delta you should apply.
 DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 {
+	if (!pInfo->m_hObject)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)pInfo->m_hObject;
+
+
+	DVector accel;
+	DVector velocity;
+	DVector offset;
+
+	accel = pObj->GetAccel();
+	velocity = pObj->GetVelocity();
+	offset.Init();
+
+	// Apply any global force
+	accel += m_pCommonPhysics->m_vGlobalForce;
+	DVector vPoint;
+	vPoint = DVector(1, 1, 1);
+
+	
+
+	// ?
+	//accel += pow(pObj->GetMass(), -1);
+	DRotation rCurrentRotation = pObj->GetRotation();
+	DVector vUp = DVector(0, 0, 0);
+	DVector vRight = DVector(0, 0, 0);
+	DVector vForward = DVector(0, 0, 0);
+
+	g_pLTELClient->GetRotationVectors(&rCurrentRotation, &vUp, &vRight, &vForward);
+
+	DVector deltaVelocity = accel * pInfo->m_dt;
+	velocity += deltaVelocity;
+	
+	pObj->SetVelocity(velocity);
+
+
+	pInfo->m_Offset = velocity * pInfo->m_dt;
+
+	//if (deltaVelocity.Mag() > 0)
+	//	godot::Godot::print("[PINFO]\nAccel: {0}/{1}/{2}\nVel: {3}/{4}/{5}\nOffset: {6}/{7}/{8}", pObj->GetVelocity().x, pObj->GetVelocity().y, pObj->GetVelocity().z, pObj->GetAccel().x, pObj->GetAccel().y, pObj->GetAccel().z, deltaVelocity.x, deltaVelocity.y, deltaVelocity.z);
+
+
 	return DE_OK;
 }
 

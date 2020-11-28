@@ -35,6 +35,7 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	m_nFlags = 0;
 	m_nClassDefCount = 0;
 	m_pClassDefList = nullptr;
+	m_dvGlobalForce = DVector(0, -20, 0);
 
 	m_pCurrentObject = nullptr;
 
@@ -119,6 +120,7 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 		CClientShellDE* pClientShell = (CClientShellDE*)pClient->GetClientShell();
 
+		pClientShell->PreLoadWorld((char*)sWorldName.c_str());
 		pClientShell->OnEnterWorld();
 	}
 
@@ -208,12 +210,16 @@ void LTELServer::HandleMessageQueue()
 
 DRESULT LTELServer::GetGlobalForce(DVector* pVec)
 {
-	return DE_ERROR;
+	*pVec = m_dvGlobalForce;
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::SetGlobalForce(DVector* pVec)
 {
-	return DE_ERROR;
+	m_dvGlobalForce = *pVec;
+
+	return DE_OK;
 }
 
 HMESSAGEWRITE LTELServer::StartSpecialEffectMessage(LPBASECLASS pObject)
@@ -390,8 +396,8 @@ HOBJECT LTELServer::GetWorldObject()
 
 DRESULT LTELServer::GetWorldBox(DVector& min, DVector& max)
 {
-	min = DVector(-10000, -10000, -10000);
-	max = DVector(10000, 10000, 10000);
+	min = DVector(-1000000, -1000000, -1000000);
+	max = DVector(1000000, 1000000, 1000000);
 
 	return DE_OK;
 }

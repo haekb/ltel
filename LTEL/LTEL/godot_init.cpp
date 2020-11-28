@@ -13,6 +13,7 @@
 
 #include "client.h"
 #include "LT1//AppHeaders/cpp_clientshell_de.h"
+#include "RiotCommandIDs.h"
 //#include "pch.h"
 
 #ifdef _DEBUG
@@ -224,7 +225,7 @@ const std::map<int, int> scancode_to_vk = {
 };
 
 #endif
-
+#include <Engine.hpp>
 
 class LTEL : public Node {
     GODOT_CLASS(LTEL, Node);
@@ -243,6 +244,9 @@ public:
 
     bool initialize_cshell(godot::String sGameDataDir)
     {
+        // Lock the framerate for accuracy with LT1 game code 
+        // (Game code is always targetting 60fps because ugh.)
+        Engine::get_singleton()->set_target_fps(60);
 
 
 #ifdef WAIT_FOR_DEBUGGER
@@ -374,6 +378,8 @@ public:
         auto pVS = godot::VisualServer::get_singleton();
         //pVS->call("set_render_loop_enabled", false);
 
+        
+
         Godot::print("Done!");
         return true;
     }
@@ -428,14 +434,58 @@ public:
         // Clear mouse motion for this frame!
         g_pClient->m_vRelativeMouse = godot::Vector2();
 
+        // Clear inputs
+        g_pClient->m_mCommands.clear();
     }
 
     void on_key_input(int nScancode, bool bPressed)
     {
-        auto nVK = scancode_to_vk.at(nScancode);
+        int nVK = 0;
+        try {
+            nVK = scancode_to_vk.at(nScancode);
+        }
+        catch (const std::exception& e)
+        {
+            Godot::print("[on_key_input] Failed with scancode_to_vk failure: {0}", e.what());
+            return;
+        }
+
+
         if (bPressed)
         {
             m_pGameClientShell->OnKeyDown(nVK, 0);
+
+            // Fake input handling
+            switch (nVK) {
+            case VK_SPACE:
+                g_pClient->SetCommandOn(COMMAND_ID_JUMP);
+                break;
+            case 0x57:
+                g_pClient->SetCommandOn(COMMAND_ID_FORWARD);
+                break;
+            case 0x53:
+                g_pClient->SetCommandOn(COMMAND_ID_REVERSE);
+                break;
+            case 0x41:
+                g_pClient->SetCommandOn(COMMAND_ID_STRAFE_LEFT);
+                break;
+            case 0x44:
+                g_pClient->SetCommandOn(COMMAND_ID_STRAFE_RIGHT);
+                break;
+            case VK_CONTROL:
+                g_pClient->SetCommandOn(COMMAND_ID_FIRING);
+                break;
+            case 0x31: // 1
+                g_pClient->SetCommandOn(COMMAND_ID_NEXT_WEAPON);
+                break;
+            case 0x32: // 2
+                g_pClient->SetCommandOn(COMMAND_ID_PREV_WEAPON);
+                break;
+            }
+
+
+
+
             return;
         }
         m_pGameClientShell->OnKeyUp(nVK);

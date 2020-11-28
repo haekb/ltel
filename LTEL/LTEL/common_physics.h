@@ -1,8 +1,9 @@
 #pragma once
 #include "LT1/AppHeaders/basedefs_de.h"
 #include "LT1/AppHeaders/basetypes_de.h"
-
 #include "LT1/AppHeaders/physics_lt.h"
+
+#include "game_object.h"
 
 class LTELCommonPhysics :
     public PhysicsLT
@@ -52,5 +53,8 @@ public:
 	// when they move.  Default is (0,-2000,0) which simulates gravity.
 	 DRESULT GetGlobalForce(DVector& vec);
 	 DRESULT SetGlobalForce(DVector& vec);
+
+public:
+	DVector m_vGlobalForce;
 };
 

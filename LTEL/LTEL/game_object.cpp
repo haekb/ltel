@@ -5,6 +5,49 @@
 #include <Quat.hpp>
 #include <Vector3.hpp>
 
+#define _DEBUG_POS_ROT
+
+#ifdef _DEBUG_POS_ROT
+#include <RichTextLabel.hpp>
+godot::RichTextLabel* g_pPosLabel = nullptr;
+godot::RichTextLabel* g_pRotLabel = nullptr;
+
+void UpdatePos(DVector vPos)
+{
+	if (!g_pPosLabel)
+	{
+		return;
+	}
+
+	godot::String sString = "Player Position: <{0}, {1}, {2}>";
+	godot::Array aValues;
+	aValues.push_back(vPos.x);
+	aValues.push_back(vPos.y);
+	aValues.push_back(vPos.z);
+	
+
+	g_pPosLabel->set_text(sString.format(aValues));
+}
+
+void UpdateRot(DRotation vRot)
+{
+	if (!g_pRotLabel)
+	{
+		return;
+	}
+
+	godot::String sString = "Player Rotation: <{0}, {1}, {2}, {3}>";
+	godot::Array aValues;
+	aValues.push_back(vRot.m_Vec.x);
+	aValues.push_back(vRot.m_Vec.y);
+	aValues.push_back(vRot.m_Vec.z);
+	aValues.push_back(vRot.m_Spin);
+
+	g_pRotLabel->set_text(sString.format(aValues));
+}
+
+#endif
+
 GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 {
 	m_pClassDef = pClass;
@@ -13,6 +56,7 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_nObjectType = OT_NORMAL;
 	m_nFlags = 0;
 	m_nUserFlags = 0;
+	m_nClientFlags = 0;
 	m_vPos = DVector(0,0,0);
 	m_vScale = DVector(1,1,1);
 	m_vRotation = DRotation(0,0,0,1);
@@ -32,6 +76,13 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 
 	m_pExtraData = nullptr;
 	m_pServerObject = nullptr; // Needed??
+
+	m_fFrictionCoeff = 0.0f;
+	m_fForceIgnoreLimit = 0.0f;
+	m_vVelocity = DVector(0,0,0);
+	m_vAccel = DVector(0,0,0);
+	m_fMass = 0.0f;
+	m_vDims = DVector(0,0,0);
 }
 
 GameObject::~GameObject()
@@ -95,6 +146,14 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 	m_sName = pStruct.m_Name;
 	m_fNextUpdate = pStruct.m_NextUpdate;
 	m_fDeactivationTime = pStruct.m_fDeactivationTime;
+
+	//if (m_nObjectType == OT_CAMERA)
+	if (m_sName == "Sanjuro" && GetNode())
+	{
+		g_pPosLabel = GDCAST(godot::RichTextLabel, GetNode()->get_node("/root/Scene/Debug2D/PlayerPOS"));
+		g_pRotLabel = GDCAST(godot::RichTextLabel, GetNode()->get_node("/root/Scene/Debug2D/PlayerROT"));
+	}
+
 }
 
 bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
@@ -187,6 +246,7 @@ void GameObject::SetPosition(DVector vPos)
 	if (pNode)
 	{
 		pNode->set_translation(LT2GodotVec3(vPos));
+		UpdatePos(vPos);
 	}
 }
 
@@ -242,6 +302,7 @@ void GameObject::SetRotation(DRotation qRot)
 	{
 		auto godotQuat = LT2GodotQuat(&qRot);
 		pNode->set_rotation(godotQuat.get_euler());
+		UpdateRot(qRot);
 	}
 }
 

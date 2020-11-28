@@ -563,12 +563,26 @@ void impl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
 
 DDWORD impl_GetObjectClientFlags(HLOCALOBJ hObj)
 {
-	return 0;
+	if (!hObj)
+	{
+		return 0;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	return pObj->GetClientFlags();
 }
 
 void impl_SetObjectClientFlags(HLOCALOBJ hObj, DDWORD flags)
 {
-	return;
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	pObj->SetClientFlags(flags);
 }
 
 // Returns the animation the model is currently on.  (DDWORD)-1 if none.

@@ -330,6 +330,11 @@ DRESULT impl_GetWorldInfoString(char* pFilename, char* pInfoString, DDWORD maxLe
 		
 	auto hError = pFile->open(sPath.c_str(), godot::File::READ);
 
+	if (hError == godot::Error::ERR_FILE_NOT_FOUND)
+	{
+		return DE_NOTFOUND;
+	}
+
 	int nVersion = pFile->get_32();
 
 	if (nVersion != 56)
@@ -498,9 +503,15 @@ DBOOL impl_IsCommandOn(int commandNum)
 		return TRUE;
 	}
 	*/
-	
 
-	return FALSE;
+	bool bOn = FALSE;
+
+	if (g_pLTELClient->m_mCommands.find(commandNum) != g_pLTELClient->m_mCommands.end())
+	{
+		bOn = g_pLTELClient->m_mCommands.at(commandNum);
+	}	
+
+	return bOn;
 }
 
 void impl_GetAxisOffsets(DFLOAT* offsets)

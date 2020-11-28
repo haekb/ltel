@@ -755,8 +755,16 @@ DRESULT simpl_SetClientViewPos(HCLIENT hClient, DVector* pPos)
 	return DE_OK;
 }
 
+DRESULT simpl_PlaySound(PlaySoundInfo* pPlaySoundInfo)
+{
+	return DE_OK;
+}
+
 void LTELServer::InitFunctionPointers()
 {
+	// Audio functionality
+	PlaySound = simpl_PlaySound;
+
 	// Animation functionality
 	GetModelAnimation = simpl_GetModelAnimation;
 	GetModelPlaybackState = simpl_GetModelPlaybackState;

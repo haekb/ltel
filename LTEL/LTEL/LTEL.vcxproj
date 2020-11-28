@@ -204,6 +204,7 @@
     <ClInclude Include="LT1\AppHeaders\server_de.h" />
     <ClInclude Include="LT1\AppHeaders\specialeffect_de.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="RiotCommandIDs.h" />
     <ClInclude Include="server.h" />
     <ClInclude Include="shared.h" />
   </ItemGroup>

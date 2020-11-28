@@ -35,14 +35,17 @@ public:
 	void InitObjectImpl();
 	void InitStringImpl();
 
-	bool SetStreamValue(godot::StreamPeerBuffer* pPacket, godot::Variant pValue);
-
+	
+    void SetCommandOn(int nCommandID);
 
 	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
     godot::Ref<godot::ImageTexture> LoadDTX(std::string sPath);
     godot::Ref<godot::PackedScene> LoadABC(std::string sPath);
 
     bool BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale);
+
+    // Commands which are on, this is cleared every frame
+    std::unordered_map<int, bool> m_mCommands;
 
 	std::string m_sGameDataDir;
 	godot::Vector2 m_vFOV;
@@ -54,12 +57,15 @@ public:
 
 	int m_nGameMode;
 	bool m_bIsConnected;
+    bool m_bIsInWorld;
 
     ClientInfo* m_pClientInfo;
 
     CClientShellDE* m_pClientShell;
 
     godot::Vector2 m_vRelativeMouse;
+
+    
 
 	//
 	// CSBASE

@@ -33,6 +33,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 
 	m_nGameMode = GAMEMODE_NONE;
 	m_bIsConnected = false;
+	m_bIsInWorld = false;
 	m_sGameDataDir = "";
 	m_vFOV = godot::Vector2();
 	m_vRelativeMouse = godot::Vector2();
@@ -164,6 +165,11 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 	m_pLTELServer->m_pClassDefList = pClassList;
 
 	return true;
+}
+
+void LTELClient::SetCommandOn(int nCommandID)
+{
+	m_mCommands.insert({ nCommandID, true });
 }
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)
