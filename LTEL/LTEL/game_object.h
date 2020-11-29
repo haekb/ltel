@@ -7,6 +7,8 @@
 #include <Node.hpp>
 #include <Camera.hpp>
 #include <MeshInstance.hpp>
+#include <KinematicBody.hpp>
+#include <CollisionShape.hpp>
 // End Godot
 
 #include <string>
@@ -69,11 +71,14 @@ public:
 	void SetCamera(godot::Camera* pCam) { m_pCamera = pCam; }
 	void SetPolyGrid(godot::MeshInstance* pMesh) { m_pPolyGrid = pMesh; }
 
+	void SetKinematicBody(godot::KinematicBody* pBody) { m_pKinematicBody = pBody; }
+
 	// Data get!
 	godot::Spatial* GetNode();
 	godot::Camera* GetCamera() { return m_pCamera; }
 	godot::MeshInstance* GetPolyGrid() { return m_pPolyGrid; }
 
+	godot::KinematicBody* GetKinematicBody() { return m_pKinematicBody; }
 
 	//std::unordered_map<std::string, GenericProp*> m_mProps;
 
@@ -124,6 +129,9 @@ protected:
 	godot::Camera* m_pCamera;
 	godot::MeshInstance* m_pPolyGrid;
 	//} m_pData;
+
+	// Player only?
+	godot::KinematicBody* m_pKinematicBody;
 
 	// Physics junk
 	float m_fFrictionCoeff;

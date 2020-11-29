@@ -48,7 +48,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	InitStringImpl();
 
 	m_pCommonLT = new LTELCommon();
-	m_pPhysicsLT = new LTELClientPhysics();
+	m_pPhysicsLT = new LTELClientPhysics(this);
 
 }
 

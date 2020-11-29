@@ -35,7 +35,7 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 	m_nFlags = 0;
 	m_nClassDefCount = 0;
 	m_pClassDefList = nullptr;
-	m_dvGlobalForce = DVector(0, -20, 0);
+	m_dvGlobalForce = DVector(0, -2000, 0);
 
 	m_pCurrentObject = nullptr;
 
@@ -45,7 +45,7 @@ LTELServer::LTELServer(godot::Node* pGodotLink, HINSTANCE pSRes)
 
 	m_pCommonLT = new LTELCommon();
 
-	m_pPhysicsLT = new LTELCommonPhysics();
+	m_pPhysicsLT = new LTELCommonPhysics((LTELCommon*)m_pCommonLT);
 
 	// This is dumb
 	//m_pPhysicsLT = &g_CommonPhysics;

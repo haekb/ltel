@@ -48,6 +48,11 @@ void UpdateRot(DRotation vRot)
 
 #endif
 
+//
+// Game Object - There's an object for everyone and everything!
+// Basically our translation layer between Lithtech and Godot's node systems.
+// Note: Server-side objects will not have instances of Nodes!
+//
 GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 {
 	m_pClassDef = pClass;
@@ -73,11 +78,12 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_pNode = nullptr;
 	m_pCamera = nullptr;
 	m_pPolyGrid = nullptr;
+	m_pKinematicBody = nullptr;
 
 	m_pExtraData = nullptr;
 	m_pServerObject = nullptr; // Needed??
 
-	m_fFrictionCoeff = 0.0f;
+	m_fFrictionCoeff = 1.0f;
 	m_fForceIgnoreLimit = 0.0f;
 	m_vVelocity = DVector(0,0,0);
 	m_vAccel = DVector(0,0,0);
@@ -147,11 +153,13 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 	m_fNextUpdate = pStruct.m_NextUpdate;
 	m_fDeactivationTime = pStruct.m_fDeactivationTime;
 
-	//if (m_nObjectType == OT_CAMERA)
+	//if (m_nObjectType == OT_CAMERA && GetNode())
 	if (m_sName == "Sanjuro" && GetNode())
 	{
 		g_pPosLabel = GDCAST(godot::RichTextLabel, GetNode()->get_node("/root/Scene/Debug2D/PlayerPOS"));
 		g_pRotLabel = GDCAST(godot::RichTextLabel, GetNode()->get_node("/root/Scene/Debug2D/PlayerROT"));
+
+
 	}
 
 }

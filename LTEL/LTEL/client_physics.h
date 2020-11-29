@@ -1,10 +1,11 @@
 #pragma once
 #include "common_physics.h"
+#include "client.h"
 class LTELClientPhysics :
     public CPhysicsLT
 {
 public:
-	LTELClientPhysics();
+	LTELClientPhysics(LTELClient* pClient);
 	~LTELClientPhysics();
 
 
@@ -71,7 +72,7 @@ public:
 		HOBJECT* hPushObjects, DDWORD nPushObjects);
 
 protected:
-
+	LTELClient* m_pClient;
 	LTELCommonPhysics* m_pCommonPhysics;
 };
 

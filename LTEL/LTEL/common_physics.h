@@ -3,6 +3,7 @@
 #include "LT1/AppHeaders/basetypes_de.h"
 #include "LT1/AppHeaders/physics_lt.h"
 
+#include "common.h"
 #include "game_object.h"
 
 class LTELCommonPhysics :
@@ -10,7 +11,7 @@ class LTELCommonPhysics :
 {
 public:
 
-	LTELCommonPhysics();
+	LTELCommonPhysics(LTELCommon* pCommon);
 	~LTELCommonPhysics();
 
 	// Get/Set friction coefficient.
@@ -55,6 +56,7 @@ public:
 	 DRESULT SetGlobalForce(DVector& vec);
 
 public:
+	LTELCommon* m_pCommon;
 	DVector m_vGlobalForce;
 };
 

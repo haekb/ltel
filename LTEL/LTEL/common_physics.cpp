@@ -2,10 +2,12 @@
 
 #include "helpers.h"
 
-LTELCommonPhysics::LTELCommonPhysics()
+
+LTELCommonPhysics::LTELCommonPhysics(LTELCommon* pCommon)
 {
 	m_ClientServerType = ServerType;
 	m_vGlobalForce = DVector(0, -1000, 0);
+	m_pCommon = pCommon;
 }
 
 LTELCommonPhysics::~LTELCommonPhysics()
@@ -158,6 +160,7 @@ DRESULT LTELCommonPhysics::SetObjectDims(HOBJECT hObj, DVector* pNewDims, DDWORD
 }
 
 #include <RayCast.hpp>
+#include <KinematicCollision.hpp>
 DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 {
 	if (!hObj)
@@ -166,11 +169,80 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 	}
 
 	GameObject* pObj = (GameObject*)hObj;
+	godot::KinematicBody* pKinematicBody = pObj->GetKinematicBody();
 
+
+	if (!m_pCommon)
+	{
+		return DE_ERROR;
+	}
+
+	if (!pKinematicBody)
+	{
+		godot::Godot::print("MoveObject: No kinematic body found, fetching one...");
+		godot::KinematicBody* pPrefab = GDCAST(godot::KinematicBody, pObj->GetNode()->get_node("/root/Scene/Prefabs/ClientBody"));
+		
+		if (!pPrefab)
+		{
+			return DE_ERROR;
+		}
+		
+		pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate());
+		pObj->GetNode()->add_child(pKinematicBody);
+		pObj->SetKinematicBody(pKinematicBody);
+	}
+
+#if 0
+
+	auto pRelVelocity = *pPos - pObj->GetPosition();
+
+	auto pCollisionInfo = pKinematicBody->move_and_collide(LT2GodotVec3(pRelVelocity));
+	
+	auto vBodyPos = pKinematicBody->get_translation();
+	auto vBodyRot = pKinematicBody->get_rotation();
+
+	godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", vBodyPos.x, vBodyPos.y, vBodyPos.z, (unsigned int)flags);
+
+	pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
+
+#else
+
+	DVector vUp = DVector(0, 0, 0);
+	DVector vForward = DVector(0, 0, 0);
+	DVector vRight = DVector(0, 0, 0);
+	DRotation vRot = pObj->GetRotation();
+	m_pCommon->GetRotationVectors(vRot, vUp, vRight, vForward);
+
+	auto pRelVelocity = *pPos - pObj->GetPosition();
+
+//	pRelVelocity *= vForward;
+
+	pKinematicBody->move_and_slide(LT2GodotVec3(pRelVelocity), LT2GodotVec3(vUp), true);
+
+	auto vBodyPos = pKinematicBody->get_translation();
+	auto vBodyRot = pKinematicBody->get_rotation();
+
+	godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", pRelVelocity.x, pRelVelocity.y, pRelVelocity.z, (unsigned int)flags);
+
+	pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
+
+	/*
+	if (pKinematicBody->is_on_floor())
+	{
+		auto vVelocity = pObj->GetVelocity();
+		vVelocity.y = 0.0f;
+		pObj->SetVelocity(vVelocity);
+	}
+	*/
+#endif
+	//pObj->SetVelocity(DVector(0, 0, 0));
+
+	bool bBeans = true;
+
+#if 0
 	DVector vOldPos = pObj->GetPosition();
 	DVector vNewPos = *pPos + vOldPos;
 
-	godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", vNewPos.x, vNewPos.y, vNewPos.z, (unsigned int)flags);
 
 	// Setup a new ray, and enable it
 	godot::RayCast* pRayCast = godot::RayCast::_new();
@@ -221,52 +293,13 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 	pRayCast->queue_free();
 
-#if 0
-	if (0) {
-		DVector vOldPos = pObj->GetPosition();
-		DVector vNewPos = vOldPos + velocity;
 
-		// Setup a new ray, and enable it
-		godot::RayCast* pRayCast = godot::RayCast::_new();
-		pObj->GetNode()->get_parent()->add_child(pRayCast, true);
-		pRayCast->set_cast_to(LT2GodotVec3(vNewPos));
-		pRayCast->set_translation(LT2GodotVec3(vOldPos));
-		pRayCast->set_enabled(true);
-
-		// Cast it!
-		pRayCast->force_raycast_update();
-
-
-		if (pRayCast->is_colliding())
-		{
-#if 1
-			auto vgNormal = pRayCast->get_collision_normal();
-			DVector vNormal = DVector(vgNormal.x, vgNormal.y, vgNormal.z);
-
-			//P = -N * (V * N)
-			//a = P * t
-
-			vPoint = -vNormal * (velocity * vNormal);
-			accel = vPoint * pInfo->m_dt;
-
-			//vNewPos = vOldPos;
-#else
-			auto vgCollidePoint = pRayCast->get_collision_point();
-			DVector vLocalCollision = DVector(vgCollidePoint.x - vOldPos.x, vgCollidePoint.y - vOldPos.y, vgCollidePoint.z - vOldPos.z);
-			vNewPos -= vLocalCollision;
-#endif
-		}
-
-
-		pRayCast->queue_free();
-
-	}
-#endif
 	pObj->SetPosition(vNewPos);
 	pObj->GetNode()->force_update_transform();
 	//pObj->SetAccel(DVector(0, 0, 0));
 
 	return DE_OK;
+#endif
 }
 
 DRESULT LTELCommonPhysics::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)

@@ -1,13 +1,11 @@
 #include "client_physics.h"
 #include "client.h"
 
-extern LTELClient* g_pLTELClient;
-
-LTELClientPhysics::LTELClientPhysics()
+LTELClientPhysics::LTELClientPhysics(LTELClient* pClient)
 {
 	m_ClientServerType = ClientType;
-
-	m_pCommonPhysics = new LTELCommonPhysics();
+	m_pClient = pClient;
+	m_pCommonPhysics = new LTELCommonPhysics((LTELCommon*)pClient->Common());
 }
 
 LTELClientPhysics::~LTELClientPhysics()
@@ -34,7 +32,6 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 
 	GameObject* pObj = (GameObject*)pInfo->m_hObject;
 
-
 	DVector accel;
 	DVector velocity;
 	DVector offset;
@@ -43,33 +40,36 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	velocity = pObj->GetVelocity();
 	offset.Init();
 
-	// Apply any global force
+	// Only code borrowed from the decompile:
+	// If we're moving very slowly, then don't actually move.
+	/*
+	if (accel.MagSqr() < 0.1f && velocity.MagSqr() < 0.1f)
+	{
+		accel.Init();
+		velocity.Init();
+		return DE_OK;
+	}
+	*/
+
+	// Apply any force (mostly gravity)
 	accel += m_pCommonPhysics->m_vGlobalForce;
-	DVector vPoint;
-	vPoint = DVector(1, 1, 1);
 
-	
-
-	// ?
-	//accel += pow(pObj->GetMass(), -1);
-	DRotation rCurrentRotation = pObj->GetRotation();
 	DVector vUp = DVector(0, 0, 0);
-	DVector vRight = DVector(0, 0, 0);
 	DVector vForward = DVector(0, 0, 0);
+	DVector vRight = DVector(0, 0, 0);
+	DRotation vRot = pObj->GetRotation();
+	m_pClient->Common()->GetRotationVectors(vRot, vUp, vRight, vForward);
 
-	g_pLTELClient->GetRotationVectors(&rCurrentRotation, &vUp, &vRight, &vForward);
+	//accel *= vForward;
 
-	DVector deltaVelocity = accel * pInfo->m_dt;
-	velocity += deltaVelocity;
-	
-	pObj->SetVelocity(velocity);
+	// New Velocity
+	velocity += accel * pInfo->m_dt;
 
-
+	// New Position
 	pInfo->m_Offset = velocity * pInfo->m_dt;
 
-	//if (deltaVelocity.Mag() > 0)
-	//	godot::Godot::print("[PINFO]\nAccel: {0}/{1}/{2}\nVel: {3}/{4}/{5}\nOffset: {6}/{7}/{8}", pObj->GetVelocity().x, pObj->GetVelocity().y, pObj->GetVelocity().z, pObj->GetAccel().x, pObj->GetAccel().y, pObj->GetAccel().z, deltaVelocity.x, deltaVelocity.y, deltaVelocity.z);
-
+	pObj->SetVelocity(velocity);
+	//pObj->SetAccel(accel);
 
 	return DE_OK;
 }
