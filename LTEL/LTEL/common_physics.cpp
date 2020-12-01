@@ -161,6 +161,7 @@ DRESULT LTELCommonPhysics::SetObjectDims(HOBJECT hObj, DVector* pNewDims, DDWORD
 
 #include <RayCast.hpp>
 #include <KinematicCollision.hpp>
+#include <Math.hpp>
 DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 {
 	if (!hObj)
@@ -188,22 +189,45 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 		}
 		
 		pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate());
-		pObj->GetNode()->add_child(pKinematicBody);
+		//pObj->GetNode()->add_child(pKinematicBody);
+		auto p3D = pObj->GetNode()->get_node("/root/Scene/3D");
+		p3D->add_child(pKinematicBody);
 		pObj->SetKinematicBody(pKinematicBody);
 	}
 
-#if 0
+#if 1
 
 	auto pRelVelocity = *pPos - pObj->GetPosition();
 
-	auto pCollisionInfo = pKinematicBody->move_and_collide(LT2GodotVec3(pRelVelocity));
+	auto pCollisionInfo = pKinematicBody->move_and_collide(LT2GodotVec3(pRelVelocity), true, true, true);
+
+	if (pCollisionInfo.is_null())
+	{
+		pObj->SetPosition(pRelVelocity + pObj->GetPosition());
+	}
+	else
+	{
+		//auto vBodyPos = pKinematicBody->get_translation();
+		//auto vBodyRot = pKinematicBody->get_rotation();
+
+		auto vBodyPos = pCollisionInfo->get_travel() + LT2GodotVec3(pObj->GetPosition());
+
+		pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
+	}
 	
-	auto vBodyPos = pKinematicBody->get_translation();
-	auto vBodyRot = pKinematicBody->get_rotation();
 
-	godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", vBodyPos.x, vBodyPos.y, vBodyPos.z, (unsigned int)flags);
 
-	pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
+	//godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", vBodyPos.x, vBodyPos.y, vBodyPos.z, (unsigned int)flags);
+
+
+#if 1
+	// We're on the floor!
+	if (!pCollisionInfo.is_null() && ::acos(pCollisionInfo->get_normal().dot(godot::Vector3(0, 1, 0))) <= 0.1)
+	{
+		auto vCurrentVelocity = pObj->GetVelocity();
+		pObj->SetVelocity(DVector(vCurrentVelocity.x, 0.0f, vCurrentVelocity.z));
+	}
+#endif
 
 #else
 
@@ -221,10 +245,13 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 	auto vBodyPos = pKinematicBody->get_translation();
 	auto vBodyRot = pKinematicBody->get_rotation();
+	auto qBodyRot = godot::Quat();
+	qBodyRot.set_euler(vBodyRot);
 
-	godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", pRelVelocity.x, pRelVelocity.y, pRelVelocity.z, (unsigned int)flags);
+	//godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", pRelVelocity.x, pRelVelocity.y, pRelVelocity.z, (unsigned int)flags);
 
 	pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
+	//pObj->SetRotation(DRotation(qBodyRot.x, qBodyRot.y, qBodyRot.z, qBodyRot.w));
 
 	/*
 	if (pKinematicBody->is_on_floor())
@@ -235,71 +262,10 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 	}
 	*/
 #endif
-	//pObj->SetVelocity(DVector(0, 0, 0));
 
-	bool bBeans = true;
-
-#if 0
-	DVector vOldPos = pObj->GetPosition();
-	DVector vNewPos = *pPos + vOldPos;
-
-
-	// Setup a new ray, and enable it
-	godot::RayCast* pRayCast = godot::RayCast::_new();
-	pObj->GetNode()->get_parent()->add_child(pRayCast, true);
-	pRayCast->set_cast_to(LT2GodotVec3(vNewPos));
-	pRayCast->set_translation(LT2GodotVec3(vOldPos));
-	pRayCast->set_enabled(true);
 	
-
-	// Cast it!
-	pRayCast->force_raycast_update();
-
-
-	if (pRayCast->is_colliding())
-	{
-		auto vCollision = pRayCast->get_collision_point();
-		auto vCollisionLT = DVector(vCollision.x, vCollision.y, vCollision.z);
-
-		auto vAdjustedPoint = vNewPos - vCollisionLT;
-		/*
-		
-		P <--- Player
-		|
-		|
-		|
-		_ <--- Collision Point
-		| 
-		| <--- Total vNewPos
-		
-		
-		*/
-
-		//if (vAdjustedPoint.y > 0)
-		{
-//			vNewPos -= vAdjustedPoint;
-		}
-
-		//if (vAdjustedPoint.MagSqr() < 0.1f)
-		{
-			pObj->SetAccel(DVector(0, 0, 0));
-			pObj->SetVelocity(DVector(0, 0, 0));
-			pRayCast->queue_free();
-			return DE_OK;
-		}
-
-
-	}
-
-	pRayCast->queue_free();
-
-
-	pObj->SetPosition(vNewPos);
-	pObj->GetNode()->force_update_transform();
-	//pObj->SetAccel(DVector(0, 0, 0));
-
 	return DE_OK;
-#endif
+
 }
 
 DRESULT LTELCommonPhysics::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)

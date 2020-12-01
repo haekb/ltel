@@ -40,6 +40,9 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	velocity = pObj->GetVelocity();
 	offset.Init();
 
+	//godot::Godot::print("Acceleration Vector: {0}/{1}/{2}", accel.x, accel.y, accel.z);
+
+
 	// Only code borrowed from the decompile:
 	// If we're moving very slowly, then don't actually move.
 	/*
@@ -54,14 +57,6 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	// Apply any force (mostly gravity)
 	accel += m_pCommonPhysics->m_vGlobalForce;
 
-	DVector vUp = DVector(0, 0, 0);
-	DVector vForward = DVector(0, 0, 0);
-	DVector vRight = DVector(0, 0, 0);
-	DRotation vRot = pObj->GetRotation();
-	m_pClient->Common()->GetRotationVectors(vRot, vUp, vRight, vForward);
-
-	//accel *= vForward;
-
 	// New Velocity
 	velocity += accel * pInfo->m_dt;
 
@@ -69,7 +64,6 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	pInfo->m_Offset = velocity * pInfo->m_dt;
 
 	pObj->SetVelocity(velocity);
-	//pObj->SetAccel(accel);
 
 	return DE_OK;
 }

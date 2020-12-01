@@ -162,6 +162,17 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 
 	}
 
+	if (GetNode())
+	{
+		if (!m_sName.empty())
+		{
+			GetNode()->set_name(m_sName.c_str());
+		}
+		else if (!m_sFilename.empty())
+		{
+			GetNode()->set_name(m_sFilename.c_str());
+		}
+	}
 }
 
 bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
@@ -234,6 +245,7 @@ void GameObject::SetFlags(int nFlag)
 	{
 		return;
 	}
+	
 
 	if (nFlag & FLAG_VISIBLE)
 	{
@@ -250,11 +262,17 @@ void GameObject::SetPosition(DVector vPos)
 	m_vPos = vPos;
 
 	auto pNode = GetNode();
+	auto vPosition = LT2GodotVec3(vPos);
 
 	if (pNode)
 	{
-		pNode->set_translation(LT2GodotVec3(vPos));
+		pNode->set_translation(vPosition);
 		UpdatePos(vPos);
+	}
+
+	if (GetKinematicBody())
+	{
+		GetKinematicBody()->set_translation(vPosition);
 	}
 }
 
@@ -305,12 +323,19 @@ void GameObject::SetRotation(DRotation qRot)
 	m_vRotation = qRot;
 
 	auto pNode = GetNode();
-
+	auto godotQuat = LT2GodotQuat(&qRot);
 	if (pNode)
 	{
-		auto godotQuat = LT2GodotQuat(&qRot);
 		pNode->set_rotation(godotQuat.get_euler());
 		UpdateRot(qRot);
+	}
+
+	if (m_pKinematicBody)
+	{
+		auto vEuler = godotQuat.get_euler();
+		vEuler.x = 0.0f;
+
+		m_pKinematicBody->set_rotation(vEuler);
 	}
 }
 
@@ -329,6 +354,34 @@ DRotation GameObject::GetRotation()
 	auto qRot = m_vRotation;
 
 	return qRot;
+}
+
+#include <Shape.hpp>
+#include <BoxShape.hpp>
+void GameObject::SetKinematicBody(godot::KinematicBody* pBody)
+{
+	// 
+	m_pKinematicBody = pBody;
+
+	// Set the proper dims
+	godot::Ref<godot::BoxShape> pShape = m_pKinematicBody->shape_owner_get_shape(0, 0);
+	//pShape->set_extents(LT2GodotVec3(GetDims()));
+	pShape->set_extents(godot::Vector3(10, 10, 10));
+
+
+	//
+	// The following is debug code!
+	//
+#if 0
+	godot::MeshInstance* pDebugCube = GDCAST(godot::MeshInstance, m_pKinematicBody->get_child(0)->get_child(0));
+	
+	if (!pDebugCube)
+	{
+		return;
+	}
+
+	pDebugCube->set_scale(LT2GodotVec3(GetDims()));
+#endif
 }
 
 godot::Spatial* GameObject::GetNode()

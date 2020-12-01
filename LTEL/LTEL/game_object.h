@@ -71,7 +71,7 @@ public:
 	void SetCamera(godot::Camera* pCam) { m_pCamera = pCam; }
 	void SetPolyGrid(godot::MeshInstance* pMesh) { m_pPolyGrid = pMesh; }
 
-	void SetKinematicBody(godot::KinematicBody* pBody) { m_pKinematicBody = pBody; }
+	void SetKinematicBody(godot::KinematicBody* pBody);
 
 	// Data get!
 	godot::Spatial* GetNode();
