@@ -79,6 +79,7 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_pCamera = nullptr;
 	m_pPolyGrid = nullptr;
 	m_pKinematicBody = nullptr;
+	m_pLastCollision = nullptr;
 
 	m_pExtraData = nullptr;
 	m_pServerObject = nullptr; // Needed??
@@ -412,6 +413,18 @@ godot::Spatial* GameObject::GetNode()
 	m_pNode = pNode;
 
 	return pNode;
+}
+
+void GameObject::SetDims(DVector vVal)
+{
+	m_vDims = vVal;
+
+	if (GetKinematicBody())
+	{
+		// Set the proper dims
+		godot::Ref<godot::BoxShape> pShape = m_pKinematicBody->shape_owner_get_shape(0, 0);
+		pShape->set_extents(LT2GodotVec3(GetDims()));
+	}
 }
 
 void GameObject::Teleport(DVector vNewPos)

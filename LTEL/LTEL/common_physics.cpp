@@ -162,6 +162,7 @@ DRESULT LTELCommonPhysics::SetObjectDims(HOBJECT hObj, DVector* pNewDims, DDWORD
 #include <RayCast.hpp>
 #include <KinematicCollision.hpp>
 #include <Math.hpp>
+
 DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 {
 	if (!hObj)
@@ -204,6 +205,7 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 	if (pCollisionInfo.is_null())
 	{
 		pObj->SetPosition(pRelVelocity + pObj->GetPosition());
+		pObj->SetLastCollision(nullptr);
 	}
 	else
 	{
@@ -213,6 +215,7 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 		auto vBodyPos = pCollisionInfo->get_travel() + LT2GodotVec3(pObj->GetPosition());
 
 		pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
+		pObj->SetLastCollision(pCollisionInfo);
 	}
 	
 
@@ -270,13 +273,33 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 DRESULT LTELCommonPhysics::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)
 {
-
-
 	pInfo->m_hObject = nullptr;
 	pInfo->m_hPoly = INVALID_HPOLY;
 	pInfo->m_Plane = DPlane(0, 0, 0, 1.0);
 	pInfo->m_vStopVel = DVector(0, 0, 0);
 
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	auto pCollision = pObj->GetLastCollision();
+
+	if (pCollision.is_null())
+	{
+		return DE_OK;
+	}
+
+	auto vNormal = pCollision->get_normal();
+	auto vStop = pCollision->get_remainder();
+
+	// Cheat a little
+	pInfo->m_hObject = hObj;
+
+	pInfo->m_Plane = DPlane(vNormal.x, vNormal.y, vNormal.z, 1.0f);
+	pInfo->m_vStopVel = DVector(vStop.x, vStop.y, vStop.z);
 
 
 	return DE_OK;

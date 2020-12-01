@@ -9,6 +9,7 @@
 #include <MeshInstance.hpp>
 #include <KinematicBody.hpp>
 #include <CollisionShape.hpp>
+#include <KinematicCollision.hpp>
 // End Godot
 
 #include <string>
@@ -88,14 +89,15 @@ public:
 	DVector GetVelocity() { return m_vVelocity; }
 	DVector GetAccel() { return m_vAccel; }
 	DVector GetDims() { return m_vDims; }
+	godot::Ref<godot::KinematicCollision> GetLastCollision() { return m_pLastCollision; }
 
 	void SetFrictionCoeff(float fVal) { m_fFrictionCoeff = fVal; }
 	void SetForceIgnoreLimit(float fVal) { m_fForceIgnoreLimit = fVal; }
 	void SetMass(float fVal) { m_fMass = fVal; }
 	void SetVelocity(DVector vVal) { m_vVelocity = vVal; }
 	void SetAccel(DVector vVal) { m_vAccel = vVal; }
-	void SetDims(DVector vVal) { m_vDims = vVal; }
-
+	void SetDims(DVector vVal);
+	void SetLastCollision(godot::Ref<godot::KinematicCollision> pCol) { m_pLastCollision = pCol; }
 
 protected:
 	int m_nState;
@@ -132,6 +134,7 @@ protected:
 
 	// Player only?
 	godot::KinematicBody* m_pKinematicBody;
+	godot::Ref<godot::KinematicCollision> m_pLastCollision;
 
 	// Physics junk
 	float m_fFrictionCoeff;
