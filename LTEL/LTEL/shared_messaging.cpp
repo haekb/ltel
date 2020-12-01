@@ -261,7 +261,12 @@ char* shared_ReadFromMessageString(HMESSAGEREAD hMessage)
 void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
 {
 	auto pStream = (GD_STREAM_CAST(hMessage));
-	DVector dVec = DVector(pStream->get_float(), pStream->get_float(), pStream->get_float());
+
+	float x = pStream->get_float();
+	float y = pStream->get_float();
+	float z = pStream->get_float();
+
+	DVector dVec = DVector(x,y,z);
 	*pVal = dVec;
 	shared_CheckAndReset(hMessage);
 }
@@ -280,7 +285,12 @@ void shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
 {
 	auto pStream = (GD_STREAM_CAST(hMessage));
 
-	DRotation dRot = DRotation(pStream->get_float(), pStream->get_float(), pStream->get_float(), pStream->get_float());
+	float x = pStream->get_float();
+	float y = pStream->get_float();
+	float z = pStream->get_float();
+	float w = pStream->get_float();
+
+	DRotation dRot = DRotation(x,y,z,w);
 	*pVal = dRot;
 	shared_CheckAndReset(hMessage);
 }
