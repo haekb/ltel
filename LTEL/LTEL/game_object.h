@@ -99,6 +99,10 @@ public:
 	void SetDims(DVector vVal);
 	void SetLastCollision(godot::Ref<godot::KinematicCollision> pCol) { m_pLastCollision = pCol; }
 
+	// Server stuff
+	void SetClassDef(ClassDef* pClass) { m_pClassDef = pClass; }
+	void SetBaseClass(BaseClass* pClass) { m_pBaseClass = pClass; }
+
 protected:
 	int m_nState;
 	uint16_t m_nObjectType;

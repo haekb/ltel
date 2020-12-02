@@ -20,6 +20,8 @@
 #include <Animation.hpp>
 #include <AnimationPlayer.hpp>
 
+#include "shared.h"
+
 #define USRFLG_VISIBLE					(1<<0)
 #define USRFLG_NIGHT_INFRARED			(1<<1)
 #define USRFLG_IGNORE_PROJECTILES		(1<<2)
@@ -43,6 +45,8 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 	case OT_CAMERA:
 		pObject->SetCamera(godot::Object::cast_to<godot::Camera>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera")));
 		break;
+		// For now we don't care about sprites
+	case OT_SPRITE:
 	case OT_NORMAL:
 	{
 		auto pNode = godot::Spatial::_new();
@@ -95,6 +99,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 			return nullptr;
 		}
 
+		pModel->set_name("Model");
 		p3DNode->add_child(pModel, false);
 		pObject->SetNode(pModel);
 
@@ -588,20 +593,7 @@ void impl_SetObjectClientFlags(HLOCALOBJ hObj, DDWORD flags)
 // Returns the animation the model is currently on.  (DDWORD)-1 if none.
 DDWORD impl_GetModelAnimation(HLOCALOBJ hObj)
 {
-	if (!hObj)
-	{
-		return -1;
-	}
-
-	GameObject* pObj = (GameObject*)hObj;
-	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
-
-	if (!pExtraData || !pExtraData->pAnimationPlayer)
-	{
-		return -1;
-	}
-
-	return pExtraData->nCurrentAnimIndex;
+	return shared_GetModelAnimation(hObj);
 }
 void impl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
 {
@@ -633,31 +625,7 @@ void impl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
 
 HMODELANIM impl_GetAnimIndex(HOBJECT hObj, char* pAnimName)
 {
-	if (!hObj)
-	{
-		return -1;
-	}
-
-	GameObject* pObj = (GameObject*)hObj;
-	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
-
-	if (!pExtraData || !pExtraData->pAnimationPlayer)
-	{
-		return -1;
-	}
-
-	auto sAnimList = pExtraData->pAnimationPlayer->get_animation_list();
-
-	for (int i = 0; i < sAnimList.size(); i++)
-	{
-		if (sAnimList[i] == pAnimName)
-		{
-			return i;
-		}
-	}
-
-
-	return -1;
+	return shared_GetAnimIndex(hObj, pAnimName);
 }
 
 DRESULT impl_GetAttachments(HLOCALOBJ hObj, HLOCALOBJ* inList, DDWORD inListSize,
@@ -703,15 +671,7 @@ void impl_SetObjectPos(HLOCALOBJ hObj, DVector* pPos)
 
 DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
 {
-	auto pObj = HObject2GameObject(hObj);
-
-	if (!pObj)
-	{
-		return DE_ERROR;
-	}
-
-	pObj->SetScale(*pScale);
-	return DE_OK;
+	return shared_SetObjectScale(hObj, pScale);
 }
 
 void impl_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
@@ -751,25 +711,7 @@ void impl_SetObjectPosAndRotation(HLOCALOBJ hObj, DVector* pPos, DRotation* pRot
 
 DDWORD impl_GetModelPlaybackState(HLOCALOBJ hObj)
 {
-	if (!hObj)
-	{
-		return 0;
-	}
-
-	GameObject* pObj = (GameObject*)hObj;
-	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
-
-	if (!pExtraData || !pExtraData->pAnimationPlayer || pExtraData->nCurrentAnimIndex == -1)
-	{
-		return 0;
-	}
-
-	if (pExtraData->pAnimationPlayer->is_playing())
-	{
-		return 0;
-	}
-
-	return MS_PLAYDONE;
+	return shared_GetModelPlaybackState(hObj);
 }
 
 DRESULT impl_ResetModelAnimation(HLOCALOBJ hObj)

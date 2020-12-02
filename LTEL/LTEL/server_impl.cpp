@@ -285,16 +285,28 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 
 	if (nResult == 1)
 	{ 
-
+#if 1	
 		GameObject* pObject = new GameObject(pClass, pBaseClass);
-		pBaseClass->m_hObject = (HOBJECT)pObject;
 
 		pObject->SetFromObjectCreateStruct(*pStruct);
 
+		// Grab the instance so we can get a reference to its godot data
+		GameObject* pClientObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
+		pClientObject->SetBaseClass(pBaseClass);
+		pClientObject->SetClassDef(pClass);
+
+		pObject->SetCamera(pClientObject->GetCamera());
+		pObject->SetNode(pClientObject->GetNode());
+		pObject->SetExtraData(pClientObject->GetExtraData());
+
+		pBaseClass->m_hObject = (HOBJECT)pClientObject;
+#else
+		GameObject* pObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
+		pObject->SetBaseClass(pBaseClass);
+		pObject->SetClassDef(pClass);
+#endif
+
 		g_pLTELServer->m_pCurrentObject = pObject;
-
-		g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
-
 
 		// We can safely add this to our object list!
 		g_pLTELServer->m_pObjectList.push_back(pObject);
@@ -328,7 +340,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		// FIXME: We need to run initial update, as shown by this disassemble:
 		// maybeOnEngineMessage((double)fStack0000002c,pBaseClass,1,pOCS);
 		//auto nResult = pBaseClass->EngineMessageFn(MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
-		//pBaseClass->_EngineMsgFn(pBaseClass, MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
+		pBaseClass->_EngineMsgFn(pBaseClass, MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
 
 		return pBaseClass;
 	}
@@ -710,12 +722,12 @@ DBOOL simpl_IsCommandOn(HCLIENT hClient, int command)
 
 DDWORD simpl_GetModelAnimation(HLOCALOBJ hObj)
 {
-	return -1;
+	return shared_GetModelAnimation(hObj);
 }
 
 DDWORD simpl_GetModelPlaybackState(HLOCALOBJ hObj)
 {
-	return MS_PLAYDONE;
+	return shared_GetModelPlaybackState(hObj);
 }
 
 void simpl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
@@ -760,6 +772,72 @@ DRESULT simpl_PlaySound(PlaySoundInfo* pPlaySoundInfo)
 	return DE_OK;
 }
 
+void simpl_SetBlockingPriority(HOBJECT hObj, DBYTE pri)
+{
+
+}
+
+HCLASS simpl_GetObjectClass(HOBJECT hObject)
+{
+	return (HCLASS)((GameObject*)hObject)->GetBaseClass();
+}
+
+DBOOL simpl_IsKindOf(HCLASS hClass, HCLASS hTest)
+{
+	BaseClass* pClass = (BaseClass*)hClass;
+	BaseClass* pTest = (BaseClass*)hTest;
+	// Hack it!
+	return DTRUE;
+}
+
+void simpl_ScaleObject(HOBJECT hObj, DVector* pNewScale)
+{
+	shared_SetObjectScale(hObj, pNewScale);
+}
+
+HMODELANIM simpl_GetAnimIndex(HOBJECT hObj, char* pAnimName)
+{
+	return shared_GetAnimIndex(hObj, pAnimName);
+}
+
+DRESULT simpl_CreateInterObjectLink(HOBJECT hOwner, HOBJECT hLinked)
+{
+	return DE_OK;
+}
+
+DRESULT simpl_CreateAttachment(HOBJECT hParent, HOBJECT hChild, char* pNodeName,
+	DVector* pOffset, DRotation* pRotationOffset, HATTACHMENT* pAttachment)
+{
+	return DE_OK;
+}
+
+DRESULT simpl_SetModelFilenames(HOBJECT hObj, char* pFilename, char* pSkinName)
+{
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+
+
+	return DE_OK;
+}
+
+DRESULT simpl_GetModelCommandString(HOBJECT hObj, char* pStr, DDWORD maxLen)
+{
+	// TODO: Expose command string
+	memset(pStr, 0, maxLen);
+
+	return DE_OK;
+}
+
+int	simpl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** argPointers, int* nArgs)
+{
+	return shared_Parse(pCommand, pNewCommandPos, argBuffer, argPointers, nArgs);
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -769,6 +847,7 @@ void LTELServer::InitFunctionPointers()
 	GetModelAnimation = simpl_GetModelAnimation;
 	GetModelPlaybackState = simpl_GetModelPlaybackState;
 	SetModelLooping = simpl_SetModelLooping;
+	GetAnimIndex = simpl_GetAnimIndex;
 
 	// Object functionality
 	CreateObject = simpl_CreateObject;
@@ -781,6 +860,16 @@ void LTELServer::InitFunctionPointers()
 	TeleportObject = simpl_TeleportObject;
 	SetNextUpdate = simpl_SetNextUpdate;
 	GetModelFilenames = simpl_GetModelFilenames;
+	GetObjectClass = simpl_GetObjectClass;
+	IsKindOf = simpl_IsKindOf;
+	ScaleObject = simpl_ScaleObject;
+	CreateInterObjectLink = simpl_CreateInterObjectLink;
+	CreateAttachment = simpl_CreateAttachment;
+	SetModelFilenames = simpl_SetModelFilenames;
+	GetModelCommandString = simpl_GetModelCommandString;
+
+	// Physics?
+	SetBlockingPriority = simpl_SetBlockingPriority;
 
 	// Get/Sets
 	GetObjectState = simpl_GetObjectState;
@@ -827,6 +916,8 @@ void LTELServer::InitFunctionPointers()
 	CreateString = simpl_CreateString;
 	GetStringData = simpl_GetStringData;
 	FreeString = simpl_FreeString;
+
+	Parse = simpl_Parse;
 
 	// Network functionality
 	

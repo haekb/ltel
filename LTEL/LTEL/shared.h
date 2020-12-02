@@ -13,6 +13,19 @@
 //
 
 //
+// Animation
+//
+
+DDWORD shared_GetModelAnimation(HLOCALOBJ hObj);
+DDWORD shared_GetModelPlaybackState(HLOCALOBJ hObj);
+HMODELANIM shared_GetAnimIndex(HOBJECT hObj, char* pAnimName);
+
+//
+// Objects
+// 
+DRESULT shared_SetObjectScale(HLOCALOBJ hObj, DVector* pScale);
+
+//
 // Strings
 //
 LTELString* shared_CreateString(char* pString);
@@ -20,6 +33,8 @@ LTELString* shared_CreateString(char* pString);
 char* shared_GetStringData(HSTRING hString);
 
 void shared_FreeString(HSTRING hString);
+
+int	shared_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** argPointers, int* nArgs);
 
 //
 // Messaging
@@ -105,3 +120,4 @@ void			shared_EndHMessageWrite(HMESSAGEWRITE hMessage);
 // will be reading out of it.  Note: the message will AUTOMATICALLY
 // reset when you hit the end, so you won't need this in most cases.
 void			shared_ResetRead(HMESSAGEREAD hRead);
+

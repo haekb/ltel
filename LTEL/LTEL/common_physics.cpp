@@ -298,6 +298,7 @@ DRESULT LTELCommonPhysics::GetStandingOn(HOBJECT hObj, CollisionInfo* pInfo)
 	// Cheat a little
 	pInfo->m_hObject = hObj;
 
+	// What's distance? 
 	pInfo->m_Plane = DPlane(vNormal.x, vNormal.y, vNormal.z, 1.0f);
 	pInfo->m_vStopVel = DVector(vStop.x, vStop.y, vStop.z);
 

@@ -28,6 +28,8 @@
 #include <File.hpp>
 // End
 
+#include "shared.h"
+
 extern LTELClient* g_pLTELClient;
 
 // TEMP!
@@ -367,74 +369,7 @@ DRESULT impl_GetWorldInfoString(char* pFilename, char* pInfoString, DDWORD maxLe
 //
 int	impl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** argPointers, int* nArgs)
 {
-	const int nMaxBuffer = 5 * (PARSE_MAXTOKENSIZE + 1);
-	std::string sCurrent = "";
-	bool bMoreData = false;
-	bool bIgnoreSpace = false;
-
-	char* pCurrentArg = argBuffer;
-
-	*nArgs = 0;
-
-	while (true)
-	{
-		char szCurrent = *pCommand++;
-
-		// End of string!
-		if (szCurrent == 0)
-		{
-			char szArg[nMaxBuffer];
-			strcpy_s(szArg, nMaxBuffer, sCurrent.c_str());
-			szArg[nMaxBuffer-1] = '\0';
-
-			argPointers[*nArgs] = szArg;
-			++(*nArgs);
-
-			break;
-		}
-
-		// If we're in quotes, ignore any spaces!
-		if (szCurrent == '"')
-		{
-			bIgnoreSpace = !bIgnoreSpace;
-			continue;
-		}
-
-		// Seperator between key/value
-		if (!bIgnoreSpace && szCurrent == ' ')
-		{
-			char szArg[nMaxBuffer];
-			strcpy_s(szArg, nMaxBuffer, sCurrent.c_str());
-			szArg[nMaxBuffer-1] = '\0';
-
-			argPointers[*nArgs] = szArg;
-			++(*nArgs);
-
-			sCurrent = "";
-			continue;
-		}
-
-		// End of value + this functions lifespan
-		if (szCurrent == ';')
-		{
-			char szArg[nMaxBuffer];
-			strcpy_s(szArg, nMaxBuffer, sCurrent.c_str());
-			szArg[nMaxBuffer-1] = '\0';
-
-			argPointers[*nArgs] = szArg;
-			++(*nArgs);
-
-			bMoreData = true;
-			break;
-		}
-
-		// Append to our on-going string
-		sCurrent += szCurrent;
-	}
-
-	*pNewCommandPos = pCommand;
-
-	return bMoreData;
+	return shared_Parse(pCommand, pNewCommandPos, argBuffer, argPointers, nArgs);
 }
 
 DBOOL impl_IsConnected()

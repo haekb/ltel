@@ -362,6 +362,7 @@ public:
         g_pClient->m_sGameDataDir = sGameDataDir.alloc_c_string();
         
         g_pClient->RunConsoleString((char*)"MouseLook 1.0");
+        //g_pClient->RunConsoleString((char*)"PlayerDims 1.0");
 
         // Kick off OnEngineInit
         try {
@@ -417,7 +418,7 @@ public:
             Godot::print("[game_update] Failed with client exception: {0}", e.what());
         }
 
-        try {
+        //try {
             if (g_pClient->m_pLTELServer && g_pClient->m_pLTELServer->m_pServerShell)
             {
                 // Object update
@@ -425,12 +426,13 @@ public:
 
                 g_pClient->m_pLTELServer->m_pServerShell->Update(fDelta);
             }
-        }
+            /*}
+    
         catch (const std::exception& e)
         {
             Godot::print("[game_update] Failed with server exception: {0}", e.what());
         }
-
+        */
         // Clear mouse motion for this frame!
         g_pClient->m_vRelativeMouse = godot::Vector2();
 

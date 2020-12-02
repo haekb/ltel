@@ -127,7 +127,7 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 	auto pClass = m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
 
-	auto pGameObj = new GameObject(nullptr, pClass);
+	auto pGameObj = (GameObject*)pClass->m_hObject;//new GameObject(nullptr, pClass);
 
 	// Setup the client object
 	m_pClientList[0]->SetObj(pGameObj);
@@ -224,7 +224,11 @@ DRESULT LTELServer::SetGlobalForce(DVector* pVec)
 
 HMESSAGEWRITE LTELServer::StartSpecialEffectMessage(LPBASECLASS pObject)
 {
-	return nullptr;
+	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
+
+	// TODO: Serialize the object
+
+	return (HMESSAGEWRITE)pStream;
 }
 
 HMESSAGEWRITE LTELServer::StartInstantSpecialEffectMessage(DVector* pPos)

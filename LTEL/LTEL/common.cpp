@@ -1,6 +1,11 @@
 #include "common.h"
 #include "helpers.h"
 
+// Godot
+#include <AABB.hpp>
+#include <MeshInstance.hpp>
+// End Godot
+
 LTELCommon::LTELCommon()
 {
 }
@@ -21,7 +26,31 @@ DRESULT LTELCommon::GetObjectType(HOBJECT hObj, DDWORD* type)
 
 DRESULT LTELCommon::GetModelAnimUserDims(HOBJECT hObject, DVector* pDims, HMODELANIM hAnim)
 {
-	return DRESULT();
+	if (!hObject)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObject;
+
+	if (!pObj->IsType(OT_MODEL))
+	{
+		return DE_ERROR;
+	}
+	
+	godot::MeshInstance* pMesh = GDCAST(godot::MeshInstance, pObj->GetNode()->get_child(0));
+
+	if (!pMesh)
+	{
+		return DE_ERROR;
+	}
+
+	auto aBounds = pMesh->get_aabb();
+	auto vBounds = aBounds.get_size();
+
+	*pDims = DVector(vBounds.x, vBounds.y, vBounds.z);
+
+	return DE_OK;
 }
 
 DRESULT LTELCommon::GetRotationVectors(DRotation& rot, DVector& up, DVector& right, DVector& forward)
