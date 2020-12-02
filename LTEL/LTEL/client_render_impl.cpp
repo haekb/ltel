@@ -356,8 +356,15 @@ DRESULT impl_DrawSurfaceToSurfaceTransparent(HSURFACE hDest, HSURFACE hSrc,
 	DRect* pSrcRect, int destX, int destY, HDECOLOR hColor)
 {
 
+	if (!hSrc)
+	{
+		return DE_ERROR;
+	}
+
+	LTELSurface* pSurface = (LTELSurface*)hSrc;
+
 	// Auto optimize surface
-	g_pLTELClient->OptimizeSurface(hSrc, hColor);
+	g_pLTELClient->SetAlphaToTransparentColour(pSurface, hColor, true);
 
 	auto hResult =  impl_DrawSurfaceToSurface(hDest, hSrc, pSrcRect, destX, destY);
 
@@ -435,59 +442,7 @@ DRESULT impl_OptimizeSurface(HSURFACE hSurface, HDECOLOR hTransparentColor)
 
 	LTELSurface* pSurface = (LTELSurface*)hSurface;
 
-	// We don't optimize the screen or text...or things that are already optimized!
-	if (pSurface->bOptimized || pSurface->bIsScreen || pSurface->bIsText)
-	{
-		return DE_OK;
-	}
-
-	// Null check
-	if (!pSurface->pTextureRect || pSurface->pTextureRect->get_texture().is_null() || pSurface->pTextureRect->get_texture()->get_data().is_null())
-	{
-		// We don't know if this is a jake error, or a game error yet!
-		return DE_OK;
-	}
-
-	godot::Color oColor = godot::Color();
-
-	if (hTransparentColor)
-	{
-		oColor = LT2GodotColor(hTransparentColor);
-	}
-
-	oColor.a = 1.0f;
-
-	godot::Ref<godot::ImageTexture> pTexture = pSurface->pTextureRect->get_texture();
-
-	auto pImage = pTexture->get_data();
-
-	pImage->lock();
-	
-	// Loop through the image, check the pixel and set it to transparent!
-	for (int x = 0; x < pImage->get_width(); x++)
-	{
-		for (int y = 0; y < pImage->get_height(); y++)
-		{
-			auto pPixel = pImage->get_pixel(x, y);
-			pPixel.a = 1.0f;
-
-			if (pPixel == oColor)
-			{
-				// Just swap the alpha, and put it back!
-				pPixel.a = 0.0f;
-				pImage->set_pixel(x, y, pPixel);
-			}
-
-		}
-	}
-	
-	pImage->unlock();
-
-	// Now re-set the image!
-	pTexture->set_data(pImage);
-
-	// Cool, let's not do this again
-	pSurface->bOptimized = true;
+	g_pLTELClient->SetAlphaToTransparentColour(pSurface, hTransparentColor, false);
 
 	return DE_OK;
 }

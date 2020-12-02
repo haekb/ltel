@@ -43,6 +43,7 @@ public:
     godot::Ref<godot::ImageTexture> LoadDTX(std::string sPath);
     godot::Ref<godot::PackedScene> LoadABC(std::string sPath);
 
+    bool SetAlphaToTransparentColour(LTELSurface* pSurface, HDECOLOR hTransparentColor, bool bSkipIfOptimized);
     bool BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale);
 
     // Commands which are on, this is cleared every frame

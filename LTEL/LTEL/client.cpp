@@ -209,6 +209,75 @@ godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 	return pScene;
 }
 
+bool LTELClient::SetAlphaToTransparentColour(LTELSurface* pSurface, HDECOLOR hTransparentColor, bool bSkipIfOptimized)
+{
+	// If we can reliably skip optimization, then do so!
+	if (bSkipIfOptimized && pSurface->bOptimized)
+	{
+		return false;
+	}
+
+	// We don't optimize the screen or text
+	if (pSurface->bIsScreen || pSurface->bIsText)
+	{
+		return false;
+	}
+
+	// Null check
+	if (!pSurface->pTextureRect || pSurface->pTextureRect->get_texture().is_null() || pSurface->pTextureRect->get_texture()->get_data().is_null())
+	{
+		// We don't know if this is a jake error, or a game error yet!
+		return false;
+	}
+
+	godot::Color oColor = godot::Color();
+
+	if (hTransparentColor)
+	{
+		oColor = LT2GodotColor(hTransparentColor);
+	}
+
+	oColor.a = 1.0f;
+
+	godot::Ref<godot::ImageTexture> pTexture = pSurface->pTextureRect->get_texture();
+
+	auto pImage = pTexture->get_data();
+
+	pImage->lock();
+
+	// Loop through the image, check the pixel and set it to transparent!
+	for (int x = 0; x < pImage->get_width(); x++)
+	{
+		for (int y = 0; y < pImage->get_height(); y++)
+		{
+			auto pPixel = pImage->get_pixel(x, y);
+			pPixel.a = 1.0f;
+
+			if (pPixel == oColor)
+			{
+				// Just swap the alpha, and put it back!
+				pPixel.a = 0.0f;
+
+				// Debug
+				//pPixel = godot::Color();
+
+				pImage->set_pixel(x, y, pPixel);
+			}
+
+		}
+	}
+
+	pImage->unlock();
+
+	// Now re-set the image!
+	pTexture->set_data(pImage);
+
+	// Cool, let's not do this again
+	pSurface->bOptimized = true;
+
+	return true;
+}
+
 bool LTELClient::BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale)
 {
 	bool bCanBlit = false;
