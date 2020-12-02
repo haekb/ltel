@@ -410,6 +410,7 @@ LPCLIENTSHELLDE impl_GetClientShell()
 
 DRESULT impl_ClearInput()
 {
+	g_pLTELClient->m_mCommands.clear();
 	return DE_OK;
 }
 
@@ -431,14 +432,6 @@ DBOOL impl_PlayList(char* szPlayList, char* szTransition, DBOOL bLoop, DDWORD dw
 
 DBOOL impl_IsCommandOn(int commandNum)
 {
-	// Fire
-	/*
-	if (commandNum == 8)
-	{
-		return TRUE;
-	}
-	*/
-
 	bool bOn = FALSE;
 
 	if (g_pLTELClient->m_mCommands.find(commandNum) != g_pLTELClient->m_mCommands.end())
