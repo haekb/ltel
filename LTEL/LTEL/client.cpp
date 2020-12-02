@@ -169,7 +169,23 @@ bool LTELClient::StartServerDLL(StartGameRequest* pRequest)
 
 void LTELClient::SetCommandOn(int nCommandID)
 {
-	m_mCommands.insert({ nCommandID, true });
+	if (m_mCommands.find(nCommandID) == m_mCommands.end())
+	{
+		m_mCommands.insert({ nCommandID, true });
+		return;
+	}
+
+	m_mCommands[nCommandID] = true;
+}
+
+void LTELClient::SetCommandOff(int nCommandID)
+{
+	if (m_mCommands.find(nCommandID) == m_mCommands.end())
+	{
+		return;
+	}
+	
+	m_mCommands[nCommandID] = false;
 }
 
 godot::Ref<godot::ImageTexture> LTELClient::LoadPCX(std::string sPath)

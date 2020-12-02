@@ -37,6 +37,7 @@ public:
 
 	
     void SetCommandOn(int nCommandID);
+    void SetCommandOff(int nCommandID);
 
 	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
     godot::Ref<godot::ImageTexture> LoadDTX(std::string sPath);

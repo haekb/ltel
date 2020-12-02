@@ -435,9 +435,6 @@ public:
         */
         // Clear mouse motion for this frame!
         g_pClient->m_vRelativeMouse = godot::Vector2();
-
-        // Clear inputs
-        g_pClient->m_mCommands.clear();
     }
 
     void on_key_input(int nScancode, bool bPressed)
@@ -452,45 +449,43 @@ public:
             return;
         }
 
+        static std::map<int, int> mInputList = {
+            { VK_CONTROL, COMMAND_ID_FIRING },
+            { VK_SPACE, COMMAND_ID_JUMP },
+            { 0x57, COMMAND_ID_FORWARD },           // W
+            { 0x53, COMMAND_ID_REVERSE },           // S
+            { 0x41, COMMAND_ID_STRAFE_LEFT },       // A
+            { 0x44, COMMAND_ID_STRAFE_RIGHT },      // D
+            { 0x31, COMMAND_ID_NEXT_WEAPON },       // 1
+            { 0x32, COMMAND_ID_PREV_WEAPON },       // 2
+            { 0x43, COMMAND_ID_DUCK },              // C
+        };
+
+        int nCommand = -1;
+        if (mInputList.find(nVK) != mInputList.end())
+        {
+            nCommand = mInputList[nVK];
+        }
 
         if (bPressed)
         {
             m_pGameClientShell->OnKeyDown(nVK, 0);
 
-            // Fake input handling
-            switch (nVK) {
-            case VK_SPACE:
-                g_pClient->SetCommandOn(COMMAND_ID_JUMP);
-                break;
-            case 0x57:
-                g_pClient->SetCommandOn(COMMAND_ID_FORWARD);
-                break;
-            case 0x53:
-                g_pClient->SetCommandOn(COMMAND_ID_REVERSE);
-                break;
-            case 0x41:
-                g_pClient->SetCommandOn(COMMAND_ID_STRAFE_LEFT);
-                break;
-            case 0x44:
-                g_pClient->SetCommandOn(COMMAND_ID_STRAFE_RIGHT);
-                break;
-            case VK_CONTROL:
-                g_pClient->SetCommandOn(COMMAND_ID_FIRING);
-                break;
-            case 0x31: // 1
-                g_pClient->SetCommandOn(COMMAND_ID_NEXT_WEAPON);
-                break;
-            case 0x32: // 2
-                g_pClient->SetCommandOn(COMMAND_ID_PREV_WEAPON);
-                break;
+            if (nCommand != -1)
+            {
+                g_pClient->SetCommandOn(nCommand);
             }
-
-
-
 
             return;
         }
+
+
         m_pGameClientShell->OnKeyUp(nVK);
+
+        if (nCommand != -1)
+        {
+            g_pClient->SetCommandOff(nCommand);
+        }
     }
 
     void on_mouse_motion(Vector2 vRelative)
