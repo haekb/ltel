@@ -42,6 +42,15 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 
 	//godot::Godot::print("Acceleration Vector: {0}/{1}/{2}", accel.x, accel.y, accel.z);
 
+	if (accel.MagSqr() < 0.1f)
+	{
+		accel.Init();
+	}
+
+	if (velocity.MagSqr() < 0.1f)
+	{
+		velocity.Init();
+	}
 
 	// Only code borrowed from the decompile:
 	// If we're moving very slowly, then don't actually move.

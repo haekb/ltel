@@ -331,11 +331,24 @@ DRESULT LTELServer::SetupEuler(DRotation* pRotation, float pitch, float yaw, flo
 
 float LTELServer::GetObjectMass(HOBJECT hObj)
 {
-	return 0.0f;
+	if (!hObj)
+	{
+		return 1.0f;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	return pObj->GetMass();
 }
 
 void LTELServer::SetObjectMass(HOBJECT hObj, float mass)
 {
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	pObj->SetMass(mass);
 }
 
 float LTELServer::GetForceIgnoreLimit(HOBJECT hObj, float& limit)
