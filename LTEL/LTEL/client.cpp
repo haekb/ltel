@@ -44,6 +44,8 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	InitFunctionPointers();
 
 	// Additional function implementations
+	InitAudioImpl();
+	InitInputImpl();
 	InitRenderImpl();
 	InitObjectImpl();
 	InitStringImpl();

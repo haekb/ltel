@@ -31,9 +31,12 @@ public:
 
     // Required Impl
 	void InitFunctionPointers();
+    void InitAudioImpl();
+    void InitInputImpl();
 	void InitRenderImpl();
 	void InitObjectImpl();
 	void InitStringImpl();
+
 
 	
     void SetCommandOn(int nCommandID);

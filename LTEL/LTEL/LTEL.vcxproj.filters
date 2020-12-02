@@ -159,6 +159,9 @@
     <ClInclude Include="RiotCommandIDs.h">
       <Filter>Lithtech\1.0\Impl\shared</Filter>
     </ClInclude>
+    <ClInclude Include="ScancodeToVK.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">

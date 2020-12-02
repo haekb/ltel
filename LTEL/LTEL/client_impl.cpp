@@ -149,42 +149,6 @@ DRESULT impl_IsLobbyLaunched(char* sDriver)
 	return DE_ERROR;
 }
 
-
-
-DBOOL impl_InitMusic(char* szMusicDLL)
-{
-	return TRUE;
-}
-
-DRESULT impl_InitSound(InitSoundInfo* pSoundInfo)
-{
-	// No sound settings yet!
-	return DE_OK;
-}
-
-void impl_SetMusicVolume(short wVolume)
-{
-	godot::Godot::print("[impl_SetMusicVolume] Music volume is now {0}", wVolume);
-	return;
-}
-
-void impl_SetSoundVolume(unsigned short nVolume)
-{
-	godot::Godot::print("[impl_SetSoundVolume] Sound volume is now {0}", nVolume);
-	return;
-}
-
-DRESULT impl_SetReverbProperties(ReverbProperties* pReverbProperties)
-{
-	return DE_OK;
-}
-
-DRESULT impl_GetDeviceName(DDWORD nDeviceType, char* pStrBuffer, DDWORD nBufferSize)
-{
-	// Input not supported yet!
-	return DE_NOTFOUND;
-}
-
 DRESULT impl_ReadConfigFile(char* pFilename)
 {
 	godot::Godot::print("[impl_ReadConfigFile] Config wants to be read: {0}", pFilename);
@@ -255,16 +219,6 @@ DRESULT impl_GetGameMode(int* mode)
 	return DE_OK;
 }
 
-void impl_PauseSounds()
-{
-	godot::Godot::print("[impl_PauseSounds] Sounds are paused!");
-}
-
-void impl_ResumeSounds()
-{
-	godot::Godot::print("[impl_ResumeSounds] Sounds are unpaused!");
-}
-
 void impl_SetInputState(DBOOL bOn)
 {
 	godot::Godot::print("[impl_SetInputState] Input State: {0}", bOn);
@@ -274,33 +228,6 @@ void impl_SetInputState(DBOOL bOn)
 	{
 		g_pLTELClient->ClearInput();
 	}
-}
-
-// Pause music.  Can be resumed...
-DBOOL impl_PauseMusic()
-{
-	godot::Godot::print("[impl_PauseMusic] Music is paused!");
-	return DE_OK;
-}
-
-// Resume music...
-DBOOL impl_ResumeMusic()
-{
-	godot::Godot::print("[impl_ResumeMusic] Music is unpaused!");
-	return DE_OK;
-}
-
-DRESULT impl_PlaySound(PlaySoundInfo* pPlaySoundInfo)
-{
-	//void* pData = malloc(4);
-	pPlaySoundInfo->m_hSound = nullptr;// (HSOUNDDE)pData;
-	return DE_OK;
-}
-
-void impl_KillSound(HSOUNDDE pSoundHandle)
-{
-	//free(pSoundHandle);
-	return;
 }
 
 DRESULT impl_GetEngineHook(char* pName, void** pData)
@@ -425,17 +352,6 @@ void impl_SetGlobalLightScale(DVector* pScale)
 	return;
 }
 
-void impl_DestroyAllSongs()
-{
-	return;
-}
-
-DBOOL impl_PlayList(char* szPlayList, char* szTransition, DBOOL bLoop, DDWORD dwBoundaryFlags)
-{
-	godot::Godot::print("[impl_PlayList] Game wants to play {0} with transition {1}", szPlayList, szTransition);
-	return DE_OK;
-}
-
 DBOOL impl_IsCommandOn(int commandNum)
 {
 	bool bOn = FALSE;
@@ -545,32 +461,6 @@ void LTELClient::InitFunctionPointers()
 	IsConnected = impl_IsConnected;
 	GetClientObject = impl_GetClientObject;
 	GetLocalClientID = impl_GetLocalClientID;
-
-	// Audio functionality
-	InitMusic = impl_InitMusic;
-	InitSound = impl_InitSound;
-	SetMusicVolume = impl_SetMusicVolume;
-	SetSoundVolume = impl_SetSoundVolume;
-	SetReverbProperties = impl_SetReverbProperties;
-	PauseSounds = impl_PauseSounds;
-	ResumeSounds = impl_ResumeSounds;
-	PauseMusic = impl_PauseMusic;
-	ResumeMusic = impl_ResumeMusic;
-	PlaySound = impl_PlaySound;
-	KillSound = impl_KillSound;
-	DestroyAllSongs = impl_DestroyAllSongs;
-	PlayList = impl_PlayList;
-
-	// Input functionality
-	GetDeviceName = impl_GetDeviceName;
-	GetDeviceObjects = impl_GetDeviceObjects;
-	FreeDeviceObjects = impl_FreeDeviceObjects;
-	GetDeviceBindings = impl_GetDeviceBindings;
-	FreeDeviceBindings = impl_FreeDeviceBindings;
-	SetInputState = impl_SetInputState;
-	ClearInput = impl_ClearInput;
-	IsCommandOn = impl_IsCommandOn;
-	GetAxisOffsets = impl_GetAxisOffsets;
 
 	// Network functionality
 	IsLobbyLaunched = impl_IsLobbyLaunched;
