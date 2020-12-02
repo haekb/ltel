@@ -40,8 +40,6 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	velocity = pObj->GetVelocity();
 	offset.Init();
 
-	//godot::Godot::print("Acceleration Vector: {0}/{1}/{2}", accel.x, accel.y, accel.z);
-
 	if (accel.MagSqr() < 0.1f)
 	{
 		accel.Init();
@@ -51,17 +49,6 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	{
 		velocity.Init();
 	}
-
-	// Only code borrowed from the decompile:
-	// If we're moving very slowly, then don't actually move.
-	/*
-	if (accel.MagSqr() < 0.1f && velocity.MagSqr() < 0.1f)
-	{
-		accel.Init();
-		velocity.Init();
-		return DE_OK;
-	}
-	*/
 
 	// Apply any force (mostly gravity)
 	accel += m_pCommonPhysics->m_vGlobalForce;
@@ -73,6 +60,7 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 	pInfo->m_Offset = velocity * pInfo->m_dt;
 
 	pObj->SetVelocity(velocity);
+	pObj->SetPhysicsDeltaTime(pInfo->m_dt);
 
 	return DE_OK;
 }

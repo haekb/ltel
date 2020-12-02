@@ -162,6 +162,7 @@ DRESULT LTELCommonPhysics::SetObjectDims(HOBJECT hObj, DVector* pNewDims, DDWORD
 #include <RayCast.hpp>
 #include <KinematicCollision.hpp>
 #include <Math.hpp>
+#include <RichTextLabel.hpp>
 
 DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 {
@@ -190,13 +191,12 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 		}
 		
 		pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate());
-		//pObj->GetNode()->add_child(pKinematicBody);
+
+		// Kinematic body can't be attached to our node..
 		auto p3D = pObj->GetNode()->get_node("/root/Scene/3D");
 		p3D->add_child(pKinematicBody);
 		pObj->SetKinematicBody(pKinematicBody);
 	}
-
-#if 1
 
 	auto pRelVelocity = *pPos - pObj->GetPosition();
 
@@ -223,55 +223,22 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 		pObj->SetLastCollision(pCollisionInfo);
 	}
 	
-
-
-	//godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", vBodyPos.x, vBodyPos.y, vBodyPos.z, (unsigned int)flags);
-
-
-#if 1
+	static godot::RichTextLabel* pLabel = GDCAST(godot::RichTextLabel, pObj->GetNode()->get_node("/root/Scene/Debug2D/OnGround"));
+	pLabel->set_text("On Ground: <false>");
 	// We're on the floor!
 	if (!pCollisionInfo.is_null() && ::acos(pCollisionInfo->get_normal().dot(godot::Vector3(0, 1, 0))) <= 0.5)
 	{
+		pLabel->set_text("On Ground: <true>");
+
 		auto vCurrentVelocity = pObj->GetVelocity();
-		pObj->SetVelocity(DVector(vCurrentVelocity.x, 0.0f, vCurrentVelocity.z));
+		auto vTemp = (-m_vGlobalForce * pObj->GetPhysicsDeltaTime());
+
+		// Right now we only have gravity so let's fudge that little
+		vTemp.y -= 2;
+
+		pObj->SetVelocity(DVector(vCurrentVelocity.x, vTemp.y, vCurrentVelocity.z));
 	}
-#endif
 
-#else
-
-	DVector vUp = DVector(0, 0, 0);
-	DVector vForward = DVector(0, 0, 0);
-	DVector vRight = DVector(0, 0, 0);
-	DRotation vRot = pObj->GetRotation();
-	m_pCommon->GetRotationVectors(vRot, vUp, vRight, vForward);
-
-	auto pRelVelocity = *pPos - pObj->GetPosition();
-
-//	pRelVelocity *= vForward;
-
-	pKinematicBody->move_and_slide(LT2GodotVec3(pRelVelocity), LT2GodotVec3(vUp), true);
-
-	auto vBodyPos = pKinematicBody->get_translation();
-	auto vBodyRot = pKinematicBody->get_rotation();
-	auto qBodyRot = godot::Quat();
-	qBodyRot.set_euler(vBodyRot);
-
-	//godot::Godot::print("MoveObject {3}: <{0}, {1}, {2}>", pRelVelocity.x, pRelVelocity.y, pRelVelocity.z, (unsigned int)flags);
-
-	pObj->SetPosition(DVector(vBodyPos.x, vBodyPos.y, vBodyPos.z));
-	//pObj->SetRotation(DRotation(qBodyRot.x, qBodyRot.y, qBodyRot.z, qBodyRot.w));
-
-	/*
-	if (pKinematicBody->is_on_floor())
-	{
-		auto vVelocity = pObj->GetVelocity();
-		vVelocity.y = 0.0f;
-		pObj->SetVelocity(vVelocity);
-	}
-	*/
-#endif
-
-	
 	return DE_OK;
 
 }

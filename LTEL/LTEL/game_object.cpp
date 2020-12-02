@@ -72,6 +72,7 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_sName = "";
 	m_fNextUpdate = 0.0f;
 	m_fDeactivationTime = 0.0f;
+	m_fPhysicsDeltaTime = 0.1f;
 
 	m_nState = 0;
 
@@ -371,23 +372,7 @@ void GameObject::SetKinematicBody(godot::KinematicBody* pBody)
 
 	// Set the proper dims
 	godot::Ref<godot::BoxShape> pShape = m_pKinematicBody->shape_owner_get_shape(0, 0);
-	//pShape->set_extents(LT2GodotVec3(GetDims()));
-	pShape->set_extents(godot::Vector3(10, 10, 10));
-
-
-	//
-	// The following is debug code!
-	//
-#if 0
-	godot::MeshInstance* pDebugCube = GDCAST(godot::MeshInstance, m_pKinematicBody->get_child(0)->get_child(0));
-	
-	if (!pDebugCube)
-	{
-		return;
-	}
-
-	pDebugCube->set_scale(LT2GodotVec3(GetDims()));
-#endif
+	pShape->set_extents(LT2GodotVec3(GetDims()));
 }
 
 godot::Spatial* GameObject::GetNode()

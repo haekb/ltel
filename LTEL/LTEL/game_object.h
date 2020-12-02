@@ -90,6 +90,7 @@ public:
 	DVector GetAccel() { return m_vAccel; }
 	DVector GetDims() { return m_vDims; }
 	godot::Ref<godot::KinematicCollision> GetLastCollision() { return m_pLastCollision; }
+	float GetPhysicsDeltaTime() { return m_fPhysicsDeltaTime; }
 
 	void SetFrictionCoeff(float fVal) { m_fFrictionCoeff = fVal; }
 	void SetForceIgnoreLimit(float fVal) { m_fForceIgnoreLimit = fVal; }
@@ -98,6 +99,7 @@ public:
 	void SetAccel(DVector vVal) { m_vAccel = vVal; }
 	void SetDims(DVector vVal);
 	void SetLastCollision(godot::Ref<godot::KinematicCollision> pCol) { m_pLastCollision = pCol; }
+	void SetPhysicsDeltaTime(float fTime) { m_fPhysicsDeltaTime = fTime; }
 
 	// Server stuff
 	void SetClassDef(ClassDef* pClass) { m_pClassDef = pClass; }
@@ -122,6 +124,7 @@ protected:
 
 	float m_fNextUpdate;
 	float m_fDeactivationTime;
+	float m_fPhysicsDeltaTime;
 
 	BaseClass* m_pBaseClass;
 	ClassDef* m_pClassDef;
