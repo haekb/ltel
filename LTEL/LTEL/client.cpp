@@ -34,6 +34,7 @@ LTELClient::LTELClient(godot::Node* pGodotLink, HINSTANCE pCRes)
 	m_nGameMode = GAMEMODE_NONE;
 	m_bIsConnected = false;
 	m_bIsInWorld = false;
+	m_bAllowInput = true;
 	m_sGameDataDir = "";
 	m_vFOV = godot::Vector2();
 	m_vRelativeMouse = godot::Vector2();

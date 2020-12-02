@@ -353,6 +353,18 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 	return nullptr;
 }
 
+void simpl_RemoveObject(HOBJECT hObject)
+{
+	if (!hObject)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObject;
+
+	pObj->QueueForDeletion();
+}
+
 // These are used to get the property values from the world file.
 // The property names are case sensitive.  If the property doesn't exist,
 // it will return DE_NOTFOUND.
@@ -843,6 +855,17 @@ void simpl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
 	shared_SetModelAnimation(hObj, iAnim);
 }
 
+DRESULT simpl_FindAttachment(HOBJECT hParent, HOBJECT hChild, HATTACHMENT* hAttachment)
+{
+	hAttachment = nullptr;
+	return DE_ERROR;
+}
+
+void simpl_BreakInterObjectLink(HOBJECT hOwner, HOBJECT hLinked)
+{
+
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -857,6 +880,7 @@ void LTELServer::InitFunctionPointers()
 
 	// Object functionality
 	CreateObject = simpl_CreateObject;
+	RemoveObject = simpl_RemoveObject;
 	CreateObjectList = simpl_CreateObjectList;
 	GetNextObject = simpl_GetNextObject;
 	GetNextInactiveObject = simpl_GetNextInactiveObject;
@@ -870,9 +894,12 @@ void LTELServer::InitFunctionPointers()
 	IsKindOf = simpl_IsKindOf;
 	ScaleObject = simpl_ScaleObject;
 	CreateInterObjectLink = simpl_CreateInterObjectLink;
+	BreakInterObjectLink = simpl_BreakInterObjectLink;
 	CreateAttachment = simpl_CreateAttachment;
 	SetModelFilenames = simpl_SetModelFilenames;
 	GetModelCommandString = simpl_GetModelCommandString;
+	FindAttachment = simpl_FindAttachment;
+
 
 	// Physics?
 	SetBlockingPriority = simpl_SetBlockingPriority;

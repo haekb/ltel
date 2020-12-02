@@ -440,6 +440,7 @@ public:
     void on_key_input(int nScancode, bool bPressed)
     {
         int nVK = 0;
+
         try {
             nVK = scancode_to_vk.at(nScancode);
         }
@@ -459,6 +460,7 @@ public:
             { 0x31, COMMAND_ID_NEXT_WEAPON },       // 1
             { 0x32, COMMAND_ID_PREV_WEAPON },       // 2
             { 0x43, COMMAND_ID_DUCK },              // C
+            { 0x59, COMMAND_ID_MESSAGE },           // Y
         };
 
         int nCommand = -1;
@@ -467,13 +469,16 @@ public:
             nCommand = mInputList[nVK];
         }
 
+        CClientShellDE* pClientShell = (CClientShellDE*)g_pClient->GetClientShell();
+
         if (bPressed)
         {
             m_pGameClientShell->OnKeyDown(nVK, 0);
 
-            if (nCommand != -1)
+            if (nCommand != -1 && g_pClient->m_bAllowInput)
             {
                 g_pClient->SetCommandOn(nCommand);
+                pClientShell->OnCommandOn(nCommand);
             }
 
             return;
@@ -482,14 +487,21 @@ public:
 
         m_pGameClientShell->OnKeyUp(nVK);
 
-        if (nCommand != -1)
+        if (nCommand != -1 && g_pClient->m_bAllowInput)
         {
             g_pClient->SetCommandOff(nCommand);
+            pClientShell->OnCommandOff(nCommand);
         }
     }
 
     void on_mouse_motion(Vector2 vRelative)
     {
+        if (!g_pClient->m_bAllowInput)
+        {
+            g_pClient->m_vRelativeMouse = godot::Vector2(0, 0);
+            return;
+        }
+
         //Godot::print("[on_mouse_motion] {0}", vRelative);
         g_pClient->m_vRelativeMouse = -vRelative;
     }

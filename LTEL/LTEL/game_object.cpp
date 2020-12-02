@@ -91,6 +91,8 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_vAccel = DVector(0,0,0);
 	m_fMass = 0.0f;
 	m_vDims = DVector(0,0,0);
+
+	m_bQueuedForDeletion = false;
 }
 
 GameObject::~GameObject()
@@ -137,6 +139,15 @@ GameObject::~GameObject()
 		m_pNode->free();
 		m_pNode = nullptr;
 	}
+
+	if (m_pBaseClass)
+	{
+		free(m_pBaseClass);
+		m_pBaseClass = nullptr;
+	}
+
+
+	// Don't delete the class def, it's not ours
 
 }
 

@@ -105,7 +105,12 @@ public:
 	void SetClassDef(ClassDef* pClass) { m_pClassDef = pClass; }
 	void SetBaseClass(BaseClass* pClass) { m_pBaseClass = pClass; }
 
+	void QueueForDeletion() { m_bQueuedForDeletion = true; }
+	bool IsQueuedForDeletion() { return m_bQueuedForDeletion; }
+
 protected:
+	bool m_bQueuedForDeletion;
+
 	int m_nState;
 	uint16_t m_nObjectType;
 	uint32_t m_nFlags;

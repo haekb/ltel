@@ -60,6 +60,7 @@ public:
 	int m_nGameMode;
 	bool m_bIsConnected;
     bool m_bIsInWorld;
+    bool m_bAllowInput;
 
     ClientInfo* m_pClientInfo;
 

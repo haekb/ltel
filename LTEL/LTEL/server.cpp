@@ -186,6 +186,27 @@ void LTELServer::Update(DFLOAT timeElapsed)
 
 		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_UPDATE, nullptr, timeElapsed);
 	}
+
+	std::vector<GameObject*> vTemp;
+	
+	for (auto pObj : m_pObjectList)
+	{
+		if (!pObj->IsQueuedForDeletion())
+		{
+			vTemp.push_back(pObj);
+			continue;
+		}
+
+		if (pObj == g_pLTELServer->m_pCurrentObject)
+		{
+			g_pLTELServer->m_pCurrentObject = nullptr;
+		}
+
+		delete pObj;
+	}
+
+	m_pObjectList.clear();
+	m_pObjectList = vTemp;
 }
 
 void LTELServer::HandleMessageQueue()

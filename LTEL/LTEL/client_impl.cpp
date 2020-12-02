@@ -268,6 +268,12 @@ void impl_ResumeSounds()
 void impl_SetInputState(DBOOL bOn)
 {
 	godot::Godot::print("[impl_SetInputState] Input State: {0}", bOn);
+	g_pLTELClient->m_bAllowInput = bOn;
+
+	if (!bOn)
+	{
+		g_pLTELClient->ClearInput();
+	}
 }
 
 // Pause music.  Can be resumed...
@@ -493,6 +499,12 @@ DDWORD impl_GetPointContainers(DVector* pPoint, HLOCALOBJ* pList, DDWORD maxList
 	return 0;
 }
 
+DRESULT impl_GetLocalClientID(DDWORD* pID)
+{
+	*pID = 0;
+	return DE_OK;
+}
+
 //
 // Setup our struct!
 //
@@ -532,6 +544,7 @@ void LTELClient::InitFunctionPointers()
 	GetGameMode = impl_GetGameMode;
 	IsConnected = impl_IsConnected;
 	GetClientObject = impl_GetClientObject;
+	GetLocalClientID = impl_GetLocalClientID;
 
 	// Audio functionality
 	InitMusic = impl_InitMusic;
