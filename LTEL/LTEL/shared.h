@@ -16,9 +16,11 @@
 // Animation
 //
 
+void shared_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim);
 DDWORD shared_GetModelAnimation(HLOCALOBJ hObj);
 DDWORD shared_GetModelPlaybackState(HLOCALOBJ hObj);
 HMODELANIM shared_GetAnimIndex(HOBJECT hObj, char* pAnimName);
+void shared_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop);
 
 //
 // Objects

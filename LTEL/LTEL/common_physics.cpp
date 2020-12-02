@@ -200,6 +200,11 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 	auto pRelVelocity = *pPos - pObj->GetPosition();
 
+	if (pRelVelocity.Mag() < 0.01f)
+	{
+		return DE_OK;
+	}
+
 	auto pCollisionInfo = pKinematicBody->move_and_collide(LT2GodotVec3(pRelVelocity), true, true, true);
 
 	if (pCollisionInfo.is_null())
@@ -225,7 +230,7 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 #if 1
 	// We're on the floor!
-	if (!pCollisionInfo.is_null() && ::acos(pCollisionInfo->get_normal().dot(godot::Vector3(0, 1, 0))) <= 0.1)
+	if (!pCollisionInfo.is_null() && ::acos(pCollisionInfo->get_normal().dot(godot::Vector3(0, 1, 0))) <= 0.5)
 	{
 		auto vCurrentVelocity = pObj->GetVelocity();
 		pObj->SetVelocity(DVector(vCurrentVelocity.x, 0.0f, vCurrentVelocity.z));

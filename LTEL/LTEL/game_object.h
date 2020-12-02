@@ -46,7 +46,7 @@ public:
 	void SetClientFlags(int nFlag) { m_nClientFlags = nFlag; }
 	uint32_t GetClientFlags() { return m_nClientFlags; }
 
-	void SetPosition(DVector vPos);
+	void SetPosition(DVector vPos, bool bLocalUpdate = false);
 	DVector GetPosition();
 
 	void SetScale(DVector vScale);

@@ -544,26 +544,7 @@ DBOOL impl_GetModelLooping(HLOCALOBJ hObj)
 }
 void impl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
 {
-	if (!hObj)
-	{
-		return;
-	}
-
-	GameObject* pObj = (GameObject*)hObj;
-	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
-
-	if (!pExtraData || !pExtraData->pAnimationPlayer || pExtraData->nCurrentAnimIndex == -1)
-	{
-		return;
-	}
-
-	auto sAnim = pExtraData->vAnimationList.at(pExtraData->nCurrentAnimIndex);
-
-	// Loops are set per animation
-	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
-	pAnim->set_loop(bLoop);
-
-	return;
+	shared_SetModelLooping(hObj, bLoop);
 }
 
 DDWORD impl_GetObjectClientFlags(HLOCALOBJ hObj)
@@ -597,30 +578,7 @@ DDWORD impl_GetModelAnimation(HLOCALOBJ hObj)
 }
 void impl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
 {
-	if (!hObj)
-	{
-		return;
-	}
-
-	GameObject* pObj = (GameObject*)hObj;
-	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
-
-	if (!pExtraData || !pExtraData->pAnimationPlayer || iAnim == INVALID_ANI)
-	{
-		return;
-	}
-
-	auto sAnim = pExtraData->vAnimationList.at(iAnim);
-
-	// Loops are set per animation
-	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
-	pAnim->set_loop(pExtraData->bLoop);
-
-	pExtraData->pAnimationPlayer->play(sAnim.c_str());
-
-	pExtraData->nCurrentAnimIndex = iAnim;
-
-	return;
+	shared_SetModelAnimation(hObj, iAnim);
 }
 
 HMODELANIM impl_GetAnimIndex(HOBJECT hObj, char* pAnimName)

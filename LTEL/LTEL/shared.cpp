@@ -1,5 +1,37 @@
 #include "shared.h"
 
+// Godot
+#include <Animation.hpp>
+// End Godot
+
+void shared_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer || iAnim == -1)
+	{
+		return;
+	}
+
+	auto sAnim = pExtraData->vAnimationList.at(iAnim);
+
+	// Loops are set per animation
+	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
+	pAnim->set_loop(pExtraData->bLoop);
+
+	pExtraData->pAnimationPlayer->play(sAnim.c_str());
+
+	pExtraData->nCurrentAnimIndex = iAnim;
+
+	return;
+}
+
 DDWORD shared_GetModelAnimation(HLOCALOBJ hObj)
 {
 	if (!hObj)
@@ -68,6 +100,30 @@ HMODELANIM shared_GetAnimIndex(HOBJECT hObj, char* pAnimName)
 
 
 	return -1;
+}
+
+void shared_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	if (!pExtraData || !pExtraData->pAnimationPlayer || pExtraData->nCurrentAnimIndex == -1)
+	{
+		return;
+	}
+
+	auto sAnim = pExtraData->vAnimationList.at(pExtraData->nCurrentAnimIndex);
+
+	// Loops are set per animation
+	auto pAnim = pExtraData->pAnimationPlayer->get_animation(sAnim.c_str());
+	pAnim->set_loop(bLoop);
+
+	return;
 }
 
 DRESULT shared_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)

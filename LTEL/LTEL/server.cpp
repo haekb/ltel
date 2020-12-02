@@ -360,37 +360,75 @@ void LTELServer::GetObjectDims(HOBJECT hObj, DVector* pNewDims)
 
 DRESULT LTELServer::SetObjectDims(HOBJECT hObj, DVector* pNewDims)
 {
-	return DE_ERROR;
+	return m_pPhysicsLT->SetObjectDims(hObj, pNewDims, 0);
 }
 
 DRESULT LTELServer::SetObjectDims2(HOBJECT hObj, DVector* pNewDims)
 {
-	return DE_ERROR;
+	return m_pPhysicsLT->SetObjectDims(hObj, pNewDims, 0);
 }
 
 DRESULT LTELServer::GetVelocity(HOBJECT hObj, DVector* pVel)
 {
-	return DE_ERROR;
+	if (!hObj)
+	{
+		*pVel = DVector(0, 0, 0);
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	*pVel = pObj->GetVelocity();
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::SetVelocity(HOBJECT hObj, DVector* pVel)
 {
-	return DE_ERROR;
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	pObj->SetVelocity(*pVel);
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::GetAcceleration(HOBJECT hObj, DVector* pAccel)
 {
-	return DE_ERROR;
+	if (!hObj)
+	{
+		*pAccel = DVector(0, 0, 0);
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	*pAccel = pObj->GetAccel();
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::SetAcceleration(HOBJECT hObj, DVector* pAccel)
 {
-	return DE_ERROR;
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	pObj->SetAccel(*pAccel);
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::GetModelAnimUserDims(HOBJECT hObj, DVector* pDims, HMODELANIM hAnim)
 {
-	return DE_ERROR;
+	return Common()->GetModelAnimUserDims(hObj, pDims, hAnim);
 }
 
 HOBJECT LTELServer::GetWorldObject()
@@ -408,7 +446,7 @@ DRESULT LTELServer::GetWorldBox(DVector& min, DVector& max)
 
 DRESULT LTELServer::GetRotationVectors(DRotation* pRotation, DVector* pUp, DVector* pRight, DVector* pForward)
 {
-	return DE_ERROR;
+	return m_pCommonLT->GetRotationVectors(*pRotation, *pUp, *pRight, *pForward);
 }
 
 DRESULT LTELServer::SetFrictionCoefficient(HOBJECT hObj, float coeff)
@@ -418,7 +456,16 @@ DRESULT LTELServer::SetFrictionCoefficient(HOBJECT hObj, float coeff)
 
 DRESULT LTELServer::MoveObject(HOBJECT hObj, DVector* pNewPos)
 {
-	return DE_ERROR;
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	pObj->SetPosition(*pNewPos, true);
+
+	return DE_OK;
 }
 
 DRESULT LTELServer::GetNetFlags(HOBJECT hObj, DDWORD& flags)

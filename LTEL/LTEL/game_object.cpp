@@ -258,9 +258,14 @@ void GameObject::SetFlags(int nFlag)
 	}
 }
 
-void GameObject::SetPosition(DVector vPos)
+void GameObject::SetPosition(DVector vPos, bool bLocalUpdate)
 {
 	m_vPos = vPos;
+
+	if (bLocalUpdate)
+	{
+		return;
+	}
 
 	auto pNode = GetNode();
 	auto vPosition = LT2GodotVec3(vPos);

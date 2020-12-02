@@ -38,7 +38,7 @@ DRESULT LTELCommon::GetModelAnimUserDims(HOBJECT hObject, DVector* pDims, HMODEL
 		return DE_ERROR;
 	}
 	
-	godot::MeshInstance* pMesh = GDCAST(godot::MeshInstance, pObj->GetNode()->get_child(0));
+	godot::MeshInstance* pMesh = GDCAST(godot::MeshInstance, pObj->GetNode()->get_child(0)->get_child(0));
 
 	if (!pMesh)
 	{

@@ -732,7 +732,7 @@ DDWORD simpl_GetModelPlaybackState(HLOCALOBJ hObj)
 
 void simpl_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop)
 {
-
+	shared_SetModelLooping(hObj, bLoop);
 }
 
 DDWORD simpl_GetObjectUserFlags(HOBJECT hObj)
@@ -838,6 +838,11 @@ int	simpl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** a
 	return shared_Parse(pCommand, pNewCommandPos, argBuffer, argPointers, nArgs);
 }
 
+void simpl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
+{
+	shared_SetModelAnimation(hObj, iAnim);
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -848,6 +853,7 @@ void LTELServer::InitFunctionPointers()
 	GetModelPlaybackState = simpl_GetModelPlaybackState;
 	SetModelLooping = simpl_SetModelLooping;
 	GetAnimIndex = simpl_GetAnimIndex;
+	SetModelAnimation = simpl_SetModelAnimation;
 
 	// Object functionality
 	CreateObject = simpl_CreateObject;
