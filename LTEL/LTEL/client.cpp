@@ -212,6 +212,13 @@ godot::Ref<godot::PackedScene> LTELClient::LoadABC(std::string sPath)
 	return pScene;
 }
 
+godot::SpriteBase3D* LTELClient::LoadSPR(std::string sPath)
+{
+	auto pNode = g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Scripts/LoadSPR");
+	godot::SpriteBase3D* pSprite = pNode->call("build", g_pLTELClient->m_sGameDataDir.c_str(), sPath.c_str());
+	return pSprite;
+}
+
 bool LTELClient::SetAlphaToTransparentColour(LTELSurface* pSurface, HDECOLOR hTransparentColor, bool bSkipIfOptimized)
 {
 	// If we can reliably skip optimization, then do so!

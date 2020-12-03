@@ -11,6 +11,7 @@
 #include <StreamPeer.hpp>
 #include <StreamPeerBuffer.hpp>
 #include <PackedScene.hpp>
+#include <SpriteBase3D.hpp>
 
 #include "helpers.h"
 #include "server.h"
@@ -45,6 +46,7 @@ public:
 	godot::Ref<godot::ImageTexture> LoadPCX(std::string sPath);
     godot::Ref<godot::ImageTexture> LoadDTX(std::string sPath);
     godot::Ref<godot::PackedScene> LoadABC(std::string sPath);
+    godot::SpriteBase3D* LoadSPR(std::string sPath);
 
     bool SetAlphaToTransparentColour(LTELSurface* pSurface, HDECOLOR hTransparentColor, bool bSkipIfOptimized);
     bool BlitSurfaceToSurface(LTELSurface* pDest, LTELSurface* pSrc, DRect* pDestRect, DRect* pSrcRect, bool bScale);

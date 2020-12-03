@@ -47,6 +47,38 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		break;
 		// For now we don't care about sprites
 	case OT_SPRITE:
+	{
+#if 0
+		struct LTString {
+			short nLength;
+			char szValue[nLength];
+		};
+
+		struct Sprite {
+			int nTextures;
+			int nFramerate;
+			int nUnk;
+			int nUnk2;
+			int nUnk3;
+			LTString szTextures[nTextures] <optimize = false>;
+		};
+#endif
+		bool bBeans = true;
+
+		std::string sSprite = g_pLTELClient->m_sGameDataDir + pStruct->m_Filename;
+
+
+		auto pSprite = g_pLTELClient->LoadSPR(sSprite);
+		auto pNode = godot::Spatial::_new();
+
+		// Add it into the world!
+		p3DNode->add_child(pNode);
+		pObject->SetNode(pNode);
+
+		pNode->add_child(pSprite);
+
+	}
+		break;
 	case OT_NORMAL:
 	{
 		auto pNode = godot::Spatial::_new();

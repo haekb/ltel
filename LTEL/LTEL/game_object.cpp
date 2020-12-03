@@ -259,7 +259,6 @@ void GameObject::SetFlags(int nFlag)
 		return;
 	}
 	
-
 	if (nFlag & FLAG_VISIBLE)
 	{
 		pNode->set_visible(true);

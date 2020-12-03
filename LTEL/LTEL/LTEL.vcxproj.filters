@@ -221,5 +221,11 @@
     <ClCompile Include="client_physics.cpp">
       <Filter>Lithtech\1.0\Impl\client</Filter>
     </ClCompile>
+    <ClCompile Include="client_audio_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="client_input_impl.cpp">
+      <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

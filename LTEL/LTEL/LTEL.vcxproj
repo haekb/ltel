@@ -211,8 +211,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="client.cpp" />
+    <ClCompile Include="client_audio_impl.cpp" />
     <ClCompile Include="client_impl.cpp" />
     <ClCompile Include="client_info.cpp" />
+    <ClCompile Include="client_input_impl.cpp" />
     <ClCompile Include="client_object_impl.cpp" />
     <ClCompile Include="client_physics.cpp" />
     <ClCompile Include="client_render_impl.cpp" />
