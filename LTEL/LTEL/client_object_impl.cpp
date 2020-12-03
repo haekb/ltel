@@ -48,25 +48,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		// For now we don't care about sprites
 	case OT_SPRITE:
 	{
-#if 0
-		struct LTString {
-			short nLength;
-			char szValue[nLength];
-		};
-
-		struct Sprite {
-			int nTextures;
-			int nFramerate;
-			int nUnk;
-			int nUnk2;
-			int nUnk3;
-			LTString szTextures[nTextures] <optimize = false>;
-		};
-#endif
-		bool bBeans = true;
-
 		std::string sSprite = g_pLTELClient->m_sGameDataDir + pStruct->m_Filename;
-
 
 		auto pSprite = g_pLTELClient->LoadSPR(sSprite);
 		auto pNode = godot::Spatial::_new();
@@ -76,7 +58,6 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pObject->SetNode(pNode);
 
 		pNode->add_child(pSprite);
-
 	}
 		break;
 	case OT_NORMAL:
@@ -131,21 +112,24 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 			return nullptr;
 		}
 
-		pModel->set_name("Model");
+		// ABC Scene
+		pModel->set_name("ABC");
 		p3DNode->add_child(pModel, false);
 		pObject->SetNode(pModel);
 
 		// Init extra data
-		LTELModel* pExtaData = new LTELModel();
-		pObject->SetExtraData(pExtaData);
+		LTELModel* pExtraData = new LTELModel();
+		pObject->SetExtraData(pExtraData);
 
+		// Skeleton
 		auto pSkeleton = pModel->get_child(0);
 		pSkeleton->set_name("Skeleton");
+		pExtraData->pSkeleton = GDCAST(godot::Skeleton, pSkeleton);
 
 		// Root -> Skeleton -> MeshInstance
 		// Messy, but get_node isn't working??
 		godot::MeshInstance* pPiece = GDCAST(godot::MeshInstance, pSkeleton->get_child(0));
-		
+
 		auto pMat = godot::SpatialMaterial::_new();
 		pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
 		pPiece->set_surface_material(0, pMat);
@@ -155,14 +139,14 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		if (pAnimationPlayer)
 		{
 			// Handy for later!
-			pExtaData->pAnimationPlayer = pAnimationPlayer;
+			pExtraData->pAnimationPlayer = pAnimationPlayer;
 
 			// Setup animation list - This should maybe be handled by LTELModel
 			auto sAnimList = pAnimationPlayer->get_animation_list();
 
 			for (int i = 0; i < sAnimList.size(); i++)
 			{
-				pExtaData->vAnimationList.push_back(sAnimList[i].alloc_c_string());
+				pExtraData->vAnimationList.push_back(sAnimList[i].alloc_c_string());
 			}
 			// End
 
@@ -623,6 +607,39 @@ DRESULT impl_GetAttachments(HLOCALOBJ hObj, HLOCALOBJ* inList, DDWORD inListSize
 {
 	*outListSize = 0;
 	*outNumAttachments = 0;
+
+	// Clear the heckin' array
+	for (int i = 0; i < inListSize; i++)
+	{
+		inList[i] = nullptr;
+	}
+
+	if (!hObj)
+	{
+		return DE_ERROR;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	auto pAttachments = pObj->GetAttachments();
+
+	// Set our number of attachments
+	int nLength = pAttachments.size();
+	*outNumAttachments = nLength;
+
+	// If we have more attachments than the in list size,
+	// set the for loop length to that in size.
+	if (nLength > inListSize)
+	{
+		nLength = inListSize;
+	}
+
+	for (int i = 0; i < nLength; i++)
+	{
+		inList[i] = (HLOCALOBJ)pAttachments[i]->pObj;
+		(*outListSize)++;
+	}
+
 	return DE_OK;
 }
 

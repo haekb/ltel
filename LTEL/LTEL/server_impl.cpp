@@ -3,6 +3,7 @@
 #include "LT1/AppHeaders/cpp_engineobjects_de.h"
 
 #include <File.hpp>
+#include <BoneAttachment.hpp>
 
 extern LTELServer* g_pLTELServer;
 
@@ -820,6 +821,137 @@ DRESULT simpl_CreateInterObjectLink(HOBJECT hOwner, HOBJECT hLinked)
 DRESULT simpl_CreateAttachment(HOBJECT hParent, HOBJECT hChild, char* pNodeName,
 	DVector* pOffset, DRotation* pRotationOffset, HATTACHMENT* pAttachment)
 {
+	if (!hParent || !hChild)
+	{
+		return DE_INVALIDPARAMS;
+	}
+
+	GameObject* pParent = (GameObject*)hParent;
+	GameObject* pChild = (GameObject*)hChild;
+
+	LTELAttachment* pLTELAttachment = nullptr;
+
+	// No node name!
+	if (pNodeName && !pParent->IsType(OT_MODEL))
+	{
+		return DE_INVALIDPARAMS;
+	}
+	else if (pNodeName)
+	{
+		LTELModel* pExtraData = (LTELModel*)pParent->GetExtraData();
+
+		if (!pExtraData->pSkeleton)
+		{
+			return DE_NODENOTFOUND;
+		}
+		else if (!pExtraData->pSkeleton->find_bone(pNodeName))
+		{
+			return DE_NODENOTFOUND;
+		}
+
+		godot::BoneAttachment* pBoneAttachment = godot::BoneAttachment::_new();
+		pExtraData->pSkeleton->add_child(pBoneAttachment);
+
+		pBoneAttachment->set_bone_name(pNodeName);
+
+		if (pChild->GetNode()->get_parent())
+		{
+			pChild->GetNode()->get_parent()->remove_child(pChild->GetNode());
+		}
+		
+		pBoneAttachment->add_child(pChild->GetNode());
+
+		pExtraData->pSkeleton->add_child(pBoneAttachment);
+
+		pLTELAttachment = new LTELAttachment();
+		pLTELAttachment->pBoneAttachment = pBoneAttachment;
+
+
+		*pAttachment = (HATTACHMENT)pLTELAttachment;
+	}
+	else
+	{
+		godot::Spatial* pContainer = godot::Spatial::_new();
+		pParent->GetNode()->add_child(pContainer);
+
+		if (pChild->GetNode()->get_parent())
+		{
+			pChild->GetNode()->get_parent()->remove_child(pChild->GetNode());
+		}
+
+		pContainer->add_child(pChild->GetNode());
+
+		pLTELAttachment = new LTELAttachment();
+		pLTELAttachment->pSpatialContainer = pContainer;
+
+		*pAttachment = (HATTACHMENT)pContainer;
+	}
+
+	pLTELAttachment->pObj = pChild;
+	pLTELAttachment->pParent = pParent;
+
+	pChild->SetPosition(*pOffset);
+	pChild->SetRotation(*pRotationOffset);
+
+	// Finally add a reference
+	pParent->AddAttachment(pLTELAttachment);
+
+	return DE_OK;
+}
+
+DRESULT simpl_FindAttachment(HOBJECT hParent, HOBJECT hChild, HATTACHMENT* hAttachment)
+{
+	if (!hParent || !hChild)
+	{
+		return DE_INVALIDPARAMS;
+	}
+
+	GameObject* pParent = (GameObject*)hParent;
+	GameObject* pChild = (GameObject*)hChild;
+
+	auto pAttachments = pParent->GetAttachments();
+
+	for (auto pAttachment : pAttachments)
+	{
+		if (pAttachment->pObj == pChild)
+		{
+			*hAttachment = (HATTACHMENT)pAttachment;
+
+			return DE_OK;
+		}
+	}
+	
+	hAttachment = nullptr;
+
+	return DE_ERROR;
+}
+
+DRESULT simpl_RemoveAttachment(HATTACHMENT hAttachment)
+{
+	if (!hAttachment)
+	{
+		return DE_INVALIDPARAMS;
+	}
+
+	LTELAttachment* pAttachment = (LTELAttachment*)hAttachment;
+
+	// Remove 'em from the parent list
+	pAttachment->pParent->RemoveAttachment(pAttachment);
+
+	// Remove the nodes
+	if (pAttachment->pSpatialContainer)
+	{
+		pAttachment->pSpatialContainer->queue_free();
+	}
+	else
+	{
+		pAttachment->pBoneAttachment->queue_free();
+	}
+
+	// Finally remove the GameObject, and the attachment itself
+	pAttachment->pObj->QueueForDeletion();
+	delete pAttachment;
+
 	return DE_OK;
 }
 
@@ -853,12 +985,6 @@ int	simpl_Parse(char* pCommand, char** pNewCommandPos, char* argBuffer, char** a
 void simpl_SetModelAnimation(HLOCALOBJ hObj, DDWORD iAnim)
 {
 	shared_SetModelAnimation(hObj, iAnim);
-}
-
-DRESULT simpl_FindAttachment(HOBJECT hParent, HOBJECT hChild, HATTACHMENT* hAttachment)
-{
-	hAttachment = nullptr;
-	return DE_ERROR;
 }
 
 void simpl_BreakInterObjectLink(HOBJECT hOwner, HOBJECT hLinked)
@@ -895,11 +1021,12 @@ void LTELServer::InitFunctionPointers()
 	ScaleObject = simpl_ScaleObject;
 	CreateInterObjectLink = simpl_CreateInterObjectLink;
 	BreakInterObjectLink = simpl_BreakInterObjectLink;
-	CreateAttachment = simpl_CreateAttachment;
 	SetModelFilenames = simpl_SetModelFilenames;
 	GetModelCommandString = simpl_GetModelCommandString;
-	FindAttachment = simpl_FindAttachment;
 
+	CreateAttachment = simpl_CreateAttachment;
+	FindAttachment = simpl_FindAttachment;
+	RemoveAttachment = simpl_RemoveAttachment;
 
 	// Physics?
 	SetBlockingPriority = simpl_SetBlockingPriority;

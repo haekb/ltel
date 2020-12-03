@@ -11,7 +11,8 @@
 #include <Texture.hpp>
 #include <ImageTexture.hpp>
 #include <AnimationPlayer.hpp>
-
+#include <Skeleton.hpp>
+#include <BoneAttachment.hpp>
 
 #include <Label.hpp>
 #include <TextureRect.hpp>
@@ -102,6 +103,9 @@ struct LTELModel {
 		pAnimationPlayer = nullptr;
 		bLoop = false;
 		nCurrentAnimIndex = -1;
+
+		// Skeleton
+		pSkeleton = nullptr;
 	}
 
 	// Animation
@@ -110,6 +114,30 @@ struct LTELModel {
 
 	godot::AnimationPlayer* pAnimationPlayer;
 	std::vector<std::string> vAnimationList;
+
+	// Skeleton
+	godot::Skeleton* pSkeleton;
+};
+
+struct LTELAttachment {
+	LTELAttachment() {
+		pParent = nullptr;
+		pObj = nullptr;
+
+		pSpatialContainer = nullptr;
+		pBoneAttachment = nullptr;
+	}
+
+	// Object the attachment is attached too!
+	GameObject* pParent;
+
+	// That's us!
+	GameObject* pObj;
+
+	// Only one of these will be something, so just nullcheck
+	godot::Spatial* pSpatialContainer;
+	godot::BoneAttachment* pBoneAttachment;
+
 };
 
 // helpers

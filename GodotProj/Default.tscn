@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Bootup.gd" type="Script" id=1]
 [ext_resource path="res://src/load_pcx.gd" type="Script" id=2]
@@ -6,6 +6,7 @@
 [ext_resource path="res://shogo/sidewalk1.png" type="Texture" id=4]
 [ext_resource path="res://Addons/ABCReader/ModelBuilder.gd" type="Script" id=5]
 [ext_resource path="res://Addons/DTXReader/TextureBuilder.gd" type="Script" id=6]
+[ext_resource path="res://src/FPSCounter.gd" type="Script" id=7]
 [ext_resource path="res://src/load_spr.gd" type="Script" id=15]
 
 [sub_resource type="PlaneMesh" id=1]
@@ -125,7 +126,8 @@ __meta__ = {
 
 [node name="PlayerPOS" type="RichTextLabel" parent="Debug2D"]
 anchor_right = 1.0
-margin_bottom = 19.0
+margin_top = 38.0
+margin_bottom = 57.0
 text = "Player Position: <0.0,0.0,0.0>"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -133,8 +135,8 @@ __meta__ = {
 
 [node name="PlayerROT" type="RichTextLabel" parent="Debug2D"]
 anchor_right = 1.0
-margin_top = 19.0
-margin_bottom = 38.0
+margin_top = 57.0
+margin_bottom = 76.0
 text = "Player Rotation: <0.0,0.0,0.0,0.0>"
 __meta__ = {
 "_edit_use_anchors_": false
@@ -142,9 +144,19 @@ __meta__ = {
 
 [node name="OnGround" type="RichTextLabel" parent="Debug2D"]
 anchor_right = 1.0
-margin_top = 38.0
-margin_bottom = 57.0
+margin_top = 76.0
+margin_bottom = 95.0
 text = "On Ground: <False>"
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="FPS" type="RichTextLabel" parent="Debug2D"]
+anchor_right = 1.0
+margin_top = 95.0
+margin_bottom = 114.0
+text = "FPS: <60.0>"
+script = ExtResource( 7 )
 __meta__ = {
 "_edit_use_anchors_": false
 }

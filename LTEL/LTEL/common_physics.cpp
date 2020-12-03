@@ -192,6 +192,10 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 		
 		pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate());
 
+		auto sName = pObj->GetNode()->get_name();
+		sName += " - ClientBody";
+		pKinematicBody->set_name(sName);
+
 		// Kinematic body can't be attached to our node..
 		auto p3D = pObj->GetNode()->get_node("/root/Scene/3D");
 		p3D->add_child(pKinematicBody);

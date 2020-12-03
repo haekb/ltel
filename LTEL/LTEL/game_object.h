@@ -15,6 +15,7 @@
 #include <string>
 #include <unordered_map>
 
+class LTELAttachment;
 
 class GameObject
 {
@@ -108,6 +109,10 @@ public:
 	void QueueForDeletion() { m_bQueuedForDeletion = true; }
 	bool IsQueuedForDeletion() { return m_bQueuedForDeletion; }
 
+	std::vector<LTELAttachment*> GetAttachments() { return m_pAttachments; }
+	bool AddAttachment(LTELAttachment* pObj);
+	bool RemoveAttachment(LTELAttachment* pObj);
+
 protected:
 	bool m_bQueuedForDeletion;
 
@@ -136,6 +141,8 @@ protected:
 
 	void* m_pExtraData;
 	void* m_pServerObject;
+
+	std::vector<LTELAttachment*> m_pAttachments;
 
 	// Camera:
 	//union {

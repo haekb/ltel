@@ -427,6 +427,40 @@ void GameObject::SetDims(DVector vVal)
 	}
 }
 
+bool GameObject::AddAttachment(LTELAttachment* pObj)
+{
+	if (!pObj)
+	{
+		return false;
+	}
+
+	m_pAttachments.push_back(pObj);
+
+	return true;
+}
+
+bool GameObject::RemoveAttachment(LTELAttachment* pObj)
+{
+	if (!pObj)
+	{
+		return false;
+	}
+
+	std::vector<LTELAttachment*> vTemp;
+	for (auto pAttachment : m_pAttachments)
+	{
+		if (pAttachment != pObj)
+		{
+			vTemp.push_back(pAttachment);
+		}
+	}
+
+	m_pAttachments.clear();
+	m_pAttachments = vTemp;
+
+	return true;
+}
+
 void GameObject::Teleport(DVector vNewPos)
 {
 	m_vPos = vNewPos;
