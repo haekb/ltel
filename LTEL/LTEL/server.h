@@ -57,6 +57,8 @@ public:
     void Update(DFLOAT timeElapsed);
 
     void HandleMessageQueue();
+
+    GameObject* FindObjectByGUID(GUID guid);
     
     DVector m_dvGlobalForce;
 

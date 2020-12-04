@@ -122,6 +122,23 @@ DRESULT shared_WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
 	return DE_OK;
 }
 
+DRESULT shared_WriteToMessageGUID(HMESSAGEWRITE hMessage, GUID guid)
+{
+	auto pStream = GD_STREAM_CAST(hMessage);
+	pStream->put_32(guid.Data1);
+	pStream->put_16(guid.Data2);
+	pStream->put_16(guid.Data3);
+
+	auto nBytesSize = sizeof(GUID::Data4) / sizeof(GUID::Data4[0]);
+
+	for (int i = 0; i < nBytesSize; i++)
+	{
+		pStream->put_8(guid.Data4[i]);
+	}
+
+	return DE_OK;
+}
+
 DRESULT shared_WriteToMessageHMessageWrite(HMESSAGEWRITE hMessage, HMESSAGEWRITE hDataMessage)
 {
 	godot::StreamPeerBuffer* pDestStream = GD_STREAM_CAST(hMessage);
@@ -307,6 +324,26 @@ HSTRING shared_ReadFromMessageHString(HMESSAGEREAD hMessage)
 	pString->sData = shared_ReadFromMessageString(hMessage);
 	shared_CheckAndReset(hMessage);
 	return (HSTRING)pString;
+}
+
+GUID shared_ReadFromMessageGUID(HMESSAGEREAD hMessage)
+{
+	auto pStream = GD_STREAM_CAST(hMessage);
+
+	GUID guid;
+
+	guid.Data1 = pStream->get_32();
+	guid.Data2 = pStream->get_16();
+	guid.Data3 = pStream->get_16();
+
+	auto nBytesSize = sizeof(GUID::Data4) / sizeof(GUID::Data4[0]);
+
+	for (int i = 0; i < nBytesSize; i++)
+	{
+		guid.Data4[i] = pStream->get_8();
+	}
+
+	return guid;
 }
 
 DRESULT shared_ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hObject)

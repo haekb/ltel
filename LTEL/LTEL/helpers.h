@@ -24,6 +24,9 @@
 #define CANVAS_NODE "/root/Scene/Canvas"
 #define GDCAST(casting_to, object) godot::Object::cast_to<casting_to>(object);
 
+// Custom message ids
+#define MID_SFX_MSG 254
+#define MID_SFX_INSTANT_MSG 255
 
 struct LTELSurface 
 {

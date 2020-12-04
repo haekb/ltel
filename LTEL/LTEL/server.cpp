@@ -167,6 +167,11 @@ void LTELServer::Update(DFLOAT timeElapsed)
 
 	for (auto pObj : m_pObjectList)
 	{
+		// We always run the engine-side update!
+		pObj->Update(timeElapsed);
+
+		// Game dll update stuff:
+
 		float fNextUpdate = pObj->GetNextUpdate();
 		fNextUpdate -= timeElapsed;
 		
@@ -213,11 +218,22 @@ void LTELServer::HandleMessageQueue()
 {
 	for (auto pStream : g_pQueuedStreams)
 	{
-		DBYTE pMessageId = pStream->get_8();
-
 		auto pClientShell = (CClientShellDE*)m_pClientList[0]->GetClientShell();
 
-		pClientShell->OnMessage(pMessageId, (HMESSAGEREAD)pStream);
+		DBYTE pMessageId = pStream->get_8();
+
+		if (pMessageId == MID_SFX_MSG)
+		{
+			auto guid = shared_ReadFromMessageGUID((HMESSAGEREAD)pStream);
+			GameObject* pObj = FindObjectByGUID(guid);
+
+			pClientShell->SpecialEffectNotify((HLOCALOBJ)pObj, (HMESSAGEREAD)pStream);
+		}
+		else
+		{
+			pClientShell->OnMessage(pMessageId, (HMESSAGEREAD)pStream);
+
+		}
 
 		shared_CleanupStream(pStream);
 
@@ -226,6 +242,20 @@ void LTELServer::HandleMessageQueue()
 	}
 
 	g_pQueuedStreams.clear();
+}
+
+GameObject* LTELServer::FindObjectByGUID(GUID guid)
+{
+	// FIXME: This is probably slow!
+	for (auto pObj : m_pObjectList)
+	{
+		if (pObj->GetID() == guid)
+		{
+			return pObj;
+		}
+	}
+
+	return nullptr;
 }
 
 
@@ -245,16 +275,28 @@ DRESULT LTELServer::SetGlobalForce(DVector* pVec)
 
 HMESSAGEWRITE LTELServer::StartSpecialEffectMessage(LPBASECLASS pObject)
 {
+	if (!pObject->m_hObject)
+	{
+		return nullptr;
+	}
+
 	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
 
-	// TODO: Serialize the object
+	// Try just using the id
+	GameObject* pObj = (GameObject*)pObject->m_hObject;
+	shared_WriteToMessageByte((HMESSAGEWRITE)pStream, MID_SFX_MSG);
+	shared_WriteToMessageGUID((HMESSAGEWRITE)pStream, pObj->GetID());
 
 	return (HMESSAGEWRITE)pStream;
 }
 
 HMESSAGEWRITE LTELServer::StartInstantSpecialEffectMessage(DVector* pPos)
 {
-	return nullptr;
+	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
+
+	WriteToMessageVector((HMESSAGEWRITE)pStream, pPos);
+
+	return (HMESSAGEWRITE)pStream;
 }
 
 HMESSAGEWRITE LTELServer::StartMessageToObject(LPBASECLASS pSender, HOBJECT hSendTo, DDWORD messageID)

@@ -93,6 +93,10 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_vDims = DVector(0,0,0);
 
 	m_bQueuedForDeletion = false;
+
+	// Create an id for this fella
+	// I'm currently too lazy to implement some type of unique id system
+	CoCreateGuid(&m_gID);
 }
 
 GameObject::~GameObject()
@@ -151,6 +155,19 @@ GameObject::~GameObject()
 
 }
 
+void GameObject::Update(float fDelta)
+{
+	if (!IsType(OT_MODEL))
+	{
+		return;
+	}
+}
+
+void on_animation_command_string(godot::String sCommandString)
+{
+	godot::Godot::print(sCommandString);
+}
+
 void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 {
 	m_nObjectType = pStruct.m_ObjectType;
@@ -171,8 +188,6 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 	{
 		g_pPosLabel = GDCAST(godot::RichTextLabel, GetNode()->get_node("/root/Scene/Debug2D/PlayerPOS"));
 		g_pRotLabel = GDCAST(godot::RichTextLabel, GetNode()->get_node("/root/Scene/Debug2D/PlayerROT"));
-
-
 	}
 
 	if (GetNode())
@@ -185,6 +200,12 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 		{
 			GetNode()->set_name(m_sFilename.c_str());
 		}
+	}
+
+	if (IsType(OT_MODEL))
+	{
+		// Connect this signal, so we can send a MID_MODELSTRINGKEY
+		//GetNode()->connect("animation_command_string", nullptr, "on_animation_command_string");
 	}
 }
 
@@ -474,4 +495,37 @@ void GameObject::Teleport(DVector vNewPos)
 
 	auto vGDPos = LT2GodotVec3(vNewPos);
 	pNode->translate(vGDPos);
+}
+
+
+#include "client.h"
+extern LTELClient* g_pLTELClient;
+void GameObject::SendAnimationCommandString(godot::String sCommandString)
+{
+	// If we don't have the flag
+	if ( !(GetFlags() & FLAG_MODELKEYS))
+	{
+		//return;
+	}
+
+	ArgList argList;
+	argList.argc = 1;
+
+	//char szString[PARSE_MAXTOKENSIZE];
+	//strcpy_s(szString, PARSE_MAXTOKENSIZE, sCommandString.alloc_c_string());
+	char* szCommands[PARSE_MAXTOKENSIZE];
+	memset(szCommands, 0, sizeof(char*) * PARSE_MAXTOKENSIZE);
+
+	szCommands[0] = sCommandString.alloc_c_string();
+	//strcpy_s(szCommands[0], PARSE_MAXTOKENSIZE, sCommandString.alloc_c_string());
+
+	argList.argv = szCommands;
+
+	if (m_pBaseClass)
+	{
+		m_pBaseClass->_EngineMsgFn(m_pBaseClass, MID_MODELSTRINGKEY, &argList, 0.0f);
+	}
+
+	CClientShellDE* pClientShell = (CClientShellDE * )g_pLTELClient->GetClientShell();
+	pClientShell->OnModelKey((HLOCALOBJ)this, &argList);
 }

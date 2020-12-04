@@ -21,6 +21,7 @@
 #include <AnimationPlayer.hpp>
 
 #include "shared.h"
+#include "model_helper.h"
 
 #define USRFLG_VISIBLE					(1<<0)
 #define USRFLG_NIGHT_INFRARED			(1<<1)
@@ -170,6 +171,13 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 	}
 
 	pObject->SetFromObjectCreateStruct(*pStruct);
+
+	if (pObject->IsType(OT_MODEL))
+	{
+		ModelHelper* pModelHelper = ModelHelper::_new();
+		pModelHelper->SetGameObject(pObject);
+		pObject->GetNode()->add_child(pModelHelper);
+	}
 
 	return (HLOCALOBJ)pObject;
 }
@@ -683,15 +691,7 @@ DRESULT impl_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
 
 void impl_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
 {
-	auto pObj = HObject2GameObject(hObj);
-
-	if (!pObj)
-	{
-		*pRotation = DRotation(0, 0, 0, 0);
-		return;
-	}
-
-	*pRotation = pObj->GetRotation();
+	shared_GetObjectRotation(hObj, pRotation);
 }
 
 void impl_SetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)

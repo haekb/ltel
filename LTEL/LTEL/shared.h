@@ -26,6 +26,7 @@ void shared_SetModelLooping(HLOCALOBJ hObj, DBOOL bLoop);
 // Objects
 // 
 DRESULT shared_SetObjectScale(HLOCALOBJ hObj, DVector* pScale);
+void shared_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation);
 
 //
 // Strings
@@ -62,6 +63,9 @@ DRESULT			shared_WriteToMessageCompVector(HMESSAGEWRITE hMessage, DVector* pVal)
 DRESULT			shared_WriteToMessageCompPosition(HMESSAGEWRITE hMessage, DVector* pVal); // 7 bytes
 DRESULT			shared_WriteToMessageRotation(HMESSAGEWRITE hMessage, DRotation* pVal);
 DRESULT			shared_WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString);
+
+// Custom!
+DRESULT			shared_WriteToMessageGUID(HMESSAGEWRITE hMessage, GUID guid);
 
 // Writes a HMESSAGEWRITE into an already opened HMESSAGEWRITE.
 // Inputs:
@@ -100,6 +104,9 @@ void			shared_ReadFromMessageCompPosition(HMESSAGEREAD hMessage, DVector* pVal);
 void			shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal);
 HOBJECT			shared_ReadFromMessageObject(HMESSAGEREAD hMessage);
 HSTRING			shared_ReadFromMessageHString(HMESSAGEREAD hMessage);
+
+// Custom!
+GUID			shared_ReadFromMessageGUID(HMESSAGEREAD hMessage);
 
 // Use this only while loading objects (inside MID_LOADOBJECT).
 DRESULT			shared_ReadFromLoadSaveMessageObject(HMESSAGEREAD hMessage, HOBJECT* hObject);

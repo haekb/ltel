@@ -333,6 +333,11 @@ DRESULT impl_GetLocalClientID(DDWORD* pID)
 	return DE_OK;
 }
 
+DBOOL impl_IntersectSegment(ClientIntersectQuery* pQuery, ClientIntersectInfo* pInfo)
+{
+	return FALSE;
+}
+
 //
 // Setup our struct!
 //
@@ -348,6 +353,8 @@ void LTELClient::InitFunctionPointers()
 	SetModelHook = impl_SetModelHook;
 
 	RegisterConsoleProgram = impl_RegisterConsoleProgram;
+
+	IntersectSegment = impl_IntersectSegment;
 
 	// Container functionality
 	GetPointContainers = impl_GetPointContainers;

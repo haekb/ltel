@@ -15,6 +15,9 @@
 #include <string>
 #include <unordered_map>
 
+// For uuid
+#include <objbase.h>
+
 class LTELAttachment;
 
 class GameObject
@@ -23,7 +26,11 @@ public:
 	GameObject(ClassDef* pClass, BaseClass* pBaseClass);
 	~GameObject();
 
+	void Update(float fDelta);
+
 	void Teleport(DVector vNewPos);
+
+	void SendAnimationCommandString(godot::String sCommandString);
 
 	void SetFromObjectCreateStruct(ObjectCreateStruct pStruct);
 
@@ -113,7 +120,12 @@ public:
 	bool AddAttachment(LTELAttachment* pObj);
 	bool RemoveAttachment(LTELAttachment* pObj);
 
+	GUID GetID() { return m_gID; }
+	void SetID(GUID guid) { m_gID = guid; }
+
 protected:
+	GUID m_gID;
+
 	bool m_bQueuedForDeletion;
 
 	int m_nState;

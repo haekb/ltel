@@ -162,6 +162,9 @@
     <ClInclude Include="ScancodeToVK.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="model_helper.h">
+      <Filter>Lithtech\1.0\Impl\classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -226,6 +229,9 @@
     </ClCompile>
     <ClCompile Include="client_input_impl.cpp">
       <Filter>Lithtech\1.0\Impl\client</Filter>
+    </ClCompile>
+    <ClCompile Include="model_helper.cpp">
+      <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

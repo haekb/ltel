@@ -4,6 +4,7 @@
 
 #include <File.hpp>
 #include <BoneAttachment.hpp>
+#include <RayCast.hpp>
 
 extern LTELServer* g_pLTELServer;
 
@@ -295,6 +296,9 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		GameObject* pClientObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
 		pClientObject->SetBaseClass(pBaseClass);
 		pClientObject->SetClassDef(pClass);
+
+		// Give it our server id
+		pClientObject->SetID(pObject->GetID());
 
 		pObject->SetCamera(pClientObject->GetCamera());
 		pObject->SetNode(pClientObject->GetNode());
@@ -992,6 +996,67 @@ void simpl_BreakInterObjectLink(HOBJECT hOwner, HOBJECT hLinked)
 
 }
 
+DRESULT simpl_GetObjectRotation(HOBJECT hObj, DRotation* pRotation)
+{
+	shared_GetObjectRotation(hObj, pRotation);
+	return DE_OK;
+}
+
+DBOOL simpl_IntersectSegment(IntersectQuery* pQuery, IntersectInfo* pInfo)
+{
+	return DFALSE;
+}
+
+void simpl_AlignRotation(DRotation* pRotation, DVector* pVector, DVector* pUp)
+{
+	/*
+	var n1norm = <yourobject>.transform.basis.y
+var n2norm = hit.normal
+
+var cosa = n1norm.dot(n2norm)
+
+var alpha = acos(cosa)
+
+var axis = n1norm.cross(n2norm)
+axis = axis.normalized()
+*/
+	// Hacky!
+	godot::Spatial* pTemp = godot::Spatial::_new();
+
+	godot::Vector3 vUp;
+
+	if (!pUp)
+	{
+		vUp = godot::Vector3(0, 1, 0);
+	}
+	else
+	{
+		vUp = LT2GodotVec3(*pUp);
+	}
+
+	pTemp->look_at(LT2GodotVec3(*pVector), vUp);
+
+	auto vRot = pTemp->get_rotation();
+	godot::Quat qRot = godot::Quat();
+	qRot.set_euler(vRot);
+
+	*pRotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+
+	pTemp->free();
+}
+
+DDWORD simpl_GetClientID(HCLIENT hClient)
+{
+	if (!hClient)
+	{
+		return -1;
+	}
+
+	ClientInfo* pClient = (ClientInfo*)hClient;
+
+	return 0;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -1028,8 +1093,11 @@ void LTELServer::InitFunctionPointers()
 	FindAttachment = simpl_FindAttachment;
 	RemoveAttachment = simpl_RemoveAttachment;
 
+	AlignRotation = simpl_AlignRotation;
+
 	// Physics?
 	SetBlockingPriority = simpl_SetBlockingPriority;
+	IntersectSegment = simpl_IntersectSegment;
 
 	// Get/Sets
 	GetObjectState = simpl_GetObjectState;
@@ -1040,7 +1108,7 @@ void LTELServer::InitFunctionPointers()
 	SetObjectUserFlags = simpl_SetObjectUserFlags;
 	GetObjectPos = simpl_GetObjectPos;
 	SetObjectPos = simpl_SetObjectPos;
-	GetObjectRotation = nullptr;
+	GetObjectRotation = simpl_GetObjectRotation;
 	SetObjectRotation = simpl_SetObjectRotation;
 
 	GetPropGeneric = simpl_GetPropGeneric;
@@ -1097,6 +1165,7 @@ void LTELServer::InitFunctionPointers()
 	SetClientInfoFlags = simpl_SetClientInfoFlags;
 	IsCommandOn = simpl_IsCommandOn;
 	SetClientViewPos = simpl_SetClientViewPos;
+	GetClientID = simpl_GetClientID;
 
 	// Game State functionality
 	GetGameInfo = simpl_GetGameInfo;

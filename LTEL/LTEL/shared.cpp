@@ -135,8 +135,27 @@ DRESULT shared_SetObjectScale(HLOCALOBJ hObj, DVector* pScale)
 		return DE_ERROR;
 	}
 
+	// Sprites don't have z scale param, so check if Y is > 0, but Z is not!
+	if (pObj->IsType(OT_SPRITE) && pScale->y > 0.0f && pScale->z == 0.0f)
+	{
+		pScale->z = pScale->y;
+	}
+
 	pObj->SetScale(*pScale);
 	return DE_OK;
+}
+
+void shared_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation)
+{
+	auto pObj = HObject2GameObject(hObj);
+
+	if (!pObj)
+	{
+		*pRotation = DRotation(0, 0, 0, 0);
+		return;
+	}
+
+	*pRotation = pObj->GetRotation();
 }
 
 LTELString* shared_CreateString(char* pString)
