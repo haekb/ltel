@@ -232,9 +232,26 @@ void LTELServer::HandleMessageQueue()
 				// Pass over the vector
 				DVector vTmp;
 				shared_ReadFromMessageVector((HMESSAGEREAD)pStream, &vTmp);
+				bool bTest = true;
 			}
 
 			pClientShell->SpecialEffectNotify((HLOCALOBJ)pObj, (HMESSAGEREAD)pStream);
+		}
+		else if (pMessageId == MID_SEND_TO_OBJ)
+		{
+			auto guidTo = shared_ReadFromMessageGUID((HMESSAGEREAD)pStream);
+			auto guidFrom = shared_ReadFromMessageGUID((HMESSAGEREAD)pStream);
+			auto nObjMessageId = shared_ReadFromMessageDWord((HMESSAGEREAD)pStream);
+
+			GameObject* bTo = FindObjectByGUID(guidTo);
+			GameObject* bFrom = FindObjectByGUID(guidFrom);
+
+			if (!bTo->GetBaseClass())
+			{
+				godot::Godot::print("[HandleMessageQueue] Missing base class!!");
+			}
+
+			bTo->GetBaseClass()->_ObjectMsgFn(bTo->GetBaseClass(), (HOBJECT)bFrom, nObjMessageId, (HMESSAGEREAD)pStream);
 		}
 		else
 		{
@@ -321,7 +338,22 @@ HMESSAGEWRITE LTELServer::StartInstantSpecialEffectMessage(DVector* pPos)
 
 HMESSAGEWRITE LTELServer::StartMessageToObject(LPBASECLASS pSender, HOBJECT hSendTo, DDWORD messageID)
 {
-	return nullptr;
+	if (!pSender || !pSender->m_hObject || !hSendTo)
+	{
+		return nullptr;
+	}
+
+	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
+
+	// Try just using the id
+	GameObject* pObj = (GameObject*)pSender->m_hObject;
+	GameObject* pSendTo = (GameObject*)hSendTo;
+	shared_WriteToMessageByte((HMESSAGEWRITE)pStream, MID_SEND_TO_OBJ);
+	shared_WriteToMessageGUID((HMESSAGEWRITE)pStream, pSendTo->GetID()); // To
+	shared_WriteToMessageGUID((HMESSAGEWRITE)pStream, pObj->GetID()); // From
+	shared_WriteToMessageDWord((HMESSAGEWRITE)pStream, messageID); // Subject
+
+	return (HMESSAGEWRITE)pStream;
 }
 
 DRESULT LTELServer::StartMessageToServer(LPBASECLASS pSender, DDWORD messageID, HMESSAGEWRITE* hWrite)
@@ -576,7 +608,8 @@ DRESULT LTELServer::SetNetFlags(HOBJECT hObj, DDWORD flags)
 
 DRESULT LTELServer::GetPolyTextureFlags(HPOLY hPoly, DDWORD* pFlags)
 {
-	return DE_ERROR;
+	*pFlags = 0;// ST_UNKNOWN
+	return DE_OK;
 }
 
 HMESSAGEWRITE LTELServer::StartHMessageWrite()

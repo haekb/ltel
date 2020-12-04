@@ -8,6 +8,8 @@ std::vector<godot::StreamPeerBuffer*> g_pStreamInUse;
 // Guarenteed to be magic by our resident wizards
 #define MAGIC_NUMBER 4528
 
+// Only for ReadObject...
+extern LTELServer* g_pLTELServer;
 
 void shared_CleanupStream(godot::StreamPeerBuffer* pStream)
 {
@@ -113,6 +115,8 @@ DRESULT shared_WriteToMessageHString(HMESSAGEWRITE hMessage, HSTRING hString)
 
 	if (!pString)
 	{
+		// Make sure to put something!
+		(GD_STREAM_CAST(hMessage))->put_string("");
 		return DE_OK;
 	}
 
@@ -178,46 +182,20 @@ DRESULT shared_WriteToMessageFormattedHString(HMESSAGEWRITE hMessage, int messag
 
 DRESULT shared_WriteToMessageObject(HMESSAGEWRITE hMessage, HOBJECT hObj)
 {
-	return DE_OK;
 	GameObject* pObject = (GameObject*)hObj;
 	auto pStream = GD_STREAM_CAST(hMessage);
 
 	if (!pObject)
 	{
-		return DE_OK;
+		// No GUID here
+		shared_WriteToMessageByte(hMessage, 0);
+
+		return DE_ERROR;
 	}
 
-	shared_SetStreamValue(pStream, pObject->GetType());
-	shared_SetStreamValue(pStream, pObject->GetFlags());
-	shared_SetStreamValue(pStream, pObject->GetUserFlags());
-
-	// Serialize the node!
-	switch (pObject->GetType())
-	{
-	case OT_POLYGRID:
-	{
-		shared_SetStreamValue(pStream, pObject->GetPolyGrid());
-		LTELPolyGrid* pExtraData = (LTELPolyGrid*)pObject->GetExtraData();
-
-		// Extra data!
-		shared_SetStreamValue(pStream, pExtraData->bLocked);
-		shared_SetStreamValue(pStream, pExtraData->pData);
-		shared_SetStreamValue(pStream, pExtraData->nWidth);
-		shared_SetStreamValue(pStream, pExtraData->nHeight);
-
-		// We don't send over the ImageTexture refs, they'll be re-init on read.
-
-		// End!
-	}
-		break;
-	case OT_CAMERA:
-		shared_SetStreamValue(pStream, pObject->GetCamera());
-
-		break;
-	default:
-		shared_SetStreamValue(pStream, pObject->GetNode());
-
-	}
+	// GUID is written!
+	shared_WriteToMessageByte(hMessage, 1);
+	shared_WriteToMessageGUID(hMessage, pObject->GetID());
 
 	return DE_OK;
 }
@@ -270,9 +248,12 @@ DDWORD shared_ReadFromMessageDWord(HMESSAGEREAD hMessage)
 
 char* shared_ReadFromMessageString(HMESSAGEREAD hMessage)
 {
-	auto szVal = (GD_STREAM_CAST(hMessage))->get_string().alloc_c_string();
+	auto szVal = (GD_STREAM_CAST(hMessage))->get_string();
+
+	auto nlen = szVal.length();
+
 	shared_CheckAndReset(hMessage);
-	return szVal;
+	return szVal.alloc_c_string();
 }
 
 void shared_ReadFromMessageVector(HMESSAGEREAD hMessage, DVector* pVal)
@@ -314,7 +295,17 @@ void shared_ReadFromMessageRotation(HMESSAGEREAD hMessage, DRotation* pVal)
 
 HOBJECT shared_ReadFromMessageObject(HMESSAGEREAD hMessage)
 {
-	return nullptr;
+	auto nHasValidGUID = shared_ReadFromMessageByte(hMessage);
+
+	if (nHasValidGUID == 0)
+	{
+		return nullptr;
+	}
+
+	auto guid = shared_ReadFromMessageGUID(hMessage);
+
+	// FIXME: This will have to change later on, but so far Shogo only uses this function to read on the server
+	return (HOBJECT)g_pLTELServer->FindObjectByGUID(guid);
 }
 
 HSTRING shared_ReadFromMessageHString(HMESSAGEREAD hMessage)

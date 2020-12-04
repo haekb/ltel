@@ -25,6 +25,7 @@
 #define GDCAST(casting_to, object) godot::Object::cast_to<casting_to>(object);
 
 // Custom message ids
+#define MID_SEND_TO_OBJ 253
 #define MID_SFX_MSG 254
 #define MID_SFX_INSTANT_MSG 255
 
