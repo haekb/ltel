@@ -1009,20 +1009,6 @@ DBOOL simpl_IntersectSegment(IntersectQuery* pQuery, IntersectInfo* pInfo)
 
 void simpl_AlignRotation(DRotation* pRotation, DVector* pVector, DVector* pUp)
 {
-	/*
-	var n1norm = <yourobject>.transform.basis.y
-var n2norm = hit.normal
-
-var cosa = n1norm.dot(n2norm)
-
-var alpha = acos(cosa)
-
-var axis = n1norm.cross(n2norm)
-axis = axis.normalized()
-*/
-	// Hacky!
-	godot::Spatial* pTemp = godot::Spatial::_new();
-
 	godot::Vector3 vUp;
 
 	if (!pUp)
@@ -1034,7 +1020,24 @@ axis = axis.normalized()
 		vUp = LT2GodotVec3(*pUp);
 	}
 
-	pTemp->look_at(LT2GodotVec3(*pVector), vUp);
+	auto vNormal = LT2GodotVec3(*pVector);
+
+	// No need!
+	if (vNormal == vUp)
+	{
+		godot::Quat qRot = godot::Quat();
+		qRot.set_euler(vUp);
+
+		*pRotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+		return;
+	}
+
+	// Hacky!
+	godot::Spatial* pTemp = godot::Spatial::_new();
+	godot::Spatial* p3D = GDCAST(godot::Spatial, g_pLTELServer->m_pGodotLink->get_node("/root/Scene/3D"));
+	p3D->add_child(pTemp);
+
+	pTemp->look_at(vNormal, vUp);
 
 	auto vRot = pTemp->get_rotation();
 	godot::Quat qRot = godot::Quat();
@@ -1042,7 +1045,7 @@ axis = axis.normalized()
 
 	*pRotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
 
-	pTemp->free();
+	pTemp->queue_free();
 }
 
 DDWORD simpl_GetClientID(HCLIENT hClient)

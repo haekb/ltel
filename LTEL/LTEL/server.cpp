@@ -222,10 +222,17 @@ void LTELServer::HandleMessageQueue()
 
 		DBYTE pMessageId = pStream->get_8();
 
-		if (pMessageId == MID_SFX_MSG)
+		if (pMessageId == MID_SFX_MSG || pMessageId == MID_SFX_INSTANT_MSG)
 		{
 			auto guid = shared_ReadFromMessageGUID((HMESSAGEREAD)pStream);
 			GameObject* pObj = FindObjectByGUID(guid);
+
+			if (pMessageId == MID_SFX_INSTANT_MSG)
+			{
+				// Pass over the vector
+				DVector vTmp;
+				shared_ReadFromMessageVector((HMESSAGEREAD)pStream, &vTmp);
+			}
 
 			pClientShell->SpecialEffectNotify((HLOCALOBJ)pObj, (HMESSAGEREAD)pStream);
 		}
@@ -292,8 +299,21 @@ HMESSAGEWRITE LTELServer::StartSpecialEffectMessage(LPBASECLASS pObject)
 
 HMESSAGEWRITE LTELServer::StartInstantSpecialEffectMessage(DVector* pPos)
 {
+	// Maybe it's to clients?
+	//GameObject* pObj = (GameObject*)m_pClientList[0]->GetObj();//m_pCurrentObject;
+
+	// Try the current object?
+	GameObject* pObj = (GameObject*)m_pCurrentObject;
+
+	if (!pObj)
+	{
+		return nullptr;
+	}
+
 	auto pStream = (godot::StreamPeerBuffer*)StartHMessageWrite();
 
+	shared_WriteToMessageByte((HMESSAGEWRITE)pStream, MID_SFX_INSTANT_MSG);
+	shared_WriteToMessageGUID((HMESSAGEWRITE)pStream, pObj->GetID());
 	WriteToMessageVector((HMESSAGEWRITE)pStream, pPos);
 
 	return (HMESSAGEWRITE)pStream;
