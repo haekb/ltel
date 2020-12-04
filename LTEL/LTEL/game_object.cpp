@@ -101,6 +101,18 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 
 GameObject::~GameObject()
 {
+	auto pBaseClass = GetBaseClass();
+	auto pClassDef = GetClassDef();
+	if (pClassDef)
+	{
+		godot::Godot::print("[~GameObject] Destroying {0}", pClassDef->m_ClassName);
+
+		if (_stricmp(pClassDef->m_ClassName, "CPlayerObj") == 0)
+		{
+			bool bAhhhh = true;
+		}
+	}
+
 	// Camera is a global object, we do not delete it!
 	if (m_nObjectType == OT_CAMERA)
 	{

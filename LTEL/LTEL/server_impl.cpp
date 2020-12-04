@@ -5,6 +5,8 @@
 #include <File.hpp>
 #include <BoneAttachment.hpp>
 #include <RayCast.hpp>
+#include <SpatialMaterial.hpp>
+#include <SpriteBase3D.hpp>
 
 extern LTELServer* g_pLTELServer;
 
@@ -968,7 +970,7 @@ DRESULT simpl_SetModelFilenames(HOBJECT hObj, char* pFilename, char* pSkinName)
 
 	GameObject* pObj = (GameObject*)hObj;
 
-
+	godot::Godot::print("Setting model filename: {0}, {1}", pFilename, pSkinName);
 
 	return DE_OK;
 }
@@ -1004,6 +1006,11 @@ DRESULT simpl_GetObjectRotation(HOBJECT hObj, DRotation* pRotation)
 
 DBOOL simpl_IntersectSegment(IntersectQuery* pQuery, IntersectInfo* pInfo)
 {
+	pInfo->m_hObject = nullptr;
+	pInfo->m_hPoly = INVALID_HPOLY;
+	pInfo->m_Plane = DPlane(0, 0, 0, 1);
+	pInfo->m_Point = DVector(0, 0, 0);
+	pInfo->m_SurfaceFlags = 0;
 	return DFALSE;
 }
 
@@ -1060,6 +1067,54 @@ DDWORD simpl_GetClientID(HCLIENT hClient)
 	return 0;
 }
 
+DBOOL simpl_SetObjectColor(HOBJECT hObject, float r, float g, float b, float a)
+{
+	if (!hObject)
+	{
+		return DFALSE;
+	}
+
+	GameObject* pObj = (GameObject*)hObject;
+
+	if (!pObj->GetNode())
+	{
+		return DFALSE;
+	}
+
+	if (pObj->IsType(OT_MODEL))
+	{
+		LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+		godot::MeshInstance* pPiece = GDCAST(godot::MeshInstance, pExtraData->pSkeleton->get_child(0));
+
+		if (!pPiece)
+		{
+			return DFALSE;
+		}
+
+		// Grab the material
+		godot::Ref<godot::SpatialMaterial> pMat = pPiece->get_surface_material(0);
+		pMat->set_albedo(godot::Color(r, g, b, a));
+		return DTRUE;
+	}
+	else if (pObj->IsType(OT_SPRITE))
+	{
+		godot::SpriteBase3D* pSprite3D = GDCAST(godot::SpriteBase3D, pObj->GetNode());
+			
+		// Grab the material
+		godot::Ref<godot::SpatialMaterial> pMat = pSprite3D->get_material_override();
+		pMat->set_albedo(godot::Color(r, g, b, a));
+		return DTRUE;
+	}
+
+	return DFALSE;
+}
+
+ObjectList* simpl_FindObjectsTouchingSphere(DVector* pPosition, float radius)
+{
+	return nullptr;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -1101,6 +1156,7 @@ void LTELServer::InitFunctionPointers()
 	// Physics?
 	SetBlockingPriority = simpl_SetBlockingPriority;
 	IntersectSegment = simpl_IntersectSegment;
+	FindObjectsTouchingSphere = simpl_FindObjectsTouchingSphere;
 
 	// Get/Sets
 	GetObjectState = simpl_GetObjectState;
@@ -1113,6 +1169,7 @@ void LTELServer::InitFunctionPointers()
 	SetObjectPos = simpl_SetObjectPos;
 	GetObjectRotation = simpl_GetObjectRotation;
 	SetObjectRotation = simpl_SetObjectRotation;
+	SetObjectColor = simpl_SetObjectColor;
 
 	GetPropGeneric = simpl_GetPropGeneric;
 	GetPropString = simpl_GetPropString;

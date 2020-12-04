@@ -224,7 +224,7 @@ bool LTELClient::SetAlphaToTransparentColour(LTELSurface* pSurface, HDECOLOR hTr
 	// If we can reliably skip optimization, then do so!
 	if (bSkipIfOptimized && pSurface->bOptimized)
 	{
-		return false;
+		//return false;
 	}
 
 	// We don't optimize the screen or text
