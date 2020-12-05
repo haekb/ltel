@@ -157,6 +157,58 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 
 DRESULT simpl_RunWorld()
 {
+
+	godot::Godot::print("Adding test npc");
+	{
+#if 0
+		auto pClass = g_pLTELServer->GetClass((char*)"Trooper");
+
+		if (!pClass)
+		{
+			godot::Godot::print("Failed to create test npc");
+			return DE_OK;
+		}
+
+		ObjectCreateStruct ocs = { 0 };
+		strcpy_s(ocs.m_Name, 100, "NPC");
+		strcpy_s(ocs.m_Filename, 100, "Models/Enemies/Onfoot/Trooper.abc");
+		strcpy_s(ocs.m_SkinName, 100, "Skins/Enemies/Trooper_Shogo.DTX");
+		ocs.m_ObjectType = OT_MODEL;
+		ocs.m_Pos = DVector(-200, -60, -200);
+		ocs.m_Rotation = DRotation(0, 0, 0, 1);
+		ocs.m_Scale = DVector(1, 1, 1);
+		ocs.m_NextUpdate = 0.1f;
+		ocs.m_Flags = FLAG_VISIBLE | FLAG_SOLID;
+		auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
+
+		auto pObj = (GameObject*)pBaseClass->m_hObject;
+#else
+		auto pClass = g_pLTELServer->GetClass((char*)"UCA_Civilian1");
+
+		if (!pClass)
+		{
+			godot::Godot::print("Failed to create test npc");
+			return DE_OK;
+		}
+
+		ObjectCreateStruct ocs = { 0 };
+		strcpy_s(ocs.m_Name, 100, "NPC");
+		strcpy_s(ocs.m_Filename, 100, "Models/Enemies/Onfoot/Civilian1A.abc");
+		strcpy_s(ocs.m_SkinName, 100, "Skins/Enemies/CIVILIAN1_PLAIN_A.DTX");
+		ocs.m_ObjectType = OT_MODEL;
+		ocs.m_Pos = DVector(-200, -60, -200);
+		ocs.m_Rotation = DRotation(0, 0, 0, 1);
+		ocs.m_Scale = DVector(1, 1, 1);
+		ocs.m_NextUpdate = 0.1f;
+		ocs.m_Flags = FLAG_VISIBLE | FLAG_SOLID;
+		auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
+
+		auto pObj = (GameObject*)pBaseClass->m_hObject;
+#endif
+
+		bool bEnd = true;
+	}
+
 	return DE_OK;
 }
 
@@ -1192,6 +1244,30 @@ void simpl_RotateAroundAxis(DRotation* pRotation, DVector* pAxis, float amount)
 	*pRotation = DRotation(pRotation->m_Vec.x + qRot.x, pRotation->m_Vec.y + qRot.y, pRotation->m_Vec.z + qRot.z, pRotation->m_Spin + qRot.w);
 }
 
+void simpl_SetDeactivationTime(HOBJECT hObj, DFLOAT fDeactivationTime)
+{
+	if (!hObj)
+	{
+		return;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	pObj->SetDeactivationTime(fDeactivationTime);
+}
+
+char* simpl_GetObjectName(HOBJECT hObject)
+{
+	if (!hObject)
+	{
+		return (char*)"";
+	}
+
+	GameObject* pObj = (GameObject*)hObject;
+
+	return (char*)pObj->GetName().c_str();
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -1223,6 +1299,8 @@ void LTELServer::InitFunctionPointers()
 	BreakInterObjectLink = simpl_BreakInterObjectLink;
 	SetModelFilenames = simpl_SetModelFilenames;
 	GetModelCommandString = simpl_GetModelCommandString;
+	SetDeactivationTime = simpl_SetDeactivationTime;
+	GetObjectName = simpl_GetObjectName;
 
 	CreateAttachment = simpl_CreateAttachment;
 	FindAttachment = simpl_FindAttachment;

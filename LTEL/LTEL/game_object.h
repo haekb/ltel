@@ -66,6 +66,9 @@ public:
 	void SetNextUpdate(float fVal) { m_fNextUpdate = fVal; }
 	float GetNextUpdate() { return m_fNextUpdate; }
 
+	void SetDeactivationTime(float fVal) { m_fDeactivationTime = fVal; }
+	float GetDeactivationTime() { return m_fDeactivationTime; }
+
 	bool IsType(uint16_t nType) { return m_nObjectType == nType; }
 
 	void SetExtraData(void* pData) { m_pExtraData = pData; }
