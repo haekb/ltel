@@ -45,6 +45,9 @@ public:
     // Stupid stateful
     GameObject* m_pCurrentObject;
 
+
+    GameObject* m_pWorldObject;
+
     // Required Impl
     void InitFunctionPointers();
 

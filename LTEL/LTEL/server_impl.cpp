@@ -129,8 +129,29 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 
 	g_pLTELServer->StartWorld(pszWorldFileName);
 
-	godot::Godot::print("Adding client!");
+	godot::Godot::print("Adding world model");
+	{
+		auto pClass = g_pLTELServer->GetClass((char*)"WorldModel");
 
+		if (!pClass)
+		{
+			godot::Godot::print("Failed to create world");
+			return DE_ERROR;
+		}
+
+		ObjectCreateStruct ocs = { 0 };
+		strcpy_s(ocs.m_Name, 100, "World");
+		ocs.m_ObjectType = OT_WORLDMODEL;
+		ocs.m_Pos = DVector(0, -100, 0);
+		ocs.m_Rotation = DRotation(0, 0, 0, 1);
+		ocs.m_Scale = DVector(5, 5, 5);
+		ocs.m_NextUpdate = 0.1f;
+		ocs.m_Flags = FLAG_VISIBLE | FLAG_SOLID;
+		auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
+
+		g_pLTELServer->m_pWorldObject = (GameObject*)pBaseClass->m_hObject;
+
+	}
 	return DE_OK;
 }
 
@@ -800,15 +821,27 @@ void simpl_SetBlockingPriority(HOBJECT hObj, DBYTE pri)
 
 HCLASS simpl_GetObjectClass(HOBJECT hObject)
 {
-	return (HCLASS)((GameObject*)hObject)->GetBaseClass();
+	return (HCLASS)((GameObject*)hObject)->GetClassDef();
 }
 
 DBOOL simpl_IsKindOf(HCLASS hClass, HCLASS hTest)
 {
-	BaseClass* pClass = (BaseClass*)hClass;
-	BaseClass* pTest = (BaseClass*)hTest;
-	// Hack it!
-	return DTRUE;
+	auto pClassDef = (ClassDef*)hClass;
+	auto pTestClassDef = (ClassDef*)hTest;
+
+	auto pCurrentClassDef = pClassDef;
+	while (pCurrentClassDef)
+	{
+		// TODO: Can we just do pointer test?
+		if (_stricmp(pCurrentClassDef->m_ClassName, pTestClassDef->m_ClassName) == 0)
+		{
+			return DTRUE;
+		}
+
+		pCurrentClassDef = pCurrentClassDef->m_ParentClass;
+	}
+
+	return DFALSE;
 }
 
 void simpl_ScaleObject(HOBJECT hObj, DVector* pNewScale)
@@ -1013,7 +1046,39 @@ DBOOL simpl_IntersectSegment(IntersectQuery* pQuery, IntersectInfo* pInfo)
 	pInfo->m_Plane = DPlane(0, 0, 0, 1);
 	pInfo->m_Point = DVector(0, 0, 0);
 	pInfo->m_SurfaceFlags = 0;
-	return DFALSE;
+
+	auto vFrom = LT2GodotVec3(pQuery->m_From);
+	auto vTo = LT2GodotVec3(pQuery->m_To);
+
+	godot::RayCast* pRaycast = godot::RayCast::_new();
+	pRaycast->set_translation(vFrom);
+	pRaycast->set_cast_to(vTo);
+	pRaycast->set_enabled(true);
+	g_pLTELServer->m_pGodotLink->add_child(pRaycast);
+
+	// Do the actual cast
+	pRaycast->force_raycast_update();
+
+	auto pNode = pRaycast->get_collider();
+
+	if (!pNode)
+	{
+		pRaycast->queue_free();
+		return DFALSE;
+	}
+
+	auto vNormal = pRaycast->get_collision_normal();
+	auto vPos = pRaycast->get_collision_point();
+
+	// FIXME: This is temp, we'll need to add scripts to each node that loops back to their game object
+	pInfo->m_hObject = g_pLTELServer->GetWorldObject();
+	pInfo->m_hPoly = INVALID_HPOLY;
+	pInfo->m_Plane = DPlane(vNormal.x, vNormal.y, vNormal.z, 1.0f);
+	pInfo->m_Point = DVector(vPos.x, vPos.y, vPos.z);
+
+	pRaycast->queue_free();
+
+	return DTRUE;
 }
 
 void simpl_AlignRotation(DRotation* pRotation, DVector* pVector, DVector* pUp)
@@ -1117,6 +1182,16 @@ ObjectList* simpl_FindObjectsTouchingSphere(DVector* pPosition, float radius)
 	return nullptr;
 }
 
+void simpl_RotateAroundAxis(DRotation* pRotation, DVector* pAxis, float amount)
+{
+	DVector vRotatedAmount = (*pAxis) * amount;
+
+	godot::Quat qRot = godot::Quat();
+	qRot.set_euler(LT2GodotVec3(vRotatedAmount));
+	// Gross no += operator
+	*pRotation = DRotation(pRotation->m_Vec.x + qRot.x, pRotation->m_Vec.y + qRot.y, pRotation->m_Vec.z + qRot.z, pRotation->m_Spin + qRot.w);
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -1154,6 +1229,7 @@ void LTELServer::InitFunctionPointers()
 	RemoveAttachment = simpl_RemoveAttachment;
 
 	AlignRotation = simpl_AlignRotation;
+	RotateAroundAxis = simpl_RotateAroundAxis;
 
 	// Physics?
 	SetBlockingPriority = simpl_SetBlockingPriority;

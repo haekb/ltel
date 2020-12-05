@@ -26,6 +26,7 @@
 #include <DynamicFontData.hpp>
 #include <Ref.hpp>
 #include <File.hpp>
+#include <RayCast.hpp>
 // End
 
 #include "shared.h"
@@ -320,7 +321,6 @@ void impl_SetGlobalLightScale(DVector* pScale)
 	return;
 }
 
-
 DDWORD impl_GetPointContainers(DVector* pPoint, HLOCALOBJ* pList, DDWORD maxListSize)
 {
 	*pList = nullptr;
@@ -335,7 +335,46 @@ DRESULT impl_GetLocalClientID(DDWORD* pID)
 
 DBOOL impl_IntersectSegment(ClientIntersectQuery* pQuery, ClientIntersectInfo* pInfo)
 {
-	return FALSE;
+	// Why yes this is a copy and paste from the server version.
+	// I need to give this client-side object vs server-side object stuff a bit of a think.
+	pInfo->m_hObject = nullptr;
+	pInfo->m_hPoly = INVALID_HPOLY;
+	pInfo->m_Plane = DPlane(0, 0, 0, 1);
+	pInfo->m_Point = DVector(0, 0, 0);
+	pInfo->m_SurfaceFlags = 0;
+
+	auto vFrom = LT2GodotVec3(pQuery->m_From);
+	auto vTo = LT2GodotVec3(pQuery->m_To);
+
+	godot::RayCast* pRaycast = godot::RayCast::_new();
+	pRaycast->set_translation(vFrom);
+	pRaycast->set_cast_to(vTo);
+	pRaycast->set_enabled(true);
+	g_pLTELClient->m_pGodotLink->add_child(pRaycast);
+
+	// Do the actual cast
+	pRaycast->force_raycast_update();
+
+	auto pNode = pRaycast->get_collider();
+
+	if (!pNode)
+	{
+		pRaycast->queue_free();
+		return DFALSE;
+	}
+
+	auto vNormal = pRaycast->get_collision_normal();
+	auto vPos = pRaycast->get_collision_point();
+
+	// FIXME: This is temp, we'll need to add scripts to each node that loops back to their game object
+	pInfo->m_hObject = g_pLTELClient->GetClientObject();
+	pInfo->m_hPoly = INVALID_HPOLY;
+	pInfo->m_Plane = DPlane(vNormal.x, vNormal.y, vNormal.z, 1.0f);
+	pInfo->m_Point = DVector(vPos.x, vPos.y, vPos.z);
+
+	pRaycast->queue_free();
+
+	return DTRUE;
 }
 
 //

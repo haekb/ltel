@@ -561,7 +561,7 @@ DRESULT LTELServer::GetModelAnimUserDims(HOBJECT hObj, DVector* pDims, HMODELANI
 
 HOBJECT LTELServer::GetWorldObject()
 {
-	return nullptr;
+	return (HOBJECT)g_pLTELServer->m_pWorldObject;
 }
 
 DRESULT LTELServer::GetWorldBox(DVector& min, DVector& max)

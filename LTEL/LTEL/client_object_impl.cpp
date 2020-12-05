@@ -47,6 +47,12 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pObject->SetCamera(godot::Object::cast_to<godot::Camera>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/Camera")));
 		break;
 		// For now we don't care about sprites
+	case OT_WORLDMODEL:
+	{
+		auto pSpatial = GDCAST(godot::Spatial, g_pLTELClient->m_pGodotLink->get_node("/root/Scene/DemoScene/Floor"));
+		pObject->SetNode(pSpatial);
+	}
+		break;
 	case OT_SPRITE:
 	{
 		std::string sSprite = g_pLTELClient->m_sGameDataDir + pStruct->m_Filename;
