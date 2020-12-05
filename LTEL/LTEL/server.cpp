@@ -317,10 +317,10 @@ HMESSAGEWRITE LTELServer::StartSpecialEffectMessage(LPBASECLASS pObject)
 HMESSAGEWRITE LTELServer::StartInstantSpecialEffectMessage(DVector* pPos)
 {
 	// Maybe it's to clients?
-	//GameObject* pObj = (GameObject*)m_pClientList[0]->GetObj();//m_pCurrentObject;
+	GameObject* pObj = (GameObject*)m_pClientList[0]->GetObj();//m_pCurrentObject;
 
 	// Try the current object?
-	GameObject* pObj = (GameObject*)m_pCurrentObject;
+	//GameObject* pObj = (GameObject*)m_pCurrentObject;
 
 	if (!pObj)
 	{

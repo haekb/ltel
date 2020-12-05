@@ -53,6 +53,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		auto pSprite = g_pLTELClient->LoadSPR(sSprite);
 		auto pNode = godot::Spatial::_new();
+		pNode->set_name("Sprite Container");
 
 		// Add it into the world!
 		p3DNode->add_child(pNode);

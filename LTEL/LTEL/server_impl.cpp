@@ -306,7 +306,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		pObject->SetNode(pClientObject->GetNode());
 		pObject->SetExtraData(pClientObject->GetExtraData());
 
-		pBaseClass->m_hObject = (HOBJECT)pClientObject;
+		pBaseClass->m_hObject = (HOBJECT)pObject;
 #else
 		GameObject* pObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
 		pObject->SetBaseClass(pBaseClass);
@@ -368,6 +368,8 @@ void simpl_RemoveObject(HOBJECT hObject)
 	}
 
 	GameObject* pObj = (GameObject*)hObject;
+
+	auto pTest = g_pLTELServer->m_pObjectList;
 
 	pObj->QueueForDeletion();
 }

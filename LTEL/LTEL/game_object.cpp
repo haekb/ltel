@@ -120,6 +120,25 @@ GameObject::~GameObject()
 	}
 
 	
+
+
+
+	if (m_pBaseClass)
+	{
+		free(m_pBaseClass);
+		m_pBaseClass = nullptr;
+
+		// Hacky, but for now don't delete any client-side objects, i'll make a flag later.
+		return;
+	}
+
+	if (IsType(OT_SPRITE))
+	{
+		auto pContainer = GetNode()->get_parent();
+		// Free the container too!
+		//pContainer->queue_free();
+	}
+
 	if (IsType(OT_POLYGRID) && m_pPolyGrid)
 	{
 		m_pPolyGrid->free();
@@ -152,16 +171,9 @@ GameObject::~GameObject()
 
 	if (m_pNode)
 	{
-		m_pNode->free();
+		m_pNode->queue_free();
 		m_pNode = nullptr;
 	}
-
-	if (m_pBaseClass)
-	{
-		free(m_pBaseClass);
-		m_pBaseClass = nullptr;
-	}
-
 
 	// Don't delete the class def, it's not ours
 

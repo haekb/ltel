@@ -67,6 +67,8 @@ func build(path : String, filename : String):
 		sprite3d.material_override = material
 		sprite3d.double_sided = false
 		
+		sprite3d.name = filename
+		
 		return sprite3d
 	# End If
 	
@@ -88,6 +90,8 @@ func build(path : String, filename : String):
 	# End For
 	
 	sprite3d.frames = frames
+	
+	sprite3d.name = filename
 	
 	return sprite3d
 # End Func
