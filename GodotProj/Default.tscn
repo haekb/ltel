@@ -100,6 +100,26 @@ skin_name = "Skins/Enemies/CIVILIAN1_PLAIN_A.DTX"
 type = 1
 flags = 139265
 
+[node name="Fallen" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -79.0775, -50.4473, -289.015 )
+script = ExtResource( 3 )
+base_class_name = "FALLEN_Trooper"
+obj_name = "Fallen Trooper"
+file_name = "Models/Enemies/Onfoot/Trooper.abc"
+skin_name = "Skins/Enemies/Trooper_Fallen.DTX"
+type = 1
+flags = 139265
+
+[node name="WeaponPickup" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -79.0775, -80.9354, 372.1 )
+script = ExtResource( 3 )
+base_class_name = "AssaultRiflePowerup"
+obj_name = "Gun"
+file_name = "Models/Powerups/ASSAULTRIFLE.ABC"
+skin_name = "Skins/Powerups/ASSAULTRIFLE_A.DTX"
+type = 1
+flags = 139265
+
 [node name="DemoScene" type="Spatial" parent="."]
 
 [node name="Floor" type="MeshInstance" parent="DemoScene"]

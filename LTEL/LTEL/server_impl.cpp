@@ -1263,6 +1263,51 @@ char* simpl_GetObjectName(HOBJECT hObject)
 	return (char*)pObj->GetName().c_str();
 }
 
+DRESULT simpl_CacheFile(DDWORD fileType, char* pFilename)
+{
+	return DE_NOTFOUND;
+}
+
+DFLOAT simpl_Random(DFLOAT min, DFLOAT max)
+{
+	// Thanks https://stackoverflow.com/a/23868489
+	return  (max - min) * ((((float)rand()) / (float)RAND_MAX)) + min;
+}
+
+DBOOL simpl_GetModelNodeTransform(HOBJECT hObj, char* pNodeName,
+	DVector* pPos, DRotation* pRot)
+{
+	*pPos = DVector(0, 0, 0);
+	*pRot = DRotation(0, 0, 0, 1);
+
+	if (!hObj || !pNodeName)
+	{
+		return DFALSE;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	if (!pObj->IsType(OT_MODEL))
+	{
+		return DFALSE;
+	}
+
+	LTELModel* pExtraData = (LTELModel*)pObj->GetExtraData();
+
+	auto pSkeleton = pExtraData->pSkeleton;
+
+	auto nBoneIndex = pSkeleton->find_bone(pNodeName);
+	auto tTransform = pSkeleton->get_bone_pose(nBoneIndex);
+
+	godot::Quat qRot = godot::Quat();
+	qRot.set_euler(tTransform.basis.get_euler());
+
+	*pPos = DVector(tTransform.origin.x, tTransform.origin.y, tTransform.origin.z);
+	*pRot = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+	
+	return DTRUE;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -1296,6 +1341,7 @@ void LTELServer::InitFunctionPointers()
 	GetModelCommandString = simpl_GetModelCommandString;
 	SetDeactivationTime = simpl_SetDeactivationTime;
 	GetObjectName = simpl_GetObjectName;
+	GetModelNodeTransform = simpl_GetModelNodeTransform;
 
 	CreateAttachment = simpl_CreateAttachment;
 	FindAttachment = simpl_FindAttachment;
@@ -1349,7 +1395,10 @@ void LTELServer::InitFunctionPointers()
 	SetGameConVar = simpl_SetGameConVar;
 	GetVarValueFloat = simpl_GetVarValueFloat;
 	GetVarValueString = simpl_GetVarValueString;
+	Random = simpl_Random;
 	
+	CacheFile = simpl_CacheFile;
+
 	// String functionality
 	RunGameConString = simpl_RunGameConString;
 	CreateString = simpl_CreateString;
