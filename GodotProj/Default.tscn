@@ -1,7 +1,8 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://Bootup.gd" type="Script" id=1]
 [ext_resource path="res://src/load_pcx.gd" type="Script" id=2]
+[ext_resource path="res://src/placeholder_game_object.gd" type="Script" id=3]
 [ext_resource path="res://shogo/sidewalk1.png" type="Texture" id=4]
 [ext_resource path="res://Addons/ABCReader/ModelBuilder.gd" type="Script" id=5]
 [ext_resource path="res://Addons/DTXReader/TextureBuilder.gd" type="Script" id=6]
@@ -81,6 +82,23 @@ script = ExtResource( 5 )
 
 [node name="LoadDTX" type="Node" parent="Scripts"]
 script = ExtResource( 6 )
+
+[node name="Placeholders" type="Node" parent="."]
+__meta__ = {
+"_editor_description_": "Place your PlaceHolder Game Object Spatials here. 
+
+LTEL will crunch through these and replace them with a game object."
+}
+
+[node name="NPC" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -350.34, -63.7971, -150.209 )
+script = ExtResource( 3 )
+base_class_name = "UCA_Civilian1"
+obj_name = "NPC"
+file_name = "Models/Enemies/Onfoot/Civilian1A.abc"
+skin_name = "Skins/Enemies/CIVILIAN1_PLAIN_A.DTX"
+type = 1
+flags = 139265
 
 [node name="DemoScene" type="Spatial" parent="."]
 
