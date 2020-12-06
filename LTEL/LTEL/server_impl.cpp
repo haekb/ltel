@@ -157,11 +157,41 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 
 DRESULT simpl_RunWorld()
 {
+	godot::Godot::print("Looking for placeholders...");
+	auto pPlaceholders = g_pLTELServer->m_pGodotLink->get_node("/root/Scene/Placeholders");
 
-	godot::Godot::print("Adding test npc");
+	auto pChildren = pPlaceholders->get_children();
+	godot::Godot::print("Processing {0} placeholders!", pChildren.size());
+	for (int i = 0; i < pChildren.size(); i++)
 	{
-#if 0
-		auto pClass = g_pLTELServer->GetClass((char*)"Trooper");
+		auto pChild = GDCAST(godot::Spatial, pChildren[i]);
+
+		godot::Vector3 vPos = pChild->get_translation();
+		godot::Vector3 vRot = pChild->get_rotation();
+		godot::Vector3 vScale = pChild->get_scale();
+
+		godot::Quat qRot = godot::Quat();
+		qRot.set_euler(vRot);
+
+		godot::String sObjName = pChild->get("obj_name");
+		godot::String sFileName = pChild->get("file_name");
+		godot::String sSkinName = pChild->get("skin_name");
+		godot::String sBaseClassName = pChild->get("base_class_name");
+
+		ObjectCreateStruct ocs = { 0 };
+		strcpy_s(ocs.m_Name, 100, sObjName.alloc_c_string());
+		strcpy_s(ocs.m_Filename, 100, sFileName.alloc_c_string());
+		strcpy_s(ocs.m_SkinName, 100, sSkinName.alloc_c_string());
+		ocs.m_ObjectType = pChild->get("type");
+		ocs.m_Pos = DVector(vPos.x, vPos.y, vPos.z);
+		ocs.m_Rotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+		ocs.m_Scale = DVector(vScale.x, vScale.y, vScale.z);
+		ocs.m_NextUpdate = pChild->get("next_update");
+		ocs.m_fDeactivationTime = pChild->get("deactivation_time");
+		ocs.m_Flags = (unsigned int)pChild->get("flags");
+		ocs.m_ContainerCode = (unsigned int)pChild->get("container_code");
+
+		auto pClass = g_pLTELServer->GetClass(sBaseClassName.alloc_c_string());
 
 		if (!pClass)
 		{
@@ -169,44 +199,9 @@ DRESULT simpl_RunWorld()
 			return DE_OK;
 		}
 
-		ObjectCreateStruct ocs = { 0 };
-		strcpy_s(ocs.m_Name, 100, "NPC");
-		strcpy_s(ocs.m_Filename, 100, "Models/Enemies/Onfoot/Trooper.abc");
-		strcpy_s(ocs.m_SkinName, 100, "Skins/Enemies/Trooper_Shogo.DTX");
-		ocs.m_ObjectType = OT_MODEL;
-		ocs.m_Pos = DVector(-200, -60, -200);
-		ocs.m_Rotation = DRotation(0, 0, 0, 1);
-		ocs.m_Scale = DVector(1, 1, 1);
-		ocs.m_NextUpdate = 0.1f;
-		ocs.m_Flags = FLAG_VISIBLE | FLAG_SOLID;
 		auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
-
 		auto pObj = (GameObject*)pBaseClass->m_hObject;
-#else
-		auto pClass = g_pLTELServer->GetClass((char*)"UCA_Civilian1");
 
-		if (!pClass)
-		{
-			godot::Godot::print("Failed to create test npc");
-			return DE_OK;
-		}
-
-		ObjectCreateStruct ocs = { 0 };
-		strcpy_s(ocs.m_Name, 100, "NPC");
-		strcpy_s(ocs.m_Filename, 100, "Models/Enemies/Onfoot/Civilian1A.abc");
-		strcpy_s(ocs.m_SkinName, 100, "Skins/Enemies/CIVILIAN1_PLAIN_A.DTX");
-		ocs.m_ObjectType = OT_MODEL;
-		ocs.m_Pos = DVector(-200, -60, -200);
-		ocs.m_Rotation = DRotation(0, 0, 0, 1);
-		ocs.m_Scale = DVector(1, 1, 1);
-		ocs.m_NextUpdate = 0.1f;
-		ocs.m_Flags = FLAG_VISIBLE | FLAG_SOLID;
-		auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
-
-		auto pObj = (GameObject*)pBaseClass->m_hObject;
-#endif
-
-		bool bEnd = true;
 	}
 
 	return DE_OK;
