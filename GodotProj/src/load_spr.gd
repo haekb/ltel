@@ -61,13 +61,15 @@ func build(path : String, filename : String):
 	
 	# If we only need one frame, then just create a regular sprite 3d
 	if sprite.texture_count == 1:
-		material.albedo_texture = builder.build(path + sprite.textures[0], [])
+		var tex = builder.build(path + sprite.textures[0], [])
+		material.albedo_texture = tex
 		
 		var sprite3d = Sprite3D.new()
 		sprite3d.material_override = material
 		sprite3d.double_sided = false
 		
 		sprite3d.name = filename
+		sprite3d.texture = tex
 		
 		return sprite3d
 	# End If
