@@ -138,6 +138,8 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		// Messy, but get_node isn't working??
 		godot::MeshInstance* pPiece = GDCAST(godot::MeshInstance, pSkeleton->get_child(0));
 
+		pExtraData->pMesh = pPiece;
+
 		auto pMat = godot::SpatialMaterial::_new();
 		pMat->set_texture(godot::SpatialMaterial::TEXTURE_ALBEDO, pTexture);
 		pPiece->set_surface_material(0, pMat);

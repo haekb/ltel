@@ -182,24 +182,8 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 	if (!pKinematicBody)
 	{
-		godot::Godot::print("MoveObject: No kinematic body found, fetching one...");
-		godot::KinematicBody* pPrefab = GDCAST(godot::KinematicBody, pObj->GetNode()->get_node("/root/Scene/Prefabs/ClientBody"));
-		
-		if (!pPrefab)
-		{
-			return DE_ERROR;
-		}
-		
-		pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate());
-
-		auto sName = pObj->GetNode()->get_name();
-		sName += " - ClientBody";
-		pKinematicBody->set_name(sName);
-
-		// Kinematic body can't be attached to our node..
-		auto p3D = pObj->GetNode()->get_node("/root/Scene/3D");
-		p3D->add_child(pKinematicBody);
-		pObj->SetKinematicBody(pKinematicBody);
+		// This should no longer happen !
+		return DE_ERROR;
 	}
 
 	auto pRelVelocity = *pPos - pObj->GetPosition();

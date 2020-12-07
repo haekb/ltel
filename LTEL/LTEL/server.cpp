@@ -110,6 +110,55 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 	m_pServerShell->PreStartWorld(true);
 
+	{
+		godot::Godot::print("Looking for placeholders...");
+		auto pPlaceholders = g_pLTELServer->m_pGodotLink->get_node("/root/Scene/Placeholders");
+
+		auto pChildren = pPlaceholders->get_children();
+		godot::Godot::print("Processing {0} placeholders!", pChildren.size());
+		for (int i = 0; i < pChildren.size(); i++)
+		{
+			auto pChild = GDCAST(godot::Spatial, pChildren[i]);
+
+			godot::Vector3 vPos = pChild->get_translation();
+			godot::Vector3 vRot = pChild->get_rotation();
+			godot::Vector3 vScale = pChild->get_scale();
+
+			godot::Quat qRot = godot::Quat();
+			qRot.set_euler(vRot);
+
+			godot::String sObjName = pChild->get("obj_name");
+			godot::String sFileName = pChild->get("file_name");
+			godot::String sSkinName = pChild->get("skin_name");
+			godot::String sBaseClassName = pChild->get("base_class_name");
+
+			ObjectCreateStruct ocs = { 0 };
+			strcpy_s(ocs.m_Name, 100, sObjName.alloc_c_string());
+			strcpy_s(ocs.m_Filename, 100, sFileName.alloc_c_string());
+			strcpy_s(ocs.m_SkinName, 100, sSkinName.alloc_c_string());
+			ocs.m_ObjectType = pChild->get("type");
+			ocs.m_Pos = DVector(vPos.x, vPos.y, vPos.z);
+			ocs.m_Rotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+			ocs.m_Scale = DVector(vScale.x, vScale.y, vScale.z);
+			ocs.m_NextUpdate = pChild->get("next_update");
+			ocs.m_fDeactivationTime = pChild->get("deactivation_time");
+			ocs.m_Flags = (unsigned int)pChild->get("flags");
+			ocs.m_ContainerCode = (unsigned int)pChild->get("container_code");
+
+			auto pClass = g_pLTELServer->GetClass(sBaseClassName.alloc_c_string());
+
+			if (!pClass)
+			{
+				godot::Godot::print("Failed to create placeholder");
+				continue;
+			}
+
+			auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
+			auto pObj = (GameObject*)pBaseClass->m_hObject;
+		}
+	}
+
+
 	// This is probably wrong
 	for (auto pClient : m_pClientList)
 	{
@@ -165,35 +214,9 @@ void LTELServer::Update(DFLOAT timeElapsed)
 	m_fFrametime = timeElapsed;
 	m_fTime += timeElapsed;
 
-	for (auto pObj : m_pObjectList)
-	{
-		// We always run the engine-side update!
-		pObj->Update(timeElapsed);
-
-		// Game dll update stuff:
-
-		float fNextUpdate = pObj->GetNextUpdate();
-		fNextUpdate -= timeElapsed;
-		
-		if (fNextUpdate > 0.001f)
-		{
-			pObj->SetNextUpdate(fNextUpdate);
-			continue;
-		}
-
-		pObj->SetNextUpdate(0.0f);
-
-		auto pClass = pObj->GetBaseClass();
-		if (!pClass)
-		{
-			continue;
-		}
-
-		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_UPDATE, nullptr, timeElapsed);
-	}
-
+	// Clear any items queued for deletion
 	std::vector<GameObject*> vTemp;
-	
+
 	for (auto pObj : m_pObjectList)
 	{
 		if (!pObj->IsQueuedForDeletion())
@@ -208,6 +231,38 @@ void LTELServer::Update(DFLOAT timeElapsed)
 		}
 
 		delete pObj;
+	}
+
+	int nTestIndex = 0;
+	int nSize = vTemp.size();
+	for (auto pObj : vTemp)
+	{
+		// We always run the engine-side update!
+		pObj->Update(timeElapsed);
+
+		// Game dll update stuff:
+
+		float fNextUpdate = pObj->GetNextUpdate();
+		fNextUpdate -= timeElapsed;
+		
+		if (fNextUpdate > 0.001f)
+		{
+			nTestIndex++;
+			pObj->SetNextUpdate(fNextUpdate);
+			continue;
+		}
+
+		pObj->SetNextUpdate(0.0f);
+
+		auto pClass = pObj->GetBaseClass();
+		if (!pClass)
+		{
+			nTestIndex++;
+			continue;
+		}
+
+		pObj->GetClassDef()->m_EngineMessageFn(pClass, MID_UPDATE, nullptr, timeElapsed);
+		nTestIndex++;
 	}
 
 	m_pObjectList.clear();
@@ -266,6 +321,36 @@ void LTELServer::HandleMessageQueue()
 	}
 
 	g_pQueuedStreams.clear();
+}
+
+ObjectList* LTELServer::CreateObjectListFromVector(std::vector<GameObject*> pList)
+{
+	auto pObjectList = new ObjectList();
+
+	// Previous in the loop, technically the next pointer in the list,
+	// since we loop backwards
+	ObjectLink* pPreviousObjectLink = nullptr;
+	for (auto it = pList.crbegin(); it != pList.crend(); it++)
+	{
+		// Retrieve our object, and create a new object link
+		auto pObject = *it;
+		auto pObjectLink = new ObjectLink();
+
+		// Assign the object, and the next pointer in line (at the start it will be null!)
+		pObjectLink->m_hObject = (HOBJECT)pObject;
+		pObjectLink->m_pNext = pPreviousObjectLink;
+
+		// Increment our counter
+		pObjectList->m_nInList++;
+
+		// Assign our current pointer as the previous (next in the list)
+		pPreviousObjectLink = pObjectLink;
+	}
+
+	// And now we're at the beginning of the list, so assign the last used pointer as our first link!
+	pObjectList->m_pFirstLink = pPreviousObjectLink;
+
+	return pObjectList;
 }
 
 GameObject* LTELServer::FindObjectByGUID(GUID guid)

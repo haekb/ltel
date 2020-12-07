@@ -50,8 +50,11 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 		velocity.Init();
 	}
 
-	// Apply any force (mostly gravity)
-	accel += m_pCommonPhysics->m_vGlobalForce;
+	if (pObj->IsAffectedByGravity())
+	{
+		// Apply any force (mostly gravity)
+		accel += m_pCommonPhysics->m_vGlobalForce;
+	}
 
 	// New Velocity
 	velocity += accel * pInfo->m_dt;

@@ -110,6 +110,7 @@ struct LTELModel {
 
 		// Skeleton
 		pSkeleton = nullptr;
+		pMesh = nullptr;
 	}
 
 	// Animation
@@ -121,6 +122,7 @@ struct LTELModel {
 
 	// Skeleton
 	godot::Skeleton* pSkeleton;
+	godot::MeshInstance* pMesh;
 };
 
 struct LTELAttachment {

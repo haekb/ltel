@@ -53,6 +53,7 @@ __meta__ = {
 visible = false
 
 [node name="PolyGrid" type="MeshInstance" parent="Prefabs"]
+cast_shadow = 0
 mesh = SubResource( 1 )
 material/0 = null
 
@@ -119,6 +120,13 @@ file_name = "Models/Powerups/ASSAULTRIFLE.ABC"
 skin_name = "Skins/Powerups/ASSAULTRIFLE_A.DTX"
 type = 1
 flags = 139265
+
+[node name="GameStartPoint" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 124.367, -80.9354, 372.1 )
+script = ExtResource( 3 )
+base_class_name = "GameStartPoint"
+obj_name = "ShogoStartPoint"
+flags = 0
 
 [node name="DemoScene" type="Spatial" parent="."]
 

@@ -4,6 +4,8 @@
 #include <Godot.hpp>
 #include <Quat.hpp>
 #include <Vector3.hpp>
+#include <Shape.hpp>
+#include <BoxShape.hpp>
 
 #define _DEBUG_POS_ROT
 
@@ -93,6 +95,8 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_vDims = DVector(0,0,0);
 
 	m_bQueuedForDeletion = false;
+	m_bNotifyOnTouch = false;
+	m_bNotifyOnModelKey = false;
 
 	// Create an id for this fella
 	// I'm currently too lazy to implement some type of unique id system
@@ -103,25 +107,12 @@ GameObject::~GameObject()
 {
 	auto pBaseClass = GetBaseClass();
 	auto pClassDef = GetClassDef();
-	if (pClassDef)
-	{
-		godot::Godot::print("[~GameObject] Destroying {0}", pClassDef->m_ClassName);
-
-		if (_stricmp(pClassDef->m_ClassName, "CPlayerObj") == 0)
-		{
-			bool bAhhhh = true;
-		}
-	}
 
 	// Camera is a global object, we do not delete it!
 	if (m_nObjectType == OT_CAMERA)
 	{
 		return;
 	}
-
-	
-
-
 
 	if (m_pBaseClass)
 	{
@@ -167,6 +158,11 @@ GameObject::~GameObject()
 		// Just handle the extra data
 		delete m_pExtraData;
 		m_pExtraData = nullptr;
+	}
+
+	if (GetKinematicBody())
+	{
+		GetKinematicBody()->queue_free();
 	}
 
 	if (m_pNode)
@@ -231,6 +227,62 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 		// Connect this signal, so we can send a MID_MODELSTRINGKEY
 		//GetNode()->connect("animation_command_string", nullptr, "on_animation_command_string");
 	}
+}
+
+void GameObject::CreateKinematicBody()
+{
+#if 1
+	if (m_sName == "Sanjuro")
+	{
+		return;
+	}
+
+	if (!GetNode())
+	{
+		return;
+	}
+
+	godot::KinematicBody* pKinematicBody = godot::KinematicBody::_new();
+
+	godot::Ref<godot::BoxShape> pBox = godot::BoxShape::_new();
+	godot::CollisionShape* pShape = godot::CollisionShape::_new();
+	pShape->set_shape(pBox);
+
+	pKinematicBody->add_child(pShape);
+
+	auto nOwnerID = pKinematicBody->create_shape_owner(pShape);
+	pKinematicBody->shape_owner_add_shape(nOwnerID, pBox);
+
+
+	auto sName = GetNode()->get_name();
+	sName += " - ClientBody";
+	pKinematicBody->set_name(sName);
+
+	auto p3D = GetNode()->get_node("/root/Scene/3D");
+	p3D->add_child(pKinematicBody);
+	SetKinematicBody(pKinematicBody);
+
+#else
+	godot::Godot::print("MoveObject: No kinematic body found, fetching one...");
+	godot::KinematicBody* pPrefab = GDCAST(godot::KinematicBody, GetNode()->get_node("/root/Scene/Prefabs/ClientBody"));
+
+	if (!pPrefab)
+	{
+		godot::Godot::print("[GameObject::CreateKinematicBody] WARNING, could not find kinematic body prefab");
+		return;
+	}
+
+	auto pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate(godot::Node::DUPLICATE_GROUPS | godot::Node::DUPLICATE_SCRIPTS | godot::Node::DUPLICATE_SIGNALS));
+
+	auto sName = GetNode()->get_name();
+	sName += " - ClientBody";
+	pKinematicBody->set_name(sName);
+
+	// Kinematic body can't be attached to our node..
+	auto p3D = GetNode()->get_node("/root/Scene/3D");
+	p3D->add_child(pKinematicBody);
+	SetKinematicBody(pKinematicBody);
+#endif
 }
 
 bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
@@ -311,6 +363,44 @@ void GameObject::SetFlags(int nFlag)
 	else
 	{
 		pNode->set_visible(false);
+	}
+
+	if (IsType(OT_MODEL))
+	{
+		LTELModel* pExtraData = (LTELModel*)GetExtraData();
+		
+		if (nFlag & FLAG_SHADOW)
+		{
+			pExtraData->pMesh->set_cast_shadows_setting(godot::MeshInstance::SHADOW_CASTING_SETTING_ON);
+		}
+		else
+		{
+			pExtraData->pMesh->set_cast_shadows_setting(godot::MeshInstance::SHADOW_CASTING_SETTING_OFF);
+		}
+
+		if (nFlag & FLAG_SOLID)
+		{
+			if (!GetKinematicBody())
+			{
+				CreateKinematicBody();
+			}
+			else
+			{
+				GetKinematicBody()->set_visible(true);
+			}
+		}
+		else
+		{
+			if (GetKinematicBody())
+			{
+				GetKinematicBody()->set_visible(false);
+				//GetKinematicBody()->queue_free();
+			}
+		}
+
+		m_bApplyGravity = nFlag & FLAG_GRAVITY;
+		m_bNotifyOnTouch = nFlag & FLAG_TOUCH_NOTIFY;
+		m_bNotifyOnModelKey = nFlag & FLAG_MODELKEYS;
 	}
 }
 
@@ -418,8 +508,7 @@ DRotation GameObject::GetRotation()
 	return qRot;
 }
 
-#include <Shape.hpp>
-#include <BoxShape.hpp>
+
 void GameObject::SetKinematicBody(godot::KinematicBody* pBody)
 {
 	// 
@@ -463,7 +552,7 @@ godot::Spatial* GameObject::GetNode()
 void GameObject::SetDims(DVector vVal)
 {
 	m_vDims = vVal;
-
+	
 	if (GetKinematicBody())
 	{
 		// Set the proper dims

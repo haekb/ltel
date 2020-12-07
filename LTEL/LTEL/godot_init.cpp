@@ -205,16 +205,17 @@ public:
         }
 
         // Run our update functions
-        try {
+        //try 
+        {
             m_pGameClientShell->PreUpdate();
 
             m_pGameClientShell->Update();
 
             m_pGameClientShell->PostUpdate();
         }
-        catch (const std::exception& e)
+        //catch (const std::exception& e)
         {
-            Godot::print("[game_update] Failed with client exception: {0}", e.what());
+            //Godot::print("[game_update] Failed with client exception: {0}", e.what());
         }
 
         //try {

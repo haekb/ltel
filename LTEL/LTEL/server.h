@@ -61,6 +61,8 @@ public:
 
     void HandleMessageQueue();
 
+    ObjectList* CreateObjectListFromVector(std::vector<GameObject*> pList);
+
     GameObject* FindObjectByGUID(GUID guid);
     
     DVector m_dvGlobalForce;

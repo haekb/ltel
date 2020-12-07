@@ -44,32 +44,7 @@ DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 
 ObjectList* simpl_CreateObjectList()
 {
-	auto pObjectList = new ObjectList();
-
-	// Previous in the loop, technically the next pointer in the list,
-	// since we loop backwards
-	ObjectLink* pPreviousObjectLink = nullptr;
-	for (auto it = g_pLTELServer->m_pObjectList.crbegin(); it !=g_pLTELServer->m_pObjectList.crend(); it++)
-	{
-		// Retrieve our object, and create a new object link
-		auto pObject = *it;
-		auto pObjectLink = new ObjectLink();
-
-		// Assign the object, and the next pointer in line (at the start it will be null!)
-		pObjectLink->m_hObject = (HOBJECT)pObject;
-		pObjectLink->m_pNext = pPreviousObjectLink;
-
-		// Increment our counter
-		pObjectList->m_nInList++;
-
-		// Assign our current pointer as the previous (next in the list)
-		pPreviousObjectLink = pObjectLink;
-	}
-
-	// And now we're at the beginning of the list, so assign the last used pointer as our first link!
-	pObjectList->m_pFirstLink = pPreviousObjectLink;
-
-	return pObjectList;
+	return g_pLTELServer->CreateObjectListFromVector(g_pLTELServer->m_pObjectList);
 }
 
 void simpl_RelinquishList(ObjectList* pList)
@@ -157,59 +132,12 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 
 DRESULT simpl_RunWorld()
 {
-	godot::Godot::print("Looking for placeholders...");
-	auto pPlaceholders = g_pLTELServer->m_pGodotLink->get_node("/root/Scene/Placeholders");
-
-	auto pChildren = pPlaceholders->get_children();
-	godot::Godot::print("Processing {0} placeholders!", pChildren.size());
-	for (int i = 0; i < pChildren.size(); i++)
-	{
-		auto pChild = GDCAST(godot::Spatial, pChildren[i]);
-
-		godot::Vector3 vPos = pChild->get_translation();
-		godot::Vector3 vRot = pChild->get_rotation();
-		godot::Vector3 vScale = pChild->get_scale();
-
-		godot::Quat qRot = godot::Quat();
-		qRot.set_euler(vRot);
-
-		godot::String sObjName = pChild->get("obj_name");
-		godot::String sFileName = pChild->get("file_name");
-		godot::String sSkinName = pChild->get("skin_name");
-		godot::String sBaseClassName = pChild->get("base_class_name");
-
-		ObjectCreateStruct ocs = { 0 };
-		strcpy_s(ocs.m_Name, 100, sObjName.alloc_c_string());
-		strcpy_s(ocs.m_Filename, 100, sFileName.alloc_c_string());
-		strcpy_s(ocs.m_SkinName, 100, sSkinName.alloc_c_string());
-		ocs.m_ObjectType = pChild->get("type");
-		ocs.m_Pos = DVector(vPos.x, vPos.y, vPos.z);
-		ocs.m_Rotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
-		ocs.m_Scale = DVector(vScale.x, vScale.y, vScale.z);
-		ocs.m_NextUpdate = pChild->get("next_update");
-		ocs.m_fDeactivationTime = pChild->get("deactivation_time");
-		ocs.m_Flags = (unsigned int)pChild->get("flags");
-		ocs.m_ContainerCode = (unsigned int)pChild->get("container_code");
-
-		auto pClass = g_pLTELServer->GetClass(sBaseClassName.alloc_c_string());
-
-		if (!pClass)
-		{
-			godot::Godot::print("Failed to create test npc");
-			return DE_OK;
-		}
-
-		auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
-		auto pObj = (GameObject*)pBaseClass->m_hObject;
-
-	}
-
 	return DE_OK;
 }
 
 HCLASS simpl_GetClass(char* pName)
 {
-	godot::Godot::print("[simpl_GetClass] Class requested: {0}", pName);
+	//godot::Godot::print("[simpl_GetClass] Class requested: {0}", pName);
 
 	// TODO: Create a nice hash table so this is a fast lookup
 	auto pClassDefinitions = g_pLTELServer->m_pClassDefList;
@@ -522,7 +450,17 @@ void* simpl_GetClientUserData(HCLIENT hClient)
 
 ObjectList* simpl_FindNamedObjects(char* pName)
 {
-	return nullptr;
+	std::vector<GameObject*> pList;
+
+	for (auto pObj : g_pLTELServer->m_pObjectList)
+	{
+		if (pObj->GetName() == pName)
+		{
+			pList.push_back(pObj);
+		}
+	}
+
+	return g_pLTELServer->CreateObjectListFromVector(pList);
 }
 
 DRESULT simpl_TeleportObject(HOBJECT hObj, DVector* pNewPos)

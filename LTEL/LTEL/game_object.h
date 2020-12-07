@@ -34,6 +34,12 @@ public:
 
 	void SetFromObjectCreateStruct(ObjectCreateStruct pStruct);
 
+	void CreateKinematicBody();
+
+	//
+	// Get/Sets
+	//
+
 	bool GetProperty(std::string sName, GenericProp* pProp);
 
 	BaseClass* GetBaseClass() { return m_pBaseClass; }
@@ -126,10 +132,16 @@ public:
 	GUID GetID() { return m_gID; }
 	void SetID(GUID guid) { m_gID = guid; }
 
+	bool IsAffectedByGravity() { return m_bApplyGravity; }
+
 protected:
 	GUID m_gID;
 
 	bool m_bQueuedForDeletion;
+
+	bool m_bNotifyOnTouch;
+	bool m_bNotifyOnModelKey;
+	bool m_bApplyGravity;
 
 	int m_nState;
 	uint16_t m_nObjectType;
