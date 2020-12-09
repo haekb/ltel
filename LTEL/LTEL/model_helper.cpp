@@ -1,5 +1,8 @@
 #include "model_helper.h"
 
+//
+// TODO: Swap this to NodeLinker + some custom functions for linking animation strings
+//
 ModelHelper::ModelHelper()
 {
 	m_pObj = nullptr;

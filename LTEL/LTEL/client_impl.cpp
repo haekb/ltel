@@ -295,6 +295,11 @@ DRESULT impl_StartGame(StartGameRequest* pRequest)
 
 HLOCALOBJ impl_GetClientObject()
 {
+	if (!g_pLTELClient->m_pClientInfo)
+	{
+		return nullptr;
+	}
+
 	return (HLOCALOBJ)g_pLTELClient->m_pClientInfo->GetObj();
 }
 

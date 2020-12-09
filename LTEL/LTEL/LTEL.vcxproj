@@ -204,6 +204,7 @@
     <ClInclude Include="LT1\AppHeaders\server_de.h" />
     <ClInclude Include="LT1\AppHeaders\specialeffect_de.h" />
     <ClInclude Include="model_helper.h" />
+    <ClInclude Include="node_linker.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="RiotCommandIDs.h" />
     <ClInclude Include="ScancodeToVK.h" />
@@ -228,6 +229,7 @@
     <ClCompile Include="helpers.cpp" />
     <ClCompile Include="LT1\AppHeaders\cpp_engineobjects_de.cpp" />
     <ClCompile Include="model_helper.cpp" />
+    <ClCompile Include="node_linker.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

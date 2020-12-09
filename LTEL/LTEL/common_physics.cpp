@@ -173,6 +173,7 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 
 	GameObject* pObj = (GameObject*)hObj;
 	godot::KinematicBody* pKinematicBody = pObj->GetKinematicBody();
+	bool bObjIsClientSide = (bool)pObj->GetServerObject();
 
 
 	if (!m_pCommon)
@@ -213,6 +214,7 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 	
 	static godot::RichTextLabel* pLabel = GDCAST(godot::RichTextLabel, pObj->GetNode()->get_node("/root/Scene/Debug2D/OnGround"));
 	pLabel->set_text("On Ground: <false>");
+
 	// We're on the floor!
 	if (!pCollisionInfo.is_null() && ::acos(pCollisionInfo->get_normal().dot(godot::Vector3(0, 1, 0))) <= 0.5)
 	{
@@ -225,6 +227,38 @@ DRESULT LTELCommonPhysics::MoveObject(HOBJECT hObj, DVector* pPos, DDWORD flags)
 		vTemp.y -= 2;
 
 		pObj->SetVelocity(DVector(vCurrentVelocity.x, vTemp.y, vCurrentVelocity.z));
+	}
+
+	if (!pCollisionInfo.is_null())
+	{
+		godot::KinematicBody* pOtherBody = GDCAST(godot::KinematicBody, pCollisionInfo->get_collider());
+
+		GameObject* pMe = pObj;
+
+		if (bObjIsClientSide)
+		{
+			pMe = pObj->GetServerObject();
+		}
+
+		if (pOtherBody)
+		{
+			NodeLinker* pLink = GDCAST(NodeLinker, pOtherBody->get_parent());
+
+			if (pLink)
+			{
+				GameObject* pOther = pLink->GetGameObject();
+
+				if (pMe->NotifyOnTouch())
+				{
+					pMe->GetClassDef()->m_EngineMessageFn(pMe->GetBaseClass(), MID_TOUCHNOTIFY, (HOBJECT)pOther, 0.0f);
+				}
+
+				if (pOther && pOther->NotifyOnTouch())
+				{
+					pOther->GetClassDef()->m_EngineMessageFn(pOther->GetBaseClass(), MID_TOUCHNOTIFY, (HOBJECT)pMe, 0.0f);
+				}
+			}
+		}
 	}
 
 	return DE_OK;

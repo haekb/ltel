@@ -294,6 +294,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		GameObject* pClientObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
 		pClientObject->SetBaseClass(pBaseClass);
 		pClientObject->SetClassDef(pClass);
+		pClientObject->SetServerObject(pObject);
 
 		// Give it our server id
 		pClientObject->SetID(pObject->GetID());

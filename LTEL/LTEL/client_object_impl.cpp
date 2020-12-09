@@ -22,6 +22,7 @@
 
 #include "shared.h"
 #include "model_helper.h"
+#include "node_linker.h"
 
 #define USRFLG_VISIBLE					(1<<0)
 #define USRFLG_NIGHT_INFRARED			(1<<1)
@@ -38,8 +39,18 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 {
 	GameObject* pObject = new GameObject(nullptr, nullptr);
 	
-	
 	godot::Spatial* p3DNode = godot::Object::cast_to<godot::Spatial>(g_pLTELClient->m_pGodotLink->get_node("/root/Scene/3D"));
+	NodeLinker* pContainer = NodeLinker::_new();
+
+	godot::String sContainerName = pStruct->m_Name;
+	sContainerName += " - CONTAINER";
+	pContainer->set_name(sContainerName);
+	
+	// Setup our circular references
+	pContainer->SetGameObject(pObject);
+	pObject->SetContainer(pContainer);
+
+	p3DNode->add_child(pContainer);
 
 	switch (pStruct->m_ObjectType)
 	{
@@ -62,7 +73,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		pNode->set_name("Sprite Container");
 
 		// Add it into the world!
-		p3DNode->add_child(pNode);
+		pContainer->add_child(pNode);
 		pObject->SetNode(pNode);
 
 		pNode->add_child(pSprite);
@@ -73,7 +84,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		auto pNode = godot::Spatial::_new();
 
 		// Add it into the world!
-		p3DNode->add_child(pNode);
+		pContainer->add_child(pNode);
 		pObject->SetNode(pNode);
 	}
 		break;
@@ -85,7 +96,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		// Duplicate it!
 		pMeshInstance = godot::Object::cast_to<godot::MeshInstance>(pMeshInstance->duplicate());
 
-		p3DNode->add_child(pMeshInstance);
+		pContainer->add_child(pMeshInstance);
 
 		pObject->SetPolyGrid(pMeshInstance);
 	}
@@ -122,7 +133,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 
 		// ABC Scene
 		pModel->set_name("ABC");
-		p3DNode->add_child(pModel, false);
+		pContainer->add_child(pModel, false);
 		pObject->SetNode(pModel);
 
 		// Init extra data
@@ -173,6 +184,7 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 	}
 		break;
 	default:
+		pContainer->queue_free();
 		delete pObject;
 
 		godot::Godot::print("Trying to make some other object! aaaaaaaaaaaaa");

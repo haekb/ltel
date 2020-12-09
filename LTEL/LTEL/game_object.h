@@ -18,6 +18,8 @@
 // For uuid
 #include <objbase.h>
 
+#include "node_linker.h"
+
 class LTELAttachment;
 
 class GameObject
@@ -57,7 +59,7 @@ public:
 	void SetUserFlags(int nFlag) { m_nUserFlags = nFlag; }
 	uint32_t GetUserFlags() { return m_nUserFlags; }
 
-	void SetClientFlags(int nFlag) { m_nClientFlags = nFlag; }
+	void SetClientFlags(int nFlag);
 	uint32_t GetClientFlags() { return m_nClientFlags; }
 
 	void SetPosition(DVector vPos, bool bLocalUpdate = false);
@@ -85,6 +87,8 @@ public:
 	std::string GetName() { return m_sName; }
 
 	// Data set!
+	void SetServerObject(GameObject* pObj) { m_pServerObject = pObj; }
+	void SetContainer(NodeLinker* pContainer) { m_pContainer = pContainer; }
 	void SetNode(godot::Spatial* pNode) { m_pNode = pNode; }
 	void SetCamera(godot::Camera* pCam) { m_pCamera = pCam; }
 	void SetPolyGrid(godot::MeshInstance* pMesh) { m_pPolyGrid = pMesh; }
@@ -92,6 +96,8 @@ public:
 	void SetKinematicBody(godot::KinematicBody* pBody);
 
 	// Data get!
+	GameObject* GetServerObject() { return m_pServerObject; }
+	NodeLinker* GetContainer() { return m_pContainer; }
 	godot::Spatial* GetNode();
 	godot::Camera* GetCamera() { return m_pCamera; }
 	godot::MeshInstance* GetPolyGrid() { return m_pPolyGrid; }
@@ -125,6 +131,10 @@ public:
 	void QueueForDeletion() { m_bQueuedForDeletion = true; }
 	bool IsQueuedForDeletion() { return m_bQueuedForDeletion; }
 
+	bool NotifyOnTouch() { return m_bNotifyOnTouch; }
+	bool NotifyOnModelKey() { return m_bNotifyOnModelKey; }
+	bool NotifyClientOnModelKey() { return m_bClientNotifyOnModelKey; }
+
 	std::vector<LTELAttachment*> GetAttachments() { return m_pAttachments; }
 	bool AddAttachment(LTELAttachment* pObj);
 	bool RemoveAttachment(LTELAttachment* pObj);
@@ -140,8 +150,11 @@ protected:
 	bool m_bQueuedForDeletion;
 
 	bool m_bNotifyOnTouch;
+	bool m_bClientNotifyOnModelKey;
 	bool m_bNotifyOnModelKey;
 	bool m_bApplyGravity;
+	bool m_bDontSetDims;
+	bool m_bInitialDimsSet;
 
 	int m_nState;
 	uint16_t m_nObjectType;
@@ -167,12 +180,13 @@ protected:
 	ClassDef* m_pClassDef;
 
 	void* m_pExtraData;
-	void* m_pServerObject;
+	GameObject* m_pServerObject;
 
 	std::vector<LTELAttachment*> m_pAttachments;
 
 	// Camera:
 	//union {
+	NodeLinker* m_pContainer; // Parent container
 	godot::Spatial* m_pNode; // Normies only
 	godot::Camera* m_pCamera;
 	godot::MeshInstance* m_pPolyGrid;

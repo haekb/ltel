@@ -1,3 +1,4 @@
+#include "client.h"
 #include "game_object.h"
 #include "helpers.h"
 
@@ -6,6 +7,8 @@
 #include <Vector3.hpp>
 #include <Shape.hpp>
 #include <BoxShape.hpp>
+
+extern LTELClient* g_pLTELClient;
 
 #define _DEBUG_POS_ROT
 
@@ -78,6 +81,7 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 
 	m_nState = 0;
 
+	m_pContainer = nullptr;
 	m_pNode = nullptr;
 	m_pCamera = nullptr;
 	m_pPolyGrid = nullptr;
@@ -97,6 +101,9 @@ GameObject::GameObject(ClassDef* pClass, BaseClass* pBaseClass)
 	m_bQueuedForDeletion = false;
 	m_bNotifyOnTouch = false;
 	m_bNotifyOnModelKey = false;
+	m_bClientNotifyOnModelKey = false;
+	m_bDontSetDims = false;
+	m_bInitialDimsSet = false;
 
 	// Create an id for this fella
 	// I'm currently too lazy to implement some type of unique id system
@@ -163,12 +170,23 @@ GameObject::~GameObject()
 	if (GetKinematicBody())
 	{
 		GetKinematicBody()->queue_free();
+
+		// Kinematic has its own container too!
+		auto pContainer = GetKinematicBody()->get_parent();
+		pContainer->queue_free();
+
 	}
 
 	if (m_pNode)
 	{
 		m_pNode->queue_free();
 		m_pNode = nullptr;
+	}
+
+	if (m_pContainer)
+	{
+		m_pContainer->queue_free();
+		m_pContainer = nullptr;
 	}
 
 	// Don't delete the class def, it's not ours
@@ -227,11 +245,16 @@ void GameObject::SetFromObjectCreateStruct(ObjectCreateStruct pStruct)
 		// Connect this signal, so we can send a MID_MODELSTRINGKEY
 		//GetNode()->connect("animation_command_string", nullptr, "on_animation_command_string");
 	}
+
+	// If we don't have these guys, then it's a client-side object
+	if (!GetBaseClass() && !GetClassDef())
+	{
+		m_pServerObject = (GameObject*)g_pLTELClient->GetClientObject();
+	}
 }
 
 void GameObject::CreateKinematicBody()
 {
-#if 1
 	if (m_sName == "Sanjuro")
 	{
 		return;
@@ -241,6 +264,14 @@ void GameObject::CreateKinematicBody()
 	{
 		return;
 	}
+
+	NodeLinker* pContainer = NodeLinker::_new();
+
+	godot::String sContainerName = GetName().c_str();
+	sContainerName += " - CONTAINER";
+	pContainer->set_name(sContainerName);
+	// We're setting the game object to this game object!
+	pContainer->SetGameObject(this);
 
 	godot::KinematicBody* pKinematicBody = godot::KinematicBody::_new();
 
@@ -253,36 +284,14 @@ void GameObject::CreateKinematicBody()
 	auto nOwnerID = pKinematicBody->create_shape_owner(pShape);
 	pKinematicBody->shape_owner_add_shape(nOwnerID, pBox);
 
-
 	auto sName = GetNode()->get_name();
 	sName += " - ClientBody";
 	pKinematicBody->set_name(sName);
 
 	auto p3D = GetNode()->get_node("/root/Scene/3D");
-	p3D->add_child(pKinematicBody);
+	p3D->add_child(pContainer);
+	pContainer->add_child(pKinematicBody);
 	SetKinematicBody(pKinematicBody);
-
-#else
-	godot::Godot::print("MoveObject: No kinematic body found, fetching one...");
-	godot::KinematicBody* pPrefab = GDCAST(godot::KinematicBody, GetNode()->get_node("/root/Scene/Prefabs/ClientBody"));
-
-	if (!pPrefab)
-	{
-		godot::Godot::print("[GameObject::CreateKinematicBody] WARNING, could not find kinematic body prefab");
-		return;
-	}
-
-	auto pKinematicBody = GDCAST(godot::KinematicBody, pPrefab->duplicate(godot::Node::DUPLICATE_GROUPS | godot::Node::DUPLICATE_SCRIPTS | godot::Node::DUPLICATE_SIGNALS));
-
-	auto sName = GetNode()->get_name();
-	sName += " - ClientBody";
-	pKinematicBody->set_name(sName);
-
-	// Kinematic body can't be attached to our node..
-	auto p3D = GetNode()->get_node("/root/Scene/3D");
-	p3D->add_child(pKinematicBody);
-	SetKinematicBody(pKinematicBody);
-#endif
 }
 
 bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
@@ -404,6 +413,14 @@ void GameObject::SetFlags(int nFlag)
 	}
 }
 
+void GameObject::SetClientFlags(int nFlag)
+{
+	m_bClientNotifyOnModelKey = nFlag & CF_NOTIFYMODELKEYS;
+	m_bDontSetDims = nFlag & CF_DONTSETDIMS;
+
+	m_nClientFlags = nFlag;
+}
+
 void GameObject::SetPosition(DVector vPos, bool bLocalUpdate)
 {
 	m_vPos = vPos;
@@ -445,6 +462,11 @@ DVector GameObject::GetPosition()
 
 void GameObject::SetScale(DVector vScale)
 {
+	if (IsType(OT_SPRITE))
+	{
+		vScale *= 100.0f;
+	}
+
 	m_vScale = vScale;
 
 	auto pNode = GetNode();
@@ -514,9 +536,8 @@ void GameObject::SetKinematicBody(godot::KinematicBody* pBody)
 	// 
 	m_pKinematicBody = pBody;
 
-	// Set the proper dims
-	godot::Ref<godot::BoxShape> pShape = m_pKinematicBody->shape_owner_get_shape(0, 0);
-	pShape->set_extents(LT2GodotVec3(GetDims()));
+	// Reset dims
+	SetDims(GetDims());
 }
 
 godot::Spatial* GameObject::GetNode()
@@ -551,6 +572,11 @@ godot::Spatial* GameObject::GetNode()
 
 void GameObject::SetDims(DVector vVal)
 {
+	if (m_bInitialDimsSet && m_bDontSetDims)
+	{
+		//return;
+	}
+
 	m_vDims = vVal;
 	
 	if (GetKinematicBody())
@@ -558,6 +584,8 @@ void GameObject::SetDims(DVector vVal)
 		// Set the proper dims
 		godot::Ref<godot::BoxShape> pShape = m_pKinematicBody->shape_owner_get_shape(0, 0);
 		pShape->set_extents(LT2GodotVec3(GetDims()));
+
+		m_bInitialDimsSet = true;
 	}
 }
 
@@ -616,9 +644,9 @@ extern LTELClient* g_pLTELClient;
 void GameObject::SendAnimationCommandString(godot::String sCommandString)
 {
 	// If we don't have the flag
-	if ( !(GetFlags() & FLAG_MODELKEYS))
+	if (!NotifyOnModelKey() && !NotifyClientOnModelKey())
 	{
-		//return;
+		return;
 	}
 
 	ArgList argList;
@@ -634,11 +662,14 @@ void GameObject::SendAnimationCommandString(godot::String sCommandString)
 
 	argList.argv = szCommands;
 
-	if (m_pBaseClass)
+	if (NotifyOnModelKey() && m_pBaseClass)
 	{
 		m_pBaseClass->_EngineMsgFn(m_pBaseClass, MID_MODELSTRINGKEY, &argList, 0.0f);
 	}
 
-	CClientShellDE* pClientShell = (CClientShellDE * )g_pLTELClient->GetClientShell();
-	pClientShell->OnModelKey((HLOCALOBJ)this, &argList);
+	if (NotifyClientOnModelKey())
+	{
+		CClientShellDE* pClientShell = (CClientShellDE*)g_pLTELClient->GetClientShell();
+		pClientShell->OnModelKey((HLOCALOBJ)this, &argList);
+	}
 }

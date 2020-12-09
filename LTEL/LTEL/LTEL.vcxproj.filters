@@ -165,6 +165,9 @@
     <ClInclude Include="model_helper.h">
       <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClInclude>
+    <ClInclude Include="node_linker.h">
+      <Filter>Lithtech\1.0\Impl\classes</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -231,6 +234,9 @@
       <Filter>Lithtech\1.0\Impl\client</Filter>
     </ClCompile>
     <ClCompile Include="model_helper.cpp">
+      <Filter>Lithtech\1.0\Impl\classes</Filter>
+    </ClCompile>
+    <ClCompile Include="node_linker.cpp">
       <Filter>Lithtech\1.0\Impl\classes</Filter>
     </ClCompile>
   </ItemGroup>
