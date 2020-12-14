@@ -44,7 +44,49 @@ DRESULT simpl_GetGameInfo(void** ppData, DDWORD* pLen)
 
 ObjectList* simpl_CreateObjectList()
 {
-	return g_pLTELServer->CreateObjectListFromVector(g_pLTELServer->m_pObjectList);
+	//return g_pLTELServer->CreateObjectListFromVector(g_pLTELServer->m_pObjectList);
+	auto pObjectList = new ObjectList();
+
+	pObjectList->m_nInList = 0;
+	pObjectList->m_pFirstLink = nullptr;
+
+	return pObjectList;
+}
+
+ObjectLink* simpl_AddObjectToList(ObjectList* pList, HOBJECT hObj)
+{
+	ObjectLink* pPreviousObjectLink = pList->m_pFirstLink;
+
+	// We want the the last item
+	while (pPreviousObjectLink && pPreviousObjectLink->m_pNext)
+	{
+		pPreviousObjectLink = pPreviousObjectLink->m_pNext;
+	}
+	
+	// Retrieve our object, and create a new object link
+	auto pObject = hObj;
+	auto pObjectLink = new ObjectLink();
+
+	// Assign the object, and the next pointer in line (at the start it will be null!)
+	pObjectLink->m_hObject = (HOBJECT)pObject;
+	pObjectLink->m_pNext = nullptr;
+
+	// If we had a previous item, set this item as its "next item"
+	if (pPreviousObjectLink)
+	{
+		pPreviousObjectLink->m_pNext = pObjectLink;
+	}
+
+	// Increment our counter
+	pList->m_nInList++;
+
+	// If we don't have a first object link...assign the last used pointer as our first link!
+	if (!pList->m_pFirstLink)
+	{
+		pList->m_pFirstLink = pObjectLink;
+	}
+
+	return pObjectLink;
 }
 
 void simpl_RelinquishList(ObjectList* pList)
@@ -157,7 +199,31 @@ HCLASS simpl_GetClass(char* pName)
 
 HOBJECT simpl_GetNextObject(HOBJECT hObj)
 {
-	return nullptr;
+	if (g_pLTELServer->m_pObjectList.size() == 0)
+	{
+		return nullptr;
+	}
+
+	if (!hObj)
+	{
+		return (HOBJECT)g_pLTELServer->m_pObjectList[0];
+	}
+
+	auto pObjList = g_pLTELServer->m_pObjectList;
+
+	auto pObj = std::find_if(pObjList.begin(), pObjList.end(), [&](const GameObject* o) {
+		return o == (GameObject*)hObj;
+	});
+
+
+	auto pNewObj = ++pObj;
+
+	if (pNewObj == pObjList.end())
+	{
+		return nullptr;
+	}
+
+	return (HOBJECT)*pNewObj;
 }
 
 HOBJECT simpl_GetNextInactiveObject(HOBJECT hObj)
@@ -1263,6 +1329,7 @@ void LTELServer::InitFunctionPointers()
 	CreateObject = simpl_CreateObject;
 	RemoveObject = simpl_RemoveObject;
 	CreateObjectList = simpl_CreateObjectList;
+	AddObjectToList = simpl_AddObjectToList;
 	GetNextObject = simpl_GetNextObject;
 	GetNextInactiveObject = simpl_GetNextInactiveObject;
 	RelinquishList = simpl_RelinquishList;
