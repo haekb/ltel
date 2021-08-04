@@ -2,6 +2,14 @@
 #include "game_object.h"
 #include "helpers.h"
 
+// Compat fixes between DVector and Vector3.hpp...
+#ifdef ZERO
+#undef ZERO
+#endif
+#ifdef ONE
+#undef ONE
+#endif
+
 #include <Godot.hpp>
 #include <Quat.hpp>
 #include <Vector3.hpp>

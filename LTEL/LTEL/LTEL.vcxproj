@@ -91,7 +91,7 @@
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>$(SolutionDir)..\godot-cpp\include;$(SolutionDir)..\godot-cpp\include\core;$(SolutionDir)..\godot-cpp\include\gen;$(SolutionDir)..\godot-cpp\godot_headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)..\godot-cpp\include;$(SolutionDir)..\godot-cpp\include\core;$(SolutionDir)..\godot-cpp\include\gen;$(SolutionDir)..\godot-cpp\godot-headers;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <ExceptionHandling>Async</ExceptionHandling>
     </ClCompile>
     <Link>
