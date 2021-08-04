@@ -301,12 +301,15 @@ void LTELServer::HandleMessageQueue()
 			GameObject* bTo = FindObjectByGUID(guidTo);
 			GameObject* bFrom = FindObjectByGUID(guidFrom);
 
-			if (!bTo->GetBaseClass())
+			if (!bTo /*|| !bFrom*/ || !bTo->GetBaseClass())
 			{
 				godot::Godot::print("[HandleMessageQueue] Missing base class!!");
 			}
+			else
+			{
+				bTo->GetBaseClass()->_ObjectMsgFn(bTo->GetBaseClass(), (HOBJECT)bFrom, nObjMessageId, (HMESSAGEREAD)pStream);
+			}
 
-			bTo->GetBaseClass()->_ObjectMsgFn(bTo->GetBaseClass(), (HOBJECT)bFrom, nObjMessageId, (HMESSAGEREAD)pStream);
 		}
 		else
 		{
@@ -694,6 +697,14 @@ DRESULT LTELServer::SetNetFlags(HOBJECT hObj, DDWORD flags)
 DRESULT LTELServer::GetPolyTextureFlags(HPOLY hPoly, DDWORD* pFlags)
 {
 	*pFlags = 0;// ST_UNKNOWN
+
+	int nFlag = (int)hPoly;
+
+	if (hPoly != INVALID_HPOLY)
+	{
+		*pFlags = hPoly;
+	}
+
 	return DE_OK;
 }
 

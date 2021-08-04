@@ -711,7 +711,82 @@ DBOOL simpl_CastRay(ClientIntersectQuery* pQuery, ClientIntersectInfo* pInfo)
 	pInfo->m_Plane = DPlane(0, 0, 0, 0);
 	pInfo->m_Point = DVector(0, 0, 0);
 	pInfo->m_SurfaceFlags = 0;
+
+
+
 	return FALSE;
+}
+
+DBOOL simpl_IntersectSegment(IntersectQuery* pQuery, IntersectInfo* pInfo)
+{
+	pInfo->m_hObject = nullptr;
+	pInfo->m_hPoly = INVALID_HPOLY;
+	pInfo->m_Plane = DPlane(0, 0, 0, 1);
+	pInfo->m_Point = DVector(0, 0, 0);
+	pInfo->m_SurfaceFlags = 0;
+
+	auto vFrom = LT2GodotVec3(pQuery->m_From);
+	auto vTo = LT2GodotVec3(pQuery->m_To);
+
+	godot::RayCast* pRaycast = godot::RayCast::_new();
+	pRaycast->set_translation(vFrom);
+	pRaycast->set_cast_to(vTo);
+	pRaycast->set_enabled(true);
+	g_pLTELServer->m_pGodotLink->add_child(pRaycast);
+
+	// Do the actual cast
+	pRaycast->force_raycast_update();
+
+	auto pNode = pRaycast->get_collider();
+
+	if (!pNode)
+	{
+		pRaycast->queue_free();
+		return DFALSE;
+	}
+
+	auto vNormal = pRaycast->get_collision_normal();
+	auto vPos = pRaycast->get_collision_point();
+
+	auto pSpatial = GDCAST(godot::Spatial, pNode);
+	std::string sName = pSpatial->get_name().alloc_c_string();
+
+	pInfo->m_hObject = g_pLTELServer->GetWorldObject();
+
+	if (sName != "StaticBody" && sName != "StaticBody2")
+	{
+ 		bool bTrue = true;
+		pInfo->m_hPoly = (HPOLY)ST_FLESH;
+
+		NodeLinker* pLink = GDCAST(NodeLinker, pSpatial->get_parent());
+
+		if (pLink)
+		{
+			auto pGameObject = pLink->GetGameObject();
+			pInfo->m_hObject = (HOBJECT)pGameObject;
+
+			//godot::Godot::print("I see {0}", pGameObject->GetFilename().c_str());
+			bool bEnd = true;
+		}
+
+	}
+	else if (sName == "StaticBody")
+	{
+		pInfo->m_hPoly = (HPOLY)ST_STONE;
+	}
+	else if (sName == "StaticBody2")
+	{
+		pInfo->m_hPoly = (HPOLY)ST_SKY;
+	}
+
+	// FIXME: This is temp, we'll need to add scripts to each node that loops back to their game object
+	
+	pInfo->m_Plane = DPlane(vNormal.x, vNormal.y, vNormal.z, 1.0f);
+	pInfo->m_Point = DVector(vPos.x, vPos.y, vPos.z);
+
+	pRaycast->queue_free();
+
+	return DTRUE;
 }
 
 DDWORD simpl_GetObjectContainers(HOBJECT hObj, HOBJECT* pContainerList, DDWORD* pFlagList, DDWORD maxListSize)
@@ -1091,48 +1166,6 @@ DRESULT simpl_GetObjectRotation(HOBJECT hObj, DRotation* pRotation)
 	return DE_OK;
 }
 
-DBOOL simpl_IntersectSegment(IntersectQuery* pQuery, IntersectInfo* pInfo)
-{
-	pInfo->m_hObject = nullptr;
-	pInfo->m_hPoly = INVALID_HPOLY;
-	pInfo->m_Plane = DPlane(0, 0, 0, 1);
-	pInfo->m_Point = DVector(0, 0, 0);
-	pInfo->m_SurfaceFlags = 0;
-
-	auto vFrom = LT2GodotVec3(pQuery->m_From);
-	auto vTo = LT2GodotVec3(pQuery->m_To);
-
-	godot::RayCast* pRaycast = godot::RayCast::_new();
-	pRaycast->set_translation(vFrom);
-	pRaycast->set_cast_to(vTo);
-	pRaycast->set_enabled(true);
-	g_pLTELServer->m_pGodotLink->add_child(pRaycast);
-
-	// Do the actual cast
-	pRaycast->force_raycast_update();
-
-	auto pNode = pRaycast->get_collider();
-
-	if (!pNode)
-	{
-		pRaycast->queue_free();
-		return DFALSE;
-	}
-
-	auto vNormal = pRaycast->get_collision_normal();
-	auto vPos = pRaycast->get_collision_point();
-
-	// FIXME: This is temp, we'll need to add scripts to each node that loops back to their game object
-	pInfo->m_hObject = g_pLTELServer->GetWorldObject();
-	pInfo->m_hPoly = INVALID_HPOLY;
-	pInfo->m_Plane = DPlane(vNormal.x, vNormal.y, vNormal.z, 1.0f);
-	pInfo->m_Point = DVector(vPos.x, vPos.y, vPos.z);
-
-	pRaycast->queue_free();
-
-	return DTRUE;
-}
-
 void simpl_AlignRotation(DRotation* pRotation, DVector* pVector, DVector* pUp)
 {
 	godot::Vector3 vUp;
@@ -1313,6 +1346,21 @@ DBOOL simpl_GetModelNodeTransform(HOBJECT hObj, char* pNodeName,
 	return DTRUE;
 }
 
+DRESULT simpl_GetModelNodeHideStatus(HOBJECT hObj, char* pNodeName, /* out */DBOOL* bHidden)
+{
+	if (!hObj)
+	{
+		return DE_NODENOTFOUND;
+	}
+
+	GameObject* pObj = (GameObject*)hObj;
+
+	// Needs proper impl
+	*bHidden = DFALSE;
+
+	return DE_OK;
+}
+
 void LTELServer::InitFunctionPointers()
 {
 	// Audio functionality
@@ -1355,6 +1403,8 @@ void LTELServer::InitFunctionPointers()
 
 	AlignRotation = simpl_AlignRotation;
 	RotateAroundAxis = simpl_RotateAroundAxis;
+
+	GetModelNodeHideStatus = simpl_GetModelNodeHideStatus;
 
 	// Physics?
 	SetBlockingPriority = simpl_SetBlockingPriority;

@@ -105,7 +105,7 @@ flags = 139265
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -79.0775, -50.4473, -289.015 )
 script = ExtResource( 3 )
 base_class_name = "FALLEN_Trooper"
-obj_name = "Fallen Trooper"
+obj_name = "ai"
 file_name = "Models/Enemies/Onfoot/Trooper.abc"
 skin_name = "Skins/Enemies/Trooper_Fallen.DTX"
 type = 1
@@ -126,6 +126,27 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 124.367, -80.9354, 372.1 )
 script = ExtResource( 3 )
 base_class_name = "GameStartPoint"
 obj_name = "ShogoStartPoint"
+flags = 0
+
+[node name="AIKey1" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 124.367, -80.9354, -338.553 )
+script = ExtResource( 3 )
+base_class_name = "AIKey"
+obj_name = "ai0"
+flags = 0
+
+[node name="AIKey2" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -235.294, -80.9354, -338.553 )
+script = ExtResource( 3 )
+base_class_name = "AIKey"
+obj_name = "ai1"
+flags = 0
+
+[node name="AIKey3" type="Spatial" parent="Placeholders"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -54.8578, -80.9354, -190.499 )
+script = ExtResource( 3 )
+base_class_name = "AIKey"
+obj_name = "ai2"
 flags = 0
 
 [node name="DemoScene" type="Spatial" parent="."]

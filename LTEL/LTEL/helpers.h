@@ -29,6 +29,38 @@
 #define MID_SFX_MSG 254
 #define MID_SFX_INSTANT_MSG 255
 
+enum SurfaceType {
+	ST_UNKNOWN = 0,	// Unknown value
+	ST_AIR = 1,	// No a surface, but not the sky either
+	ST_CHAINFENCE = 9,	// Chain link fence	
+	ST_STONE = 10,	// Stone
+	ST_STONE_HEAVY = 11,	// Heavy stone
+	ST_STONE_LIGHT = 12,	// Light stone
+	ST_METAL = 20,	// Metal
+	ST_METAL_HEAVY = 21,	// Heavy metal
+	ST_METAL_LIGHT = 22,	// Light metal
+	ST_METAL_HOLLOW = 23,	// Hollow metal
+	ST_METAL_HOLLOW_HEAVY = 24,	// Hollow heavy metal
+	ST_METAL_HOLLOW_LIGHT = 25,	// Hollow light metal
+	ST_WOOD = 30,	// Wood
+	ST_DENSE_WOOD = 31,	// Dense wood
+	ST_LIGHT_WOOD = 32,	// Light wood
+	ST_GLASS = 40,	// Glass
+	ST_ENERGY = 50,	// Energy (Force fields, etc)
+	ST_BUILDING = 60,
+	ST_TERRAIN = 70,	// Dirt, ice, etc.
+	ST_CLOTH = 80,	// Cloth, carpet, furniture
+	ST_PLASTIC = 90,	// Linoleum, teflon
+	ST_PLASTIC_HEAVY = 91,	// Heavy plastic
+	ST_PLASTIC_LIGHT = 92,	// Light plastic
+	ST_FLESH = 100,
+	ST_SKY = 110,
+
+	ST_MECHA = 200,
+	ST_LIQUID = 201
+};
+
+
 struct LTELSurface 
 {
 

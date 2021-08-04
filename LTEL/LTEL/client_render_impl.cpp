@@ -212,6 +212,11 @@ DRESULT impl_FillRect(HSURFACE hDest, DRect* pRect, HDECOLOR hColor)
 
 	godot::Ref<godot::ImageTexture> pImageTexture = pSurface->pTextureRect->get_texture();
 	godot::Ref<godot::Image> pImage = pImageTexture->get_data();
+
+	if (pImage.is_null()) {
+		return DE_ERROR;
+	}
+
 	pImage->fill(oColor);
 	pImageTexture->set_data(pImage);
 

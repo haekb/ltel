@@ -444,7 +444,12 @@ void GameObject::SetPosition(DVector vPos, bool bLocalUpdate)
 	if (pNode)
 	{
 		pNode->set_translation(vPosition);
-		UpdatePos(vPos);
+
+		if (m_sName == "Sanjuro" && GetNode())
+		{
+			UpdatePos(vPos);
+		}
+		
 	}
 
 	if (GetKinematicBody())
@@ -509,7 +514,11 @@ void GameObject::SetRotation(DRotation qRot)
 	if (pNode)
 	{
 		pNode->set_rotation(godotQuat.get_euler());
-		UpdateRot(qRot);
+
+		if (m_sName == "Sanjuro" && GetNode())
+		{
+			UpdateRot(qRot);
+		}
 	}
 
 	if (m_pKinematicBody)
