@@ -4,3 +4,6 @@
 [submodule "GodotProj/Addons/DTXReader"]
 	path = GodotProj/Addons/DTXReader
 	url = https://github.com/haekb/godot-dtx-reader.git
+[submodule "GodotProj/Addons/DATReader"]
+	path = GodotProj/Addons/DATReader
+	url = https://github.com/haekb/godot-dat-reader.git
