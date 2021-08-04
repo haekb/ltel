@@ -100,6 +100,7 @@
       <EnableUAC>false</EnableUAC>
       <AdditionalLibraryDirectories>$(SolutionDir)..\godot-cpp\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>libgodot-cpp.windows.debug.32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(SolutionDir)..\GodotProj\bin\$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
       <Command>copy "$(TargetDir)LTEL.dll" "$(SolutionDir)..\GodotProj\bin\LTEL.dll"</Command>
