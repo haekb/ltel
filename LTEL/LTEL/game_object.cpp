@@ -344,6 +344,7 @@ bool GameObject::GetProperty(std::string sName, GenericProp* pProp)
 		qQuat.set_euler(vVec3);
 
 		pProp->m_Rotation = DRotation(qQuat.x, qQuat.y, qQuat.z, qQuat.w);
+		pProp->m_Vec = DVector(vVec3.x, vVec3.y, vVec3.z);
 	}
 		break;
 	case PT_STRING:

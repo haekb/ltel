@@ -33,6 +33,8 @@ void shared_GetObjectRotation(HLOCALOBJ hObj, DRotation* pRotation);
 //
 LTELString* shared_CreateString(char* pString);
 
+HSTRING shared_CopyString(HSTRING hString);
+
 char* shared_GetStringData(HSTRING hString);
 
 void shared_FreeString(HSTRING hString);

@@ -1,6 +1,7 @@
 #pragma once
 #include "LT1/AppHeaders/cpp_servershell_de.h"
 #include "LT1/AppHeaders/client_de.h"
+#include "LT1/AppHeaders/serverobj_de.h"
 #include "client_info.h"
 #include "game_object.h"
 

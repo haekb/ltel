@@ -163,6 +163,12 @@ LTELString* shared_CreateString(char* pString)
 	return new LTELString(pString);
 }
 
+HSTRING shared_CopyString(HSTRING hString)
+{
+	auto szData = shared_GetStringData(hString);
+	return (HSTRING)shared_CreateString(szData);
+}
+
 char* shared_GetStringData(HSTRING hString)
 {
 	LTELString* pString = (LTELString*)hString;

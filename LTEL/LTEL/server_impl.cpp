@@ -20,6 +20,11 @@ HSTRING simpl_CreateString(char* pString)
 	return (HSTRING)shared_CreateString(pString);
 }
 
+HSTRING simpl_CopyString(HSTRING hString)
+{
+	return shared_CopyString(hString);
+}
+
 char* simpl_GetStringData(HSTRING hString)
 {
 	return shared_GetStringData(hString);
@@ -192,12 +197,27 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 			godot::Array aPropertyList = pWorldObject->get("properties");
 			godot::String sClassName = pWorldObject->get("name");
 
+			ClassDef* pClass = (ClassDef*)g_pLTELServer->GetClass(sClassName.alloc_c_string());
+
+			if (!pClass)
+			{
+				godot::Godot::print("Failed to create entity");
+				continue;
+			}
+
 			// Fill our OCS!
 			ObjectCreateStruct ocs = { 0 };
 
 			godot::Vector3 vPos = godot::Vector3(0.0f, 0.0f, 0.0f);
 			godot::Quat qRot = godot::Quat(0.0f, 0.0f, 0.0f, 1.0f);
 			godot::Vector3 vScale = godot::Vector3(1.0f, 1.0f, 1.0f);
+
+
+			int nObjectType = OT_NORMAL;
+
+			if (_stricmp(sClassName.alloc_c_string(), "Camera") == 0) {
+				nObjectType = OT_CAMERA;
+			}
 
 			for (int j = 0; j < aPropertyList.size(); j++) {
 				godot::Object* pProp = GDCAST(godot::Object, aPropertyList[j]);
@@ -218,6 +238,72 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 					strcpy_s(ocs.m_Name, 100, sVal.alloc_c_string());
 				}
 
+				// Take your best guess at the name?
+				if (_stricmp(sName.alloc_c_string(), "LightColor") == 0) {
+					//nObjectType = OT_LIGHT;
+				}
+				if (_stricmp(sName.alloc_c_string(), "Filename") == 0) {
+					nObjectType = OT_MODEL;
+					godot::String sVal = pProp->get("value");
+
+					strcpy_s(ocs.m_Filename, 100, sVal.alloc_c_string());
+				}
+
+				if (_stricmp(sName.alloc_c_string(), "Skin") == 0) {
+					nObjectType = OT_MODEL;
+					godot::String sVal = pProp->get("value");
+
+					strcpy_s(ocs.m_SkinName, 100, sVal.alloc_c_string());
+				}
+				
+				auto pCurrentProp = pClass->m_Props;
+				for (int k = 0; k < pClass->m_nProps; k++) {
+					if (_stricmp(sName.alloc_c_string(), pCurrentProp->m_PropName) == 0) {
+
+						// Found the prop
+						pCurrentProp->m_PropType = pProp->get("code");
+						pCurrentProp->m_PropFlags = pProp->get("flags");
+
+						switch (pCurrentProp->m_PropType) {
+							case PT_STRING: 
+							{
+								char szVal[256 + 1] = "";
+
+								godot::String sVal = pProp->get("value");
+
+								strcpy_s(szVal, (const char*)sVal.alloc_c_string());
+
+								pCurrentProp->m_DefaultValueString = szVal;
+
+							}
+								break;
+							case PT_VECTOR:
+							case PT_COLOR:
+							{
+								godot::Vector3 vVal = pProp->get("value");
+								pCurrentProp->m_DefaultValueVector = DVector(vVal.x, vVal.y, vVal.z);
+							}
+								break;
+							case PT_BOOL:
+							case PT_FLAGS:
+							case PT_LONGINT:
+							case PT_REAL:
+								pCurrentProp->m_DefaultValueFloat = pProp->get("value");
+								break;
+							case PT_ROTATION:
+							{
+								godot::Quat qVal = pProp->get("value");
+								godot::Vector3 vVal = qVal.get_euler();
+
+								pCurrentProp->m_DefaultValueVector = DVector(vVal.x, vVal.y, vVal.z);
+							}
+								break;
+						}
+
+					}
+
+					pCurrentProp++;
+				}
 
 			}
 
@@ -226,10 +312,9 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 			//godot::Quat qRot = godot::Quat();
 			//qRot.set_euler(vRot);
 
-			//strcpy_s(ocs.m_Filename, 100, sFileName.alloc_c_string());
-			//strcpy_s(ocs.m_SkinName, 100, sSkinName.alloc_c_string());
+			
 			//ocs.m_ObjectType = pChild->get("type");
-			ocs.m_ObjectType = OT_NORMAL;
+			ocs.m_ObjectType = nObjectType; // temp!
 			ocs.m_Pos = DVector(vPos.x, vPos.y, vPos.z);
 			ocs.m_Rotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
 			ocs.m_Scale = DVector(vScale.x, vScale.y, vScale.z);
@@ -238,13 +323,7 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 			ocs.m_Flags = 0;// (unsigned int)pChild->get("flags");
 			ocs.m_ContainerCode = 0;// (unsigned int)pChild->get("container_code");
 
-			ClassDef* pClass = (ClassDef*)g_pLTELServer->GetClass(sClassName.alloc_c_string());
 
-			if (!pClass)
-			{
-				godot::Godot::print("Failed to create entity");
-				continue;
-			}
 
 
 			auto pBaseClass = g_pLTELServer->CreateObject((HCLASS)pClass, &ocs);
@@ -261,6 +340,34 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 DRESULT simpl_RunWorld()
 {
 	
+	// This is probably wrong
+	for (auto pClient : g_pLTELServer->m_pClientList)
+	{
+		if (!pClient->GetClientShell())
+		{
+			continue;
+		}
+
+		CClientShellDE* pClientShell = (CClientShellDE*)pClient->GetClientShell();
+
+
+		pClientShell->PreLoadWorld((char*)"TEST");//(char*)sWorldName.c_str());
+
+		pClientShell->OnEnterWorld();
+	}
+
+
+	auto pClass = g_pLTELServer->m_pServerShell->OnClientEnterWorld((HCLIENT)g_pLTELServer->m_pClientList[0], g_pLTELServer->m_pClientList[0], sizeof(g_pLTELServer->m_pClientList[0]));
+
+	auto pGameObj = (GameObject*)pClass->m_hObject;//new GameObject(nullptr, pClass);
+
+	// Setup the client object
+	g_pLTELServer->m_pClientList[0]->SetObj(pGameObj);
+
+	g_pLTELServer->m_pServerShell->PostStartWorld();
+
+	g_pLTELServer->m_bInWorld = true;
+
 	return DE_OK;
 }
 
@@ -396,6 +503,11 @@ HOBJECT simpl_GetClientRefObject(HCLIENTREF hClient)
 	return (HOBJECT)pClient->GetObj();
 }
 
+HOBJECT simpl_ObjectToHandle(LPBASECLASS pObject)
+{
+	return pObject->m_hObject;
+}
+
 LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
 {
 	if (!hObject)
@@ -410,10 +522,17 @@ LPBASECLASS simpl_HandleToObject(HOBJECT hObject)
 
 LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStruct)
 {
+
+
 	ClassDef* pClass = (ClassDef*)hClass;
 
 	if (!pClass)
 	{
+		return nullptr;
+	}
+
+	// They're crashing for some reason
+	if (_stricmp(pClass->m_ClassName, "AIKey") == 0) {
 		return nullptr;
 	}
 
@@ -434,14 +553,18 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 	pClass->m_EngineMessageFn = pBaseClass->_EngineMsgFn;
 	pClass->m_ObjectMessageFn = pBaseClass->_ObjectMsgFn;
 
-	auto nResult = pBaseClass->_EngineMsgFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_NORMAL);
+	//auto nResult = pBaseClass->_EngineMsgFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_WORLDFILE);
 
-	if (nResult == 1)
+	//if (nResult == 1)
 	{ 
 #if 1	
 		GameObject* pObject = new GameObject(pClass, pBaseClass);
 
 		pObject->SetFromObjectCreateStruct(*pStruct);
+
+		g_pLTELServer->m_pCurrentObject = pObject;
+
+
 
 		// FIXME: Memory leak somewhere around here ? flak1 gets moved from OT_NORMAL to OT_OBJECT : perhaps part of precreate?
 
@@ -449,7 +572,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		GameObject* pClientObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
 
 		if (!pClientObject) {
-			free(pBaseClass);
+			delete pObject;
 			g_pLTELServer->m_pCurrentObject = nullptr;
 
 			return nullptr;
@@ -473,10 +596,8 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		pObject->SetClassDef(pClass);
 #endif
 
-		g_pLTELServer->m_pCurrentObject = pObject;
 
-		// We can safely add this to our object list!
-		g_pLTELServer->m_pObjectList.push_back(pObject);
+
 
 #if 0
 		//
@@ -491,7 +612,7 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 			//
 
 			//break;
-			Sleep(10);
+			Sleep(1);
 		}
 
 		// Actually not needed but nice to dream
@@ -504,10 +625,30 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 		pVoid.clear();
 #endif
 
+		// Fill in the props!
+
+
+		// PRECREATE needs to happen after current obj is set, but somehow this doesn't work..
+		
+		auto nResult = pBaseClass->_EngineMsgFn(pBaseClass, MID_PRECREATE, pStruct, PRECREATE_WORLDFILE);
+
+		
+		if (!nResult) {
+			// Cleanup!
+			delete pObject;
+			//delete pObject;
+			g_pLTELServer->m_pCurrentObject = nullptr;
+
+			return nullptr;
+		}
+		
+		// We can safely add this to our object list!
+		//g_pLTELServer->m_pObjectList.push_back(pObject);
+
 		// FIXME: We need to run initial update, as shown by this disassemble:
 		// maybeOnEngineMessage((double)fStack0000002c,pBaseClass,1,pOCS);
 		//auto nResult = pBaseClass->EngineMessageFn(MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
-		pBaseClass->_EngineMsgFn(pBaseClass, MID_INITIALUPDATE, pStruct, INITIALUPDATE_NORMAL);
+		pBaseClass->_EngineMsgFn(pBaseClass, MID_INITIALUPDATE, pStruct, INITIALUPDATE_WORLDFILE);
 
 		return pBaseClass;
 	}
@@ -539,39 +680,129 @@ void simpl_RemoveObject(HOBJECT hObject)
 // it will return DE_NOTFOUND.
 DRESULT simpl_GetPropString(char* pPropName, char* pRet, int maxLen)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+	
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	strcpy_s(pRet, maxLen, pProp->m_String);
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropVector(char* pPropName, DVector* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Vec;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropColor(char* pPropName, DVector* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Color;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropReal(char* pPropName, float* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Float;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropFlags(char* pPropName, DDWORD* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Long;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropBool(char* pPropName, DBOOL* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Bool;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropLongInt(char* pPropName, long* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Long;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropRotation(char* pPropName, DRotation* pRet)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pRet = pProp->m_Rotation;
+
+	free(pProp);
+
+	return DE_OK;
 }
 DRESULT simpl_GetPropRotationEuler(char* pPropName, DVector* pAngles)
 {
-	return DE_NOTFOUND;
+	GenericProp* pProp = (GenericProp*)malloc(sizeof(GenericProp));
+
+	if (!pProp || g_pLTELServer->GetPropGeneric(pPropName, pProp) == DE_ERROR) {
+		return DE_NOTFOUND;
+	}
+
+	*pAngles = pProp->m_Vec;
+
+	free(pProp);
+
+	return DE_OK;
 }
 
 
@@ -1478,6 +1709,7 @@ void LTELServer::InitFunctionPointers()
 	GetNextObject = simpl_GetNextObject;
 	GetNextInactiveObject = simpl_GetNextInactiveObject;
 	RelinquishList = simpl_RelinquishList;
+	ObjectToHandle = simpl_ObjectToHandle;
 	HandleToObject = simpl_HandleToObject;
 	FindNamedObjects = simpl_FindNamedObjects;
 	TeleportObject = simpl_TeleportObject;
@@ -1555,6 +1787,7 @@ void LTELServer::InitFunctionPointers()
 	// String functionality
 	RunGameConString = simpl_RunGameConString;
 	CreateString = simpl_CreateString;
+	CopyString = simpl_CopyString;
 	GetStringData = simpl_GetStringData;
 	FreeString = simpl_FreeString;
 

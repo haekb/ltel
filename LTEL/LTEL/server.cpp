@@ -157,37 +157,13 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 			auto pBaseClass = g_pLTELServer->CreateObject(pClass, &ocs);
 			auto pObj = (GameObject*)pBaseClass->m_hObject;
+			
 		}
 	}
-	
+	else {
 
-
-	// This is probably wrong
-	for (auto pClient : m_pClientList)
-	{
-		if (!pClient->GetClientShell())
-		{
-			continue;
-		}
-
-		CClientShellDE* pClientShell = (CClientShellDE*)pClient->GetClientShell();
-
-		pClientShell->PreLoadWorld((char*)sWorldName.c_str());
-		
-		pClientShell->OnEnterWorld();
 	}
 
-
-	auto pClass = m_pServerShell->OnClientEnterWorld((HCLIENT)m_pClientList[0], m_pClientList[0], sizeof(m_pClientList[0]));
-
-	auto pGameObj = (GameObject*)pClass->m_hObject;//new GameObject(nullptr, pClass);
-
-	// Setup the client object
-	m_pClientList[0]->SetObj(pGameObj);
-
-	m_pServerShell->PostStartWorld();
-
-	m_bInWorld = true;
 }
 
 bool LTELServer::ReceiveMessageFromClient(ClientInfo* pClientInfo, godot::StreamPeerBuffer* pStream, DDWORD flags)
