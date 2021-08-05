@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=17 format=2]
 
 [ext_resource path="res://Bootup.gd" type="Script" id=1]
 [ext_resource path="res://src/load_pcx.gd" type="Script" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://Addons/ABCReader/ModelBuilder.gd" type="Script" id=5]
 [ext_resource path="res://Addons/DTXReader/TextureBuilder.gd" type="Script" id=6]
 [ext_resource path="res://src/fps_counter.gd" type="Script" id=7]
+[ext_resource path="res://Addons/DATReader/WorldBuilder.gd" type="Script" id=8]
 [ext_resource path="res://src/load_spr.gd" type="Script" id=15]
 
 [sub_resource type="PlaneMesh" id=1]
@@ -84,6 +85,9 @@ script = ExtResource( 5 )
 [node name="LoadDTX" type="Node" parent="Scripts"]
 script = ExtResource( 6 )
 
+[node name="LoadDAT" type="Node" parent="Scripts"]
+script = ExtResource( 8 )
+
 [node name="Placeholders" type="Node" parent="."]
 __meta__ = {
 "_editor_description_": "Place your PlaceHolder Game Object Spatials here. 
@@ -150,6 +154,7 @@ obj_name = "ai2"
 flags = 0
 
 [node name="DemoScene" type="Spatial" parent="."]
+visible = false
 
 [node name="Floor" type="MeshInstance" parent="DemoScene"]
 transform = Transform( 5, 0, 0, 0, 5, 0, 0, 0, 5, 0, -100, 0 )

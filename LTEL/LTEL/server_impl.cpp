@@ -158,6 +158,7 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 
 		ObjectCreateStruct ocs = { 0 };
 		strcpy_s(ocs.m_Name, 100, "World");
+		strcpy_s(ocs.m_Filename, 100, pszWorldFileName);
 		ocs.m_ObjectType = OT_WORLDMODEL;
 		ocs.m_Pos = DVector(0, -100, 0);
 		ocs.m_Rotation = DRotation(0, 0, 0, 1);
@@ -169,6 +170,8 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 		g_pLTELServer->m_pWorldObject = (GameObject*)pBaseClass->m_hObject;
 
 	}
+
+
 	return DE_OK;
 }
 

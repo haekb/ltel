@@ -50,10 +50,11 @@ DRESULT LTELClientPhysics::UpdateMovement(MoveInfo* pInfo)
 		velocity.Init();
 	}
 
+	// FIXME: Temp disable gravity because we don't have collision on world load yet !!!
 	if (pObj->IsAffectedByGravity())
 	{
 		// Apply any force (mostly gravity)
-		accel += m_pCommonPhysics->m_vGlobalForce;
+		//accel += m_pCommonPhysics->m_vGlobalForce;
 	}
 
 	// New Velocity

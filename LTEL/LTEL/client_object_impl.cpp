@@ -60,8 +60,32 @@ HLOCALOBJ impl_CreateObject(ObjectCreateStruct* pStruct)
 		// For now we don't care about sprites
 	case OT_WORLDMODEL:
 	{
-		auto pSpatial = GDCAST(godot::Spatial, g_pLTELClient->m_pGodotLink->get_node("/root/Scene/DemoScene/Floor"));
-		pObject->SetNode(pSpatial);
+
+		std::string sDAT = g_pLTELClient->m_sGameDataDir + pStruct->m_Filename + ".DAT";
+
+		auto pScene = g_pLTELClient->LoadDAT(sDAT);
+
+		if (pScene.is_null())
+		{
+			delete pObject;
+			return nullptr;
+		}
+
+		godot::Spatial* pWorld = GDCAST(godot::Spatial, pScene->instance());
+
+		if (!pWorld)
+		{
+			delete pObject;
+			return nullptr;
+		}
+
+		pContainer->add_child(pWorld);
+
+		// Scale down a LTEL bit ;)
+		pContainer->set_scale(godot::Vector3(0.01f, 0.01f, 0.01f));
+
+		pObject->SetNode(pWorld);
+
 	}
 		break;
 	case OT_SPRITE:

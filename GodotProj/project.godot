@@ -23,7 +23,7 @@ window/size/resizable=false
 
 [editor_plugins]
 
-enabled=PoolStringArray( "ABCReader", "DTXReader" )
+enabled=PoolStringArray( "res://addons/ABCReader/plugin.cfg", "res://addons/DATReader/plugin.cfg", "res://addons/DTXReader/plugin.cfg" )
 
 [rendering]
 

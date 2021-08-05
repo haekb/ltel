@@ -142,6 +142,7 @@ public:
         // Create our ClientDE instance
         g_pClient = new LTELClient(this, hCRes);
 
+
         // We'll want to run CreateClientShellFn, to get the game's GameClientShell instance
         CreateClientShellFn pCreate = (CreateClientShellFn)pnCreate;
         auto pClient = pCreate(g_pClient);

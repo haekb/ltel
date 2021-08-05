@@ -110,6 +110,8 @@ void LTELServer::StartWorld(std::string sWorldName)
 
 	m_pServerShell->PreStartWorld(true);
 
+	// Temp world
+	if (0) 
 	{
 		godot::Godot::print("Looking for placeholders...");
 		auto pPlaceholders = g_pLTELServer->m_pGodotLink->get_node("/root/Scene/Placeholders");
@@ -157,6 +159,7 @@ void LTELServer::StartWorld(std::string sWorldName)
 			auto pObj = (GameObject*)pBaseClass->m_hObject;
 		}
 	}
+	
 
 
 	// This is probably wrong
@@ -170,6 +173,7 @@ void LTELServer::StartWorld(std::string sWorldName)
 		CClientShellDE* pClientShell = (CClientShellDE*)pClient->GetClientShell();
 
 		pClientShell->PreLoadWorld((char*)sWorldName.c_str());
+		
 		pClientShell->OnEnterWorld();
 	}
 
