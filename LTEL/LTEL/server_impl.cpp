@@ -171,12 +171,96 @@ DRESULT simpl_LoadWorld(char* pszWorldFileName, DDWORD flags)
 
 	}
 
+	godot::Godot::print("Loading world objects");
+	{
+		auto pNode = g_pLTELServer->m_pGodotLink->get_node("/root/Scene/Scripts/LoadDAT");
+		auto vWorldObjectModel = pNode->get("world_object_data");
+
+		auto pObj = GDCAST(godot::Object, vWorldObjectModel);
+
+		if (!pObj) {
+			godot::Godot::print("Failed to create world");
+			return DE_ERROR;
+		}
+
+		int nWorldObjCount = pObj->get("count");
+		godot::Array aWorldObjects = pObj->get("world_objects");
+
+		for (int i = 0; i < aWorldObjects.size(); i++) {
+
+			godot::Object* pWorldObject = GDCAST(godot::Object, aWorldObjects[i]);
+			godot::Array aPropertyList = pWorldObject->get("properties");
+			godot::String sClassName = pWorldObject->get("name");
+
+			// Fill our OCS!
+			ObjectCreateStruct ocs = { 0 };
+
+			godot::Vector3 vPos = godot::Vector3(0.0f, 0.0f, 0.0f);
+			godot::Quat qRot = godot::Quat(0.0f, 0.0f, 0.0f, 1.0f);
+			godot::Vector3 vScale = godot::Vector3(1.0f, 1.0f, 1.0f);
+
+			for (int j = 0; j < aPropertyList.size(); j++) {
+				godot::Object* pProp = GDCAST(godot::Object, aPropertyList[j]);
+				godot::String sName = pProp->get("name");
+
+				// Pick out some special properties!
+				if (_stricmp(sName.alloc_c_string(), "Pos") == 0) {
+					vPos = pProp->get("value");
+				}
+				if (_stricmp(sName.alloc_c_string(), "Rotation") == 0) {
+					qRot = pProp->get("value");
+				}
+				if (_stricmp(sName.alloc_c_string(), "Scale") == 0) {
+					vScale = pProp->get("value");
+				}
+				if (_stricmp(sName.alloc_c_string(), "Name") == 0) {
+					godot::String sVal = pProp->get("value");
+					strcpy_s(ocs.m_Name, 100, sVal.alloc_c_string());
+				}
+
+
+			}
+
+
+
+			//godot::Quat qRot = godot::Quat();
+			//qRot.set_euler(vRot);
+
+			//strcpy_s(ocs.m_Filename, 100, sFileName.alloc_c_string());
+			//strcpy_s(ocs.m_SkinName, 100, sSkinName.alloc_c_string());
+			//ocs.m_ObjectType = pChild->get("type");
+			ocs.m_ObjectType = OT_NORMAL;
+			ocs.m_Pos = DVector(vPos.x, vPos.y, vPos.z);
+			ocs.m_Rotation = DRotation(qRot.x, qRot.y, qRot.z, qRot.w);
+			ocs.m_Scale = DVector(vScale.x, vScale.y, vScale.z);
+			ocs.m_NextUpdate = 0.1f;// pChild->get("next_update");
+			ocs.m_fDeactivationTime = 0.0f;// pChild->get("deactivation_time");
+			ocs.m_Flags = 0;// (unsigned int)pChild->get("flags");
+			ocs.m_ContainerCode = 0;// (unsigned int)pChild->get("container_code");
+
+			ClassDef* pClass = (ClassDef*)g_pLTELServer->GetClass(sClassName.alloc_c_string());
+
+			if (!pClass)
+			{
+				godot::Godot::print("Failed to create entity");
+				continue;
+			}
+
+
+			auto pBaseClass = g_pLTELServer->CreateObject((HCLASS)pClass, &ocs);
+
+		}
+
+		bool bend = true;
+	}
+
 
 	return DE_OK;
 }
 
 DRESULT simpl_RunWorld()
 {
+	
 	return DE_OK;
 }
 
@@ -359,8 +443,18 @@ LPBASECLASS simpl_CreateObject(HCLASS hClass, struct ObjectCreateStruct_t* pStru
 
 		pObject->SetFromObjectCreateStruct(*pStruct);
 
+		// FIXME: Memory leak somewhere around here ? flak1 gets moved from OT_NORMAL to OT_OBJECT : perhaps part of precreate?
+
 		// Grab the instance so we can get a reference to its godot data
 		GameObject* pClientObject = (GameObject*)g_pLTELServer->m_pClientList[0]->GetClient()->CreateObject(pStruct);
+
+		if (!pClientObject) {
+			free(pBaseClass);
+			g_pLTELServer->m_pCurrentObject = nullptr;
+
+			return nullptr;
+		}
+
 		pClientObject->SetBaseClass(pBaseClass);
 		pClientObject->SetClassDef(pClass);
 		pClientObject->SetServerObject(pObject);
